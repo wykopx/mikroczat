@@ -6,3 +6,8 @@
 chat/index.php
 /chat/_ts
 .htaccess
+/_ts
+*.php
+/node_modules
+package-lock.json
+tsconfig.json
