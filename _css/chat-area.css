@@ -1,0 +1,284 @@
+#chatArea
+{
+	overflow-x: hidden;
+	overflow-y: hidden;
+	height: auto;
+	min-height: 100%;
+	height: 100%;
+	width: 100%;
+	border-radius: var(--borderRadius) 0px 0px var(--borderRadius);
+
+	box-shadow: -5px -5px inset 4px rgb(0 0 0 / 0.2);
+
+	border-radius: var(--borderRadius);
+	box-shadow: -5px -5px inset 4px rgb(0 0 0 / 0.2);
+	background: var(--chatBackground);
+	border-radius: 4px;
+}
+
+.scrollerContainer
+{
+	width: 100%;
+	height: 100%;
+}
+
+.scroller
+{
+	height: 100%;
+	min-height: 100%;
+	width: auto;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+
+#chatArea > #mikrochatFeeds
+{
+
+	& time
+	{
+		/* font-size: 0.8em; */
+		color: gray;
+		font-size: var(--_fontSize);
+		display: none;
+	}
+
+	&[data-entry-date="YYYMMDD"] time.entryDateYYYMMDD
+	{
+		display: block flow;
+	}
+
+	&[data-entry-time="HHMM"] time.entryDateHHMM
+	{
+		display: block flow;
+	}
+
+	&[data-entry-time="HHMMSS"] time.entryDateHHMMSS
+	{
+		display: block flow;
+	}
+}
+
+#chatArea #mikrochatFeeds .channelFeed
+{
+	padding: var(--chatInnerPadding);
+	color: var(--chatBaseColor);
+	font-size: var(--chatBaseFontSize);
+	display: none;
+	flex-direction: column-reverse;
+	/* flex-direction: column;	 */
+	scroll-snap-type: both mandatory;
+	scroll-padding: 0;
+	overscroll-behavior-y: contain;
+	row-gap: var(--messagesGap);
+
+	&[data-active="true"]
+	{
+		display: flex;
+	}
+
+	& article.messageArticle
+	{
+		--_genderColor: var(--niebieskiPasek1);
+		--_profileColor: var(--nicknameOrange1);
+		--_fontSize: 16px;
+
+		border: 1px solid rgb(0 0 0 / 0.1);
+		border-left: 1px solid var(--_genderColor);
+		border-radius: 3px;
+
+
+		scroll-margin: var(--messagesGap);
+		scroll-snap-align: end;
+		scroll-snap-stop: normal;
+
+		padding: 10px;
+
+		color: var(--chatBaseColor);
+
+
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		column-gap: 10px;
+
+		&.orange-profile
+		{
+			--_profileColor: var(--nicknameOrange1);
+		}
+
+		&.burgundy-profile
+		{
+			--_profileColor: var(--nicknameBordeaux1);
+		}
+
+		&.green-profile
+		{
+			--_profileColor: var(--nicknameGreen1);
+		}
+
+		&.f-gender
+		{
+			--_genderColor: var(--rozowyPasek1);
+		}
+
+
+		&.m-gender
+		{
+			--_genderColor: var(--niebieskiPasek1);
+		}
+
+		&.null-gender
+		{
+			--_genderColor: var(--bezplciowyPasek1);
+		}
+
+		&.channelOwner
+		{
+			/* wiadomosc od autora kanału */
+			border: 1px solid orange;
+		}
+
+		& .avatar
+		{
+			display: contents;
+
+			& img.avatar_img
+			{
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+			}
+		}
+
+		& .entryDate
+		{
+			text-wrap: nowrap;
+			display: contents;
+
+			& a.permalinkHref
+			{
+				text-decoration: none;
+				display: contents;
+			}
+		}
+
+
+		& .messageBlock
+		{
+			display: block flow-root;
+		}
+
+		& .entryUser
+		{
+			display: inline;
+			column-gap: 5px;
+			display: contents;
+
+			& a.username
+			{
+				display: contents;
+				font-weight: bolder;
+				color: var(--_profileColor);
+				font-size: var(--_fontSize);
+			}
+
+			& .username_span
+			{
+				/* display: contents; */
+				min-width: max-content;
+				/* ikonka banana */
+			}
+		}
+
+		& .messageContent
+		{
+			display: inline;
+			line-height: 1.6em;
+			font-size: var(--_fontSize);
+			text-wrap: pretty;
+		}
+
+		&.entry
+		{}
+
+		&.comment
+		{
+			border-right: 5px solid goldenrod;
+		}
+	}
+}
+
+
+#chatArea #mikrochatFeeds .channelFeed .messageArticle
+{
+	animation-duration: .2s;
+	animation-timing-function: ease-in-out;
+	animation-delay: 0s;
+	animation-fill-mode: both;
+}
+
+#chatArea #mikrochatFeeds .channelFeed .messageArticle:hover
+{
+	background-color: rgb(128, 128, 128, 0.05);
+}
+
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.highlightLock) .messageArticle:not(.highlightLock)
+{
+	animation-name: opacity03;
+	display: none;
+}
+
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.highlightLock) .messageArticle.highlightLock
+{
+	animation-name: highlightBrightness14;
+}
+
+#chatArea #mikrochatFeeds .channelFeed.highlightLock:has(.messageArticle.highlightLock) .messageArticle.highlightLock
+{
+	border-right-color: rgb(175, 49, 11);
+}
+
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.highlightLock) .messageArticle.highlightLock.entry
+{
+	animation-name: higlightBorderColor;
+}
+
+@keyframes opacity03
+{
+	from
+	{
+		opacity: 1;
+	}
+
+	to
+	{
+		opacity: 0.3;
+	}
+}
+
+@keyframes highlightBrightness14
+{
+	from
+	{
+		filter: brightness(1);
+	}
+
+	to
+	{
+		filter: brightness(1.4);
+	}
+}
+
+@keyframes higlightBorderColor
+{
+	from
+	{
+		/* border-color: initial; */
+	}
+
+	to
+	{
+		border-color: goldenrod;
+	}
+}

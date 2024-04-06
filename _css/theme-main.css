@@ -1,0 +1,36 @@
+:root
+{
+	--chatInnerPadding: 8px 45px 17px 15px;
+	--chatBaseFontSize: 16px;
+	--borderRadius: 7px;
+	--messagesGap: 10px;
+
+	--mainBackground: linear-gradient(225deg, #202020, #222222);
+	--chatBackground: rgb(54, 54, 54);
+
+
+	--chatBaseColor: rgb(240, 240, 240);
+	--userListBackground: var(--chatBackground);
+
+
+	/* GUTTERS */
+	--gutterBackground: transparent;
+
+
+
+	--successColor: rgb(49, 163, 59);
+	--errorColor: rgb(211, 77, 37);
+}
+
+
+:root [data-night-mode="0"]
+{
+	--mainBackground: rgb(182, 206, 219);
+	--chatBackground: rgb(255, 255, 255);
+	--chatBaseColor: rgb(30, 30, 30);
+	--userListBackground: var(--chatBackground);
+
+
+	/* GUTTERS */
+	--gutterBackground: transparent;
+}

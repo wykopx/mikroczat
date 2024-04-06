@@ -1,0 +1,62 @@
+dialog#loginDialog
+{
+	place-self: center center;
+	min-width: 300px;
+	width: 50vw;
+	max-width: 800px;
+	min-height: 200px;
+
+	.container
+	{
+		background-color: rgb(37, 50, 61);
+		color: rgb(166, 176, 190);
+		display: flex;
+		flex-direction: column;
+		place-content: center;
+		font-size: 1.8em;
+
+		row-gap: 16px;
+		padding: 32px;
+
+		border: 1px solid rgb(81, 158, 209);
+
+		display: flex;
+
+		input:is([type="text"], [type="password"])
+		{
+			padding: 8px;
+			background-color: rgba(255, 255, 255, 0.72);
+		}
+
+		.alert
+		{
+			padding: 16px;
+		}
+
+		.alert-success
+		{
+			color: var(--successColor);
+			border-bottom: 1px solid var(--successColor);
+		}
+
+		.alert-error
+		{
+			color: var(--errorColor);
+			border-bottom: 1px solid var(--errorColor);
+		}
+	}
+
+}
+
+
+
+
+::backdrop
+{
+	background-image: linear-gradient(0deg,
+			rgb(17, 17, 17),
+			rgb(48, 48, 48),
+			rgb(56, 66, 77),
+			rgb(36, 126, 179));
+	opacity: 0.75;
+}

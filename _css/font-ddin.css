@@ -1,0 +1,35 @@
+@font-face
+{
+	font-family: D-DIN-Medium;
+	src: url(/czat/fonts/D-DIN.woff2) format("woff2"), url(/czat/fonts/D-DIN.woff) format("woff"), url(/czat/fonts/D-DIN.otf) format("opentype");
+	font-style: normal;
+	font-weight: 400;
+	font-display: block
+}
+
+@font-face
+{
+	font-family: D-DIN-Light;
+	src: url(/czat/fonts/D-DIN.woff2) format("woff2"), url(/czat/fonts/D-DIN.woff) format("woff"), url(/czat/fonts/D-DIN.otf) format("opentype");
+	font-style: normal;
+	font-weight: 400;
+	font-display: block
+}
+
+@font-face
+{
+	font-family: D-DIN-Bold;
+	src: url(/czat/fonts/D-DIN-Bold.woff2) format("woff2"), url(/czat/fonts/D-DIN-Bold.woff) format("woff"), url(/czat/fonts/D-DIN-Bold.otf) format("opentype");
+	font-style: normal;
+	font-weight: 400;
+	font-display: block
+}
+
+@font-face
+{
+	font-family: D-DIN-Regular;
+	src: url(/czat/fonts/D-DIN.woff2) format("woff2"), url(/czat/fonts/D-DIN.woff) format("woff"), url(/czat/fonts/D-DIN.otf) format("opentype");
+	font-style: normal;
+	font-weight: 400;
+	font-display: block
+}

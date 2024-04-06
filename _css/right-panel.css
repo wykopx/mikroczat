@@ -1,0 +1,20 @@
+#rightPanelArea
+{
+
+	#usersPanel,
+	#roomsPanel
+	{
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	#usersPanel
+	{
+		display: none;
+	}
+
+
+	#roomsPanel
+	{}
+}

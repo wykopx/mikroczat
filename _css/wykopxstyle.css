@@ -1,0 +1,304 @@
+:root
+{
+	/* KOLORY PLUSÓW I MINUSÓW */
+	--green: rgb(59, 145, 95);
+	--red: rgb(192, 57, 43);
+	--golden: goldenrod;
+
+	/* KOLORY */
+	--nicknameGreen1: rgba(51, 153, 51, 1);
+	--nicknameGreen09: rgba(51, 153, 51, 0.9);
+	--nicknameGreen08: rgba(51, 153, 51, 0.8);
+	--nicknameGreen07: rgba(51, 153, 51, 0.7);
+	--nicknameGreen06: rgba(51, 153, 51, 0.6);
+	--nicknameGreen05: rgba(51, 153, 51, 0.5);
+	--nicknameGreen04: rgba(51, 153, 51, 0.4);
+	--nicknameGreen03: rgba(51, 153, 51, 0.3);
+	--nicknameGreen02: rgba(51, 153, 51, 0.2);
+	--nicknameGreen01: rgba(51, 153, 51, 0.1);
+	--nicknameGreen005: rgba(51, 153, 51, 0.05);
+	--nicknameGreen002: rgba(51, 153, 51, 0.02);
+	--nicknameGreen001: rgba(51, 153, 51, 0.01);
+	--nicknameGreenBackground: rgba(51, 153, 51, 0.02);
+
+	--nicknameOrange1: rgba(255, 89, 23, 1);
+	--nicknameOrange09: rgba(255, 89, 23, 0.9);
+	--nicknameOrange08: rgba(255, 89, 23, 0.8);
+	--nicknameOrange07: rgba(255, 89, 23, 0.7);
+	--nicknameOrange06: rgba(255, 89, 23, 0.6);
+	--nicknameOrange05: rgba(255, 89, 23, 0.5);
+	--nicknameOrange04: rgba(255, 89, 23, 0.4);
+	--nicknameOrange03: rgba(255, 89, 23, 0.3);
+	--nicknameOrange02: rgba(255, 89, 23, 0.2);
+	--nicknameOrange01: rgba(255, 89, 23, 0.1);
+	--nicknameOrange005: rgba(255, 89, 23, 0.05);
+	--nicknameOrange002: rgba(255, 89, 23, 0.02);
+	--nicknameOrange001: rgba(255, 89, 23, 0.01);
+	--nicknameOrangeBackground: rgba(255, 89, 23, 0.02);
+
+	--nicknameBordeaux1: rgba(153, 0, 0, 1);
+	--nicknameBordeaux09: rgba(153, 0, 0, 0.9);
+	--nicknameBordeaux08: rgba(153, 0, 0, 0.8);
+	--nicknameBordeaux07: rgba(153, 0, 0, 0.7);
+	--nicknameBordeaux06: rgba(153, 0, 0, 0.6);
+	--nicknameBordeaux05: rgba(153, 0, 0, 0.5);
+	--nicknameBordeaux04: rgba(153, 0, 0, 0.4);
+	--nicknameBordeaux03: rgba(153, 0, 0, 0.3);
+	--nicknameBordeaux02: rgba(153, 0, 0, 0.2);
+	--nicknameBordeaux01: rgba(153, 0, 0, 0.1);
+	--nicknameBordeaux005: rgba(153, 0, 0, 0.05);
+	--nicknameBordeaux002: rgba(153, 0, 0, 0.02);
+	--nicknameBordeaux001: rgba(153, 0, 0, 0.01);
+	--nicknameBordeauxBackground: rgba(153, 0, 0, 0.02);
+
+	--kolorBananowy1: rgba(255, 185, 0, 1);
+	--kolorBananowy09: rgba(255, 185, 0, 0.9);
+	--kolorBananowy08: rgba(255, 185, 0, 0.8);
+	--kolorBananowy07: rgba(255, 185, 0, 0.7);
+	--kolorBananowy06: rgba(255, 185, 0, 0.6);
+	--kolorBananowy05: rgba(255, 185, 0, 0.5);
+	--kolorBananowy04: rgba(255, 185, 0, 0.4);
+	--kolorBananowy03: rgba(255, 185, 0, 0.3);
+	--kolorBananowy02: rgba(255, 185, 0, 0.2);
+	--kolorBananowy01: rgba(255, 185, 0, 0.1);
+	--kolorBananowy005: rgba(255, 185, 0, 0.05);
+	--kolorBananowy002: rgba(255, 185, 0, 0.02);
+	--kolorBananowy001: rgba(255, 185, 0, 0.01);
+	--kolorBananowyBackground: rgb(241, 238, 228);
+
+	--niebieskiPasek1: rgba(70, 171, 242, 1);
+	--niebieskiPasek09: rgba(70, 171, 242, 0.9);
+	--niebieskiPasek08: rgba(70, 171, 242, 0.8);
+	--niebieskiPasek07: rgba(70, 171, 242, 0.7);
+	--niebieskiPasek06: rgba(70, 171, 242, 0.6);
+	--niebieskiPasek05: rgba(70, 171, 242, 0.5);
+	--niebieskiPasek04: rgba(70, 171, 242, 0.4);
+	--niebieskiPasek03: rgba(70, 171, 242, 0.3);
+	--niebieskiPasek02: rgba(70, 171, 242, 0.2);
+	--niebieskiPasek01: rgba(70, 171, 242, 0.1);
+	--niebieskiPasek005: rgba(70, 171, 242, 0.05);
+	--niebieskiPasek002: rgba(70, 171, 242, 0.02);
+	--niebieskiPasek001: rgba(70, 171, 242, 0.01);
+	--niebieskiPasekBackground: rgba(228, 237, 241, 1);
+
+
+	--rozowyPasek1: rgba(242, 70, 208, 1);
+	--rozowyPasek09: rgba(242, 70, 208, 0.9);
+	--rozowyPasek08: rgba(242, 70, 208, 0.8);
+	--rozowyPasek07: rgba(242, 70, 208, 0.7);
+	--rozowyPasek06: rgba(242, 70, 208, 0.6);
+	--rozowyPasek05: rgba(242, 70, 208, 0.5);
+	--rozowyPasek04: rgba(242, 70, 208, 0.4);
+	--rozowyPasek03: rgba(242, 70, 208, 0.3);
+	--rozowyPasek02: rgba(242, 70, 208, 0.2);
+	--rozowyPasek01: rgba(242, 70, 208, 0.1);
+	--rozowyPasek005: rgba(242, 70, 208, 0.05);
+	--rozowyPasek002: rgba(242, 70, 208, 0.02);
+	--rozowyPasek001: rgba(242, 70, 208, 0.01);
+	--rozowyPasekBackground: rgba(254, 236, 250, 1);
+
+	--bezplciowyPasek1: rgba(224, 224, 224, 1);
+	--bezplciowyPasek09: rgba(224, 224, 224, 0.9);
+	--bezplciowyPasek08: rgba(224, 224, 224, 0.8);
+	--bezplciowyPasek07: rgba(224, 224, 224, 0.7);
+	--bezplciowyPasek06: rgba(224, 224, 224, 0.6);
+	--bezplciowyPasek05: rgba(224, 224, 224, 0.5);
+	--bezplciowyPasek04: rgba(224, 224, 224, 0.4);
+	--bezplciowyPasek03: rgba(224, 224, 224, 0.3);
+	--bezplciowyPasek02: rgba(224, 224, 224, 0.2);
+	--bezplciowyPasek01: rgba(224, 224, 224, 0.1);
+	--bezplciowyPasek005: rgba(224, 224, 224, 0.05);
+	--bezplciowyPasek002: rgba(224, 224, 224, 0.02);
+	--bezplciowyPasek001: rgba(224, 224, 224, 0.01);
+	--bezplciowyPasekBackground: rgba(235, 235, 235, 1);
+	--bezplciowyPasekNegative: rgba(48, 48, 50, 1);
+
+
+	--bezplciowyPasekFilter: grayscale(100%) !important;
+	--niebieskiPasekFilter: grayscale(100%) sepia(100%) hue-rotate(167deg) saturate(215%);
+	--rozowyPasekFilter: grayscale(100%) sepia(100%) brightness(99%) hue-rotate(247deg) saturate(267%);
+
+	--nicknameBordeauxFilter: grayscale(100%) sepia(100%) brightness(50%) hue-rotate(304deg) saturate(700%);
+	--nicknameGreenFilter: grayscale(100%) sepia(100%) brightness(60%) hue-rotate(59deg) saturate(300%);
+	--nicknameOrangeFilter: grayscale(100%) sepia(100%) brightness(70%) hue-rotate(-17deg) saturate(600%);
+
+	--greyOpacity1: rgba(140, 140, 140, 1);
+
+	/* WYKOPOWE KOLORY */
+	--whitish: rgba(255, 255, 255, 1);
+	--steelBluish: rgba(57, 131, 175, 1);
+	--geyser: rgba(43, 43, 45, 1);
+
+	--blackOpacity1: rgba(0, 0, 0, 1);
+	--blackOpacity09: rgba(0, 0, 0, 0.9);
+	--blackOpacity08: rgba(0, 0, 0, 0.8);
+	--blackOpacity07: rgba(0, 0, 0, 0.7);
+	--blackOpacity06: rgba(0, 0, 0, 0.6);
+	--blackOpacity05: rgba(0, 0, 0, 0.5);
+	--blackOpacity04: rgba(0, 0, 0, 0.4);
+	--blackOpacity03: rgba(0, 0, 0, 0.3);
+	--blackOpacity02: rgba(0, 0, 0, 0.2);
+	--blackOpacity01: rgba(0, 0, 0, 0.1);
+	--blackOpacity005: rgba(0, 0, 0, 0.05);
+	--blackOpacity002: rgba(0, 0, 0, 0.01);
+	--blackOpacity001: rgba(0, 0, 0, 0.02);
+
+	--whiteOpacity1: rgba(255, 255, 255, 1);
+	--whiteOpacity09: rgba(255, 255, 255, 0.9);
+	--whiteOpacity08: rgba(255, 255, 255, 0.8);
+	--whiteOpacity07: rgba(255, 255, 255, 0.7);
+	--whiteOpacity06: rgba(255, 255, 255, 0.6);
+	--whiteOpacity05: rgba(255, 255, 255, 0.5);
+	--whiteOpacity04: rgba(255, 255, 255, 0.4);
+	--whiteOpacity03: rgba(255, 255, 255, 0.3);
+	--whiteOpacity02: rgba(255, 255, 255, 0.2);
+	--whiteOpacity01: rgba(255, 255, 255, 0.1);
+	--whiteOpacity005: rgba(255, 255, 255, 0.05);
+	--whiteOpacity002: rgba(255, 255, 255, 0.02);
+	--whiteOpacity001: rgba(255, 255, 255, 0.01);
+
+	--x-white: white;
+	--x-inactive-button: rgba(255, 255, 255, 0.3);
+
+	--mobileNavbarButtonColorActive: black !important;
+	--mobileNavbarButtonColorInactive: black !important;
+	--mobileNavbarButtonBackgroundColorActive: rgba(230, 230, 230, 1);
+	--mobileNavbarButtonBackgroundColorInactive: white !important;
+}
+
+
+
+/* TRYB NOCNY */
+:root [data-night-mode]
+{
+	/* KOLORY PLUSÓW I MINUSÓW */
+	--green: rgb(59, 145, 95);
+	--red: rgb(193, 58, 45);
+	--golden: goldenrod;
+
+	/* KOLORY */
+	--kolorBananowy1: rgba(255, 185, 0, 1);
+	--kolorBananowy09: rgba(255, 185, 0, 0.9);
+	--kolorBananowy08: rgba(255, 185, 0, 0.8);
+	--kolorBananowy07: rgba(255, 185, 0, 0.7);
+	--kolorBananowy06: rgba(255, 185, 0, 0.6);
+	--kolorBananowy05: rgba(255, 185, 0, 0.5);
+	--kolorBananowy04: rgba(255, 185, 0, 0.4);
+	--kolorBananowy03: rgba(255, 185, 0, 0.3);
+	--kolorBananowy02: rgba(255, 185, 0, 0.2);
+	--kolorBananowy01: rgba(255, 185, 0, 0.1);
+	--kolorBananowy005: rgba(255, 185, 0, 0.05);
+	--kolorBananowy002: rgba(255, 185, 0, 0.02);
+	--kolorBananowy001: rgba(255, 185, 0, 0.01);
+	--kolorBananowyBackground: rgba(241, 238, 228, 0.05);
+
+	--niebieskiPasek1: rgba(67, 131, 175, 1);
+	--niebieskiPasek09: rgba(67, 131, 175, 0.9);
+	--niebieskiPasek08: rgba(67, 131, 175, 0.8);
+	--niebieskiPasek07: rgba(67, 131, 175, 0.7);
+	--niebieskiPasek06: rgba(67, 131, 175, 0.6);
+	--niebieskiPasek05: rgba(67, 131, 175, 0.5);
+	--niebieskiPasek04: rgba(67, 131, 175, 0.4);
+	--niebieskiPasek03: rgba(67, 131, 175, 0.3);
+	--niebieskiPasek02: rgba(67, 131, 175, 0.2);
+	--niebieskiPasek01: rgba(67, 131, 175, 0.1);
+	--niebieskiPasek005: rgba(67, 131, 175, 0.05);
+	--niebieskiPasek002: rgba(67, 131, 175, 0.02);
+	--niebieskiPasek001: rgba(67, 131, 175, 0.01);
+	--niebieskiPasekBackground: rgba(67, 131, 175, 0.05);
+
+	--rozowyPasek1: rgba(192, 72, 167, 1);
+	--rozowyPasek09: rgba(192, 72, 167, 0.9);
+	--rozowyPasek08: rgba(192, 72, 167, 0.8);
+	--rozowyPasek07: rgba(192, 72, 167, 0.7);
+	--rozowyPasek06: rgba(192, 72, 167, 0.6);
+	--rozowyPasek05: rgba(192, 72, 167, 0.5);
+	--rozowyPasek04: rgba(192, 72, 167, 0.4);
+	--rozowyPasek03: rgba(192, 72, 167, 0.3);
+	--rozowyPasek02: rgba(192, 72, 167, 0.2);
+	--rozowyPasek01: rgba(192, 72, 167, 0.1);
+	--rozowyPasek005: rgba(192, 72, 167, 0.05);
+	--rozowyPasek002: rgba(192, 72, 167, 0.02);
+	--rozowyPasek001: rgba(192, 72, 167, 0.01);
+	--rozowyPasekBackground: rgba(192, 72, 167, 0.05);
+
+	--bezplciowyPasek1: rgba(48, 48, 50, 1);
+	--bezplciowyPasek09: rgba(48, 48, 50, 0.9);
+	--bezplciowyPasek08: rgba(48, 48, 50, 0.8);
+	--bezplciowyPasek07: rgba(48, 48, 50, 0.7);
+	--bezplciowyPasek06: rgba(48, 48, 50, 0.6);
+	--bezplciowyPasek05: rgba(48, 48, 50, 0.5);
+	--bezplciowyPasek04: rgba(48, 48, 50, 0.4);
+	--bezplciowyPasek03: rgba(48, 48, 50, 0.3);
+	--bezplciowyPasek02: rgba(48, 48, 50, 0.2);
+	--bezplciowyPasek01: rgba(48, 48, 50, 0.1);
+	--bezplciowyPasek005: rgba(48, 48, 50, 0.05);
+	--bezplciowyPasek002: rgba(48, 48, 50, 0.02);
+	--bezplciowyPasek001: rgba(48, 48, 50, 0.01);
+	--bezplciowyPasekBackground: rgba(19, 19, 19, 1);
+
+	--greyOpacity1: rgba(7, 7, 7, 1);
+
+	--bezplciowyPasekNegative: rgba(224, 224, 224, 1);
+
+	--nicknameGreenBackground: rgba(20, 25, 22, 1);
+	--nicknameOrangeBackground: rgba(30, 22, 20, 1);
+
+	--nicknameBordeaux1: rgba(193, 56, 56, 1);
+	--nicknameBordeaux09: rgba(193, 56, 56, 0.9);
+	--nicknameBordeaux08: rgba(193, 56, 56, 0.8);
+	--nicknameBordeaux07: rgba(193, 56, 56, 0.7);
+	--nicknameBordeaux06: rgba(193, 56, 56, 0.6);
+	--nicknameBordeaux05: rgba(193, 56, 56, 0.5);
+	--nicknameBordeaux04: rgba(193, 56, 56, 0.4);
+	--nicknameBordeaux03: rgba(193, 56, 56, 0.3);
+	--nicknameBordeaux02: rgba(193, 56, 56, 0.2);
+	--nicknameBordeaux01: rgba(193, 56, 56, 0.1);
+	--nicknameBordeaux005: rgba(193, 56, 56, 0.05);
+	--nicknameBordeaux002: rgba(193, 56, 56, 0.02);
+	--nicknameBordeaux001: rgba(193, 56, 56, 0.01);
+
+	--nicknameBordeauxBackground: rgba(27, 20, 22, 1);
+
+
+
+
+	/* WYKOPOWE KOLORY */
+	--whitish: rgb(34, 34, 37);
+	--steelBluish: rgb(225, 225, 227);
+	--geyser: rgba(43, 43, 45, 1);
+
+
+	--blackOpacity1: rgba(255, 255, 255, 1);
+	--blackOpacity09: rgba(255, 255, 255, 0.9);
+	--blackOpacity08: rgba(255, 255, 255, 0.8);
+	--blackOpacity07: rgba(255, 255, 255, 0.7);
+	--blackOpacity06: rgba(255, 255, 255, 0.6);
+	--blackOpacity05: rgba(255, 255, 255, 0.5);
+	--blackOpacity04: rgba(255, 255, 255, 0.4);
+	--blackOpacity03: rgba(255, 255, 255, 0.3);
+	--blackOpacity02: rgba(255, 255, 255, 0.2);
+	--blackOpacity01: rgba(255, 255, 255, 0.1);
+	--blackOpacity005: rgba(255, 255, 255, 0.05);
+	--blackOpacity002: rgba(255, 255, 255, 0.02);
+	--blackOpacity001: rgba(255, 255, 255, 0.01);
+
+	--whiteOpacity1: rgba(0, 0, 0, 1);
+	--whiteOpacity09: rgba(0, 0, 0, 0.9);
+	--whiteOpacity08: rgba(0, 0, 0, 0.8);
+	--whiteOpacity07: rgba(0, 0, 0, 0.7);
+	--whiteOpacity06: rgba(0, 0, 0, 0.6);
+	--whiteOpacity05: rgba(0, 0, 0, 0.5);
+	--whiteOpacity04: rgba(0, 0, 0, 0.4);
+	--whiteOpacity03: rgba(0, 0, 0, 0.3);
+	--whiteOpacity02: rgba(0, 0, 0, 0.2);
+	--whiteOpacity01: rgba(0, 0, 0, 0.1);
+	--whiteOpacity005: rgba(0, 0, 0, 0.05);
+	--whiteOpacity002: rgba(0, 0, 0, 0.02);
+	--whiteOpacity001: rgba(0, 0, 0, 0.01);
+
+	--mobileNavbarButtonColorActive: white;
+	--mobileNavbarButtonColorInactive: rgba(200, 200, 200, 1);
+	--mobileNavbarButtonBackgroundColorActive: black;
+	--mobileNavbarButtonBackgroundColorInactive: rgba(38, 38, 38, 1);
+}
