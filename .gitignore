@@ -1,0 +1,8 @@
+/.vscode
+.htaccess
+/cgi-bin
+/chat/.vscode
+/chat/node_modules
+chat/index.php
+/chat/_ts
+.htaccess
