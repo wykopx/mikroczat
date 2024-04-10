@@ -378,6 +378,12 @@
 
 
 	/* LICZBA KOMENTARZY POD WPISEM */
+	&.entry .entryCommentsCount
+	{
+		/* dla jednolitej wysokości wpisów */
+		height: 0px;
+	}
+
 	&.entry .entryCommentsCount::after
 	{
 		content: var(--commentsCount);

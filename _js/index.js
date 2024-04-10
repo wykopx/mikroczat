@@ -213,45 +213,61 @@ async function refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject) 
     console.log(`--- aktualizacja liczby plusów i komentarzy we wszystkich otwartych wpisach (${ChannelObject.entries.size} wpisów)`);
     const refreshedEntriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, ChannelObject.entries.size);
     if (refreshedEntriesArray.length > 0)
-        updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries(ChannelObject, refreshedEntriesArray);
+        analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, refreshedEntriesArray);
     return true;
 }
-function updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries(ChannelObject, entriesArray) {
-    for (const entryObject of entriesArray) {
-        if (entryObject.comments?.count) {
-            console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments);
-            if (entryObject.comments.count != ChannelObject.entries.get(entryObject.id).comments.count) {
+function analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, messagesArray) {
+    for (const entryObject of messagesArray) {
+        console.log(`entryObject`, entryObject);
+        console.log(`entryObject.id`, entryObject.id);
+        console.log(`ChannelObject.entries.get(entryObject.id)`, ChannelObject.entries.get(entryObject.id));
+        console.log(`ChannelObject.entries`, ChannelObject.entries);
+        if (!ChannelObject.entries.has(entryObject.id)) {
+            insertNewItem(ChannelObject, entryObject);
+        }
+        else {
+            if (entryObject.comments?.count && entryObject.comments.count != ChannelObject.entries.get(entryObject.id).comments.count) {
+                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments);
                 console.log(`💭 We wpisie ${entryObject.id} zmieniła się liczba komentarzy z [${ChannelObject.entries.get(entryObject.id).comments.count}] na [${entryObject.comments.count}]`);
                 console.log(entryObject);
                 console.log(entryObject.comments);
                 ChannelObject.entries.get(entryObject.id).comments.count = entryObject.comments.count;
             }
-            if (entryObject.votes.up != ChannelObject.entries.get(entryObject.id).votes.up) {
+            if (entryObject.votes?.up && entryObject.votes.up != ChannelObject.entries.get(entryObject.id).votes.up) {
+                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.votes `, entryObject.votes);
                 console.log(`🔼 We wpisie ${entryObject.id} zmieniła się liczba plusów z [${ChannelObject.entries.get(entryObject.id).votes.up}] na [${entryObject.votes.up}]`);
                 ChannelObject.entries.get(entryObject.id).votes.up = entryObject.votes.up;
+            }
+            if (entryObject.voted && entryObject.voted != ChannelObject.entries.get(entryObject.id).voted) {
+                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.voted `, entryObject.voted);
+                console.log(`entryObject`, entryObject);
+                console.log(`➕ Użytkownik zaplusował wpis/komentarz ${entryObject.id} zmiana .voted z: [${ChannelObject.entries.get(entryObject.id).voted}] na [${entryObject.voted}]`);
+                ChannelObject.entries.get(entryObject.id).voted = entryObject.voted;
             }
         }
     }
 }
-export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject, commentOrVotesObject) {
-    console.log(`🎃 updateCSSPropertyOnMessageArticleElement(entryOrComment)`, entryOrCommentObject);
+export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject, changedPropertyName, changedObject) {
     let messageArticle = null;
     if (entryOrCommentObject.resource === "entry")
-        messageArticle = mikrochatFeeds.querySelector(`.messageArticle.entry[data-id="${entryOrCommentObject.id}"]`);
+        messageArticle = mikrochatFeeds.querySelector(`.messageArticle[data-id="${entryOrCommentObject.id}"]`);
     else if (entryOrCommentObject.resource === "entry_comment")
-        messageArticle = mikrochatFeeds.querySelector(`.messageArticle.entry[data-id="${entryOrCommentObject.id}"]`);
+        messageArticle = mikrochatFeeds.querySelector(`.messageArticle[data-id="${entryOrCommentObject.id}"]`);
     if (messageArticle) {
-        if (commentOrVotesObject) {
-            if (commentOrVotesObject.up) {
-                messageArticle.style.setProperty('--votesUp', `"${commentOrVotesObject.up}"`);
-                messageArticle.dataset.votesUp = commentOrVotesObject.up;
+        if (changedObject) {
+            if (changedPropertyName === "up") {
+                messageArticle.style.setProperty('--votesUp', `"${changedObject.up}"`);
+                messageArticle.dataset.votesUp = changedObject.up;
             }
-            if (entryOrCommentObject.resource === "entry" && commentOrVotesObject.count) {
-                messageArticle.style.setProperty('--commentsCount', `"${commentOrVotesObject.count}"`);
-                messageArticle.dataset.commentsCount = commentOrVotesObject.count;
+            if (entryOrCommentObject.resource === "entry" && changedPropertyName === "count") {
+                messageArticle.style.setProperty('--commentsCount', `"${changedObject.count}"`);
+                messageArticle.dataset.commentsCount = changedObject.count;
+            }
+            if (changedPropertyName === "voted") {
+                messageArticle.dataset.voted = changedObject.voted;
             }
         }
-        else {
+        else if (entryOrCommentObject) {
             messageArticle.style.setProperty('--votesUp', `"${entryOrCommentObject.votes.up}"`);
             messageArticle.dataset.votesUp = entryOrCommentObject.votes.up;
             if (entryOrCommentObject.resource === "entry")
@@ -269,17 +285,24 @@ async function checkAndInsertNewEntriesInChannel(ChannelObject, limit = 50) {
         insertNewItemsFromArray(ChannelObject, filteredEntries);
     return filteredEntries;
 }
-function insertNewItemsFromArray(ChannelObject, entriesArray) {
-    for (const entryObject of entriesArray) {
-        console.log("filteredEntry: - przed insertMessage", entryObject);
-        ChannelObject.users.set(entryObject.author.username, entryObject.author);
-        insertNewMessage(entryObject, ChannelObject);
+function insertNewItemsFromArray(ChannelObject, messagesObjectsArray) {
+    for (const messageObject of messagesObjectsArray) {
+        console.log("filteredEntry: - przed insertMessage", messageObject);
+        ChannelObject.users.set(messageObject.author.username, messageObject.author);
+        insertNewMessage(messageObject, ChannelObject);
+    }
+}
+function insertNewItem(ChannelObject, messageObject) {
+    if (messageObject.id) {
+        console.log(`insertNewItem() Channel: ${ChannelObject.name}, entry: ${messageObject.id}`, messageObject);
+        ChannelObject.users.set(messageObject.author.username, messageObject.author);
+        insertNewMessage(messageObject, ChannelObject);
     }
 }
 async function checkAndInsertNewCommentsInChannel(ChannelObject) {
-    console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: T.Channel) `, ChannelObject.name);
+    console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: ${ChannelObject.name})`, ChannelObject);
     for (const [entry_id, entryObject] of ChannelObject.entries) {
-        if (entryObject.comments.count > 0 && entryObject.comments.count > entryObject.last_checked_comments_count) {
+        if (entryObject?.comments?.count > 0 && entryObject.comments.count > entryObject.last_checked_comments_count) {
             const commentsArray = await api.getAllCommentsFromEntry(entryObject, 400);
             const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
             if (filteredComments.length > 0)

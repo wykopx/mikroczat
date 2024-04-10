@@ -207,6 +207,8 @@
 				border-radius: 0;
 			}
 
+
+
 			*:not(blockquote) + blockquote:has(+ blockquote),
 			blockquote:first-child:has(+ blockquote)
 			{
@@ -214,6 +216,17 @@
 				margin-top: 6px;
 				margin-left: 0;
 				margin-right: 0;
+			}
+
+			br + blockquote
+			{
+				margin-top: 6px;
+			}
+
+			/* 0, 0, 2 */
+			blockquote:has(+ br)
+			{
+				margin-bottom: 0 !important;
 			}
 
 			blockquote + blockquote:not(:has(+ blockquote))
@@ -224,6 +237,7 @@
 				margin-right: 0;
 			}
 
+			/* 0, 0, 3 */
 			blockquote:not(:has(+ blockquote))
 			{
 				margin-bottom: 6px;

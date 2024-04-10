@@ -170,78 +170,78 @@ export class Channel
 		function createProxyHandler(ChannelObject: Channel, EntryObject: Entry | Comment)
 		{
 			return {
-				// get: function (originalObject: Votes | Comments, property: string, proxyObject: any)
-				// {
-				// 	console.log(`Proxy (get) of property: [${property}]`);
-				// 	return originalObject[property];
-				// },
+				get: function (target, prop)
+				{
+					if (typeof target[prop] === 'object' && target[prop] !== null)
+					{
+						return new Proxy(target[prop], this);
+					} else
+					{
+						return target[prop];
+					}
+				},
 
-				set: function (originalObject: Votes | Comments, propertyName: string, newValue: any)
+				set: function (originalProperty: Votes | Comments | Entry, changedPropertyName: string, newValue: any)
 				{
 					// console.log(`🎃 PROXY handler`);
-					// console.log(`🎃 proxyObject`, originalObject);						// { items: [2 items], count: 8 }
+					// console.log(`🎃 originalProperty`, originalProperty);						// { items: [2 items], count: 8 }
+					// console.log(`🎃 EntryObject.voted`, EntryObject.voted);
 					// console.log(`🎃 EntryObject.votes`, EntryObject.votes);
 					// console.log(`🎃 EntryObject.comments`, EntryObject.comments);
-					// console.log(`🎃 propertyName`, propertyName);										// "count" / "up"
-					// console.log(`🎃 proxyObject[propertyName]`, originalObject[propertyName]);				// 8 - wartosc przed zmianą
+					// console.log(`🎃 changedPropertyName`, changedPropertyName);										// "count" / "up" / "voted"
+					// console.log(`🎃 originalProperty[changedPropertyName]`, originalProperty[changedPropertyName]);				// 8 - wartosc przed zmianą
 					// console.log(`🎃 newValue`, newValue);												// 9 - wartosc po zmianie
-					// console.log(`🎃 proxyObject[propertyName] !== value`, originalObject[propertyName] !== newValue);	// czy nastąpiła nastąpiła zmiana
+					// console.log(`🎃 originalProperty[changedPropertyName] !== value`, originalProperty[changedPropertyName] !== newValue);	// czy nastąpiła nastąpiła zmiana
 
-
-					if (originalObject[propertyName] !== newValue)
+					if (originalProperty[changedPropertyName] !== newValue)
 					{
-
-						if (propertyName === 'count' && EntryObject.resource === "entry")
+						if (EntryObject.resource === "entry" && changedPropertyName === 'count')
 						{
 							console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${newValue}`);
 							console.log("EntryObject", EntryObject);
 							console.log("ChannelObject", ChannelObject);
-
-							originalObject[propertyName] = newValue;
-
-							updateCSSPropertyOnMessageArticleElement(EntryObject, originalObject);	// aktualizacja var(--commentsCount);
-
+							originalProperty[changedPropertyName] = newValue;
+							updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);	// aktualizacja var(--commentsCount);
 							// wczytanie nowych komentarzy pod wpisem
 							checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject);
 						}
 
-						if (propertyName === 'up' && originalObject[propertyName] !== newValue)
+						if (changedPropertyName === 'up')
 						{
 							console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${newValue}`);
-							originalObject[propertyName] = newValue;
+							originalProperty[changedPropertyName] = newValue;
 
-							updateCSSPropertyOnMessageArticleElement(EntryObject, originalObject);	// aktualizacja var(--votesUp);
+							updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);	// aktualizacja var(--votesUp);
 						}
 
+						if (changedPropertyName === 'voted')
+						{
+							console.log(`🎃 PROXY - UŻYTKOWNIK DAŁ PLUSA: ${newValue}`);
+							originalProperty[changedPropertyName] = newValue;
 
+							updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);	// aktualizacja data-voted="1"
+						}
 						return true;
 					}
 				}
 			};
 		}
 
+		EntryObject = new Proxy(EntryObject, createProxyHandler(ChannelObject, EntryObject));
 
 		if (EntryObject.resource === "entry_comment")
 		{
 			// Proxy obserwujące  liczbę plusów
-			EntryObject.votes = new Proxy(EntryObject.votes, createProxyHandler(ChannelObject, EntryObject)) as Votes;
-			proxies.add(EntryObject.votes);
-
+			// proxies.add(EntryObject.votes);
 			this.comments.set(EntryObject.id, EntryObject);
 		}
 
 		if (EntryObject.resource === "entry")
 		{
-			// Proxy obserwujące liczbę komentarzy i liczbę plusów
-			EntryObject.votes = new Proxy(EntryObject.votes, createProxyHandler(ChannelObject, EntryObject)) as Votes;
-			EntryObject.comments = new Proxy(EntryObject.comments, createProxyHandler(ChannelObject, EntryObject)) as Comments;
-
-			proxies.add(EntryObject.votes);
-			proxies.add(EntryObject.comments);
-
+			// Proxy obserwujące liczbę komentarzy i liczbę plusów oraz czy użytkownik zaplusował
+			// proxies.add(EntryObject.votes);
+			// proxies.add(EntryObject.comments);
 			this.entries.set(EntryObject.id, EntryObject);
-			// this.entries.set(EntryObject.entry_id, EntryObject);
-
 		}
 	}
 }
@@ -315,6 +315,7 @@ export class Entry
 		this.slug = entryObject.slug;
 		this.status = entryObject.status;
 		this.tags = entryObject.tags;
+
 		this.voted = entryObject.voted;
 	}
 
