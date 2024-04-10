@@ -87,36 +87,37 @@ article.messageArticle
 	--_fontSize: 16px;
 }
 
-article.messageArticle.orange-profile
+.orange-profile
 {
 	--_profileColor: var(--nicknameOrange1);
 }
 
-article.messageArticle.burgundy-profile
+.burgundy-profile
 {
 	--_profileColor: var(--nicknameBordeaux1);
 }
 
-article.messageArticle.green-profile
+.green-profile
 {
 	--_profileColor: var(--nicknameGreen1);
 }
 
-article.messageArticle.f-gender
+.null-gender
+{
+	--_genderColor: var(--bezplciowyPasek1);
+}
+
+.f-gender
 {
 	--_genderColor: var(--rozowyPasek1);
 }
 
-
-article.messageArticle.m-gender
+.m-gender
 {
 	--_genderColor: var(--niebieskiPasek1);
 }
 
-article.messageArticle.null-gender
-{
-	--_genderColor: var(--bezplciowyPasek1);
-}
+
 
 article.messageArticle.channelOwner
 {

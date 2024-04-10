@@ -1,3 +1,4 @@
+export declare const proxies: WeakSet<object>;
 export type TokensObject = {
     token?: string;
     refresh_token?: string;
@@ -54,7 +55,7 @@ export declare class Channel {
     messagesContainer: HTMLElement;
     constructor(tag: Tag);
     printChannelDetails(): void;
-    addEntryOrCommentToChannelObject(EntryObject: Entry): void;
+    addEntryOrCommentToChannelObject(ChannelObject: Channel, EntryObject: Entry | Comment): void;
 }
 export declare class Entry {
     last_checked_comments_datetime: string;
@@ -109,9 +110,9 @@ export type Votes = {
     users?: [object];
 };
 export type Media = {
-    embed?: object;
+    embed?: MediaEmbed;
     photo?: MediaPhoto;
-    survey?: object;
+    survey?: MediaSurvey;
 };
 export type MediaPhoto = {
     key?: string;
@@ -121,6 +122,17 @@ export type MediaPhoto = {
     size?: number;
     width?: number;
     height?: number;
+};
+export type MediaEmbed = {
+    key?: string;
+    type?: string;
+    thumbnail?: string;
+    url?: string;
+    age_category?: string;
+};
+export type MediaSurvey = {
+    key?: string;
+    TODO?: null;
 };
 interface UserObject {
     username: string;

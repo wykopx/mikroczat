@@ -5,6 +5,11 @@ import * as T from './types.js';
 import * as fn from './fn.js';
 const openedChannels = new Map();
 const activeChannels = [null, null];
+const numbersOfEntriesToLoadOnChannelOpen = 1;
+const numbersOfEntriesToLoadInChannel = 49;
+const numbersOfEntriesToCheck = 2;
+const numbersOfCommentsToLoad = 50;
+let nightMode = localStorage.getItem('nightMode');
 let mikroczatLoggedIn = false;
 let wykopDomain = "https://wykop.pl";
 let wxDomain = "https://wykopx.pl";
@@ -13,21 +18,16 @@ const root = document.documentElement;
 const head = document.head;
 const body = document.body;
 const main = document.getElementById("main");
-const chatArea = document.getElementById("chatArea");
 const centerHeader = document.getElementById("centerHeader");
+const template_channelFeed = document.getElementById("template_channelFeed");
+const template_messageArticle = document.getElementById("template_messageArticle");
+const chatArea = document.getElementById("chatArea");
+const mikrochatFeeds = document.getElementById("mikrochatFeeds");
 const newMessageSound = new Audio('/_sounds/80177.mp3');
 export let user = { username: "Anonim (Ty)" };
 export let tokensObject = api.getTokenFromDatabase();
-let nightMode = localStorage.getItem('nightMode');
 if ((tokensObject.token || tokensObject.refresh_token) && !mikroczatLoggedIn)
     logIn();
-const template_channelFeed = document.getElementById("template_channelFeed");
-const template_messageArticle = document.getElementById("template_messageArticle");
-const mikrochatFeeds = document.getElementById("mikrochatFeeds");
-const numbersOfEntriesToLoadOnChannelOpen = 3;
-const numbersOfEntriesToLoadInChannel = 49;
-const numbersOfEntriesToCheck = 2;
-const numbersOfCommentsToLoad = 50;
 var intervalID = setInterval(function () {
 }, 10000);
 const loginDialog = document.querySelector("#loginDialog");
@@ -138,8 +138,13 @@ async function logIn() {
 }
 async function confirmLoggedIn() {
     console.log(`confirmLoggedIn()`);
+    console.log("user:", user);
     mikroczatLoggedIn = true;
     fn.innerHTML(".loggedInUsername", user.username);
+    document.querySelectorAll("a.loggedInHref").forEach((el) => {
+        el.href = 'https://go.wykopx.pl/@${user.username}';
+        el.classList.add(`${user.status}`, `${user.color}-profile`, `${user.gender}-gender`);
+    });
     if (window.opener)
         window.opener.postMessage('mikroczatLoggedInIn', wykopDomain);
     if (openChannelsFromURLArray.length > 0) {
@@ -155,6 +160,7 @@ async function confirmLoggedIn() {
             openNewChannel(ChannelObject);
             ChannelObject.users.set(user.username, user);
             window.activateChannel(ChannelObject);
+            console.log('⌛ Promise delay: 4 sekundy');
             await new Promise(resolve => setTimeout(resolve, 4000));
         }
     }
@@ -171,64 +177,118 @@ async function openNewChannel(ChannelObject) {
     mikrochatFeeds.appendChild(templateNode);
     openedChannels.get(ChannelObject.name).element = document.getElementById(`channel_${ChannelObject.name}`);
     openedChannels.get(ChannelObject.name).messagesContainer = openedChannels.get(ChannelObject.name).element.querySelector(".messagesContainer");
-    setupScrollListener(openedChannels.get(ChannelObject.name).messagesContainer);
     console.log(openedChannels.get(ChannelObject.name).element);
     await checkAndInsertNewEntriesInChannel(ChannelObject, numbersOfEntriesToLoadOnChannelOpen);
     console.log("ChannelObject.entries.size", ChannelObject.entries.size);
     if (ChannelObject.entries.size > 0)
         await checkAndInsertNewCommentsInChannel(ChannelObject);
+    mikrochatFeeds.querySelector(".loadingInfo").classList.add("hidden");
+    setupScrollListener(openedChannels.get(ChannelObject.name).messagesContainer);
+    fetchOpenedChannelsData(ChannelObject);
     return ChannelObject;
 }
 const FETCH_DELAY_MILLISECONDS = 300;
-async function fetchOpenedChannelsData() {
-    console.log(`🌍 fetchChannelData()`);
-    for (let channelObject of openedChannels.values()) {
-        let newEntriesInsertedArray = [];
-        if (channelObject.entries.size <= numbersOfEntriesToLoadOnChannelOpen) {
-            newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(channelObject, numbersOfEntriesToLoadInChannel);
+async function fetchOpenedChannelsData(channelObject) {
+    console.log(`🌍 fetchOpenedChannelsData()`);
+    console.log(`💚 ROZPOCZYNAM AKTUALIZACJĘ WPISÓW NA KANALE [${channelObject.name}]`);
+    let newEntriesInsertedArray = [];
+    if (channelObject.entries.size <= numbersOfEntriesToLoadOnChannelOpen) {
+        newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(channelObject, numbersOfEntriesToLoadInChannel);
+    }
+    if (newEntriesInsertedArray.length > 0) {
+        for (let entryObject of newEntriesInsertedArray) {
+            if (entryObject.comments.count > 0) {
+                await checkAndInsertNewCommentsInEntry(channelObject, entryObject);
+            }
         }
-        if (newEntriesInsertedArray.length > 0) {
-            for (let entryObject of newEntriesInsertedArray) {
-                if (entryObject.comments.count > 0) {
-                    await checkAndInsertNewCommentsInEntry(entryObject, channelObject);
-                }
+    }
+    while (true) {
+        console.log('⌛ Promise delay: 10 sekund');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        await refreshAllEntriesCommentsCountAndVotesUpInChannel(channelObject);
+    }
+}
+async function refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject) {
+    console.log(`refreshAllEntriesCommentsCountAndVotesUpInChannel(Channel: ${ChannelObject.name})`);
+    console.log(`--- aktualizacja liczby plusów i komentarzy we wszystkich otwartych wpisach (${ChannelObject.entries.size} wpisów)`);
+    const refreshedEntriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, ChannelObject.entries.size);
+    if (refreshedEntriesArray.length > 0)
+        updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries(ChannelObject, refreshedEntriesArray);
+    return true;
+}
+function updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries(ChannelObject, entriesArray) {
+    for (const entryObject of entriesArray) {
+        if (entryObject.comments?.count) {
+            console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments);
+            if (entryObject.comments.count != ChannelObject.entries.get(entryObject.id).comments.count) {
+                console.log(`💭 We wpisie ${entryObject.id} zmieniła się liczba komentarzy z [${ChannelObject.entries.get(entryObject.id).comments.count}] na [${entryObject.comments.count}]`);
+                console.log(entryObject);
+                console.log(entryObject.comments);
+                ChannelObject.entries.get(entryObject.id).comments.count = entryObject.comments.count;
+            }
+            if (entryObject.votes.up != ChannelObject.entries.get(entryObject.id).votes.up) {
+                console.log(`🔼 We wpisie ${entryObject.id} zmieniła się liczba plusów z [${ChannelObject.entries.get(entryObject.id).votes.up}] na [${entryObject.votes.up}]`);
+                ChannelObject.entries.get(entryObject.id).votes.up = entryObject.votes.up;
             }
         }
     }
 }
-var intervalID = setInterval(async function () {
-    await fetchOpenedChannelsData();
-}, 10000);
+export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject, commentOrVotesObject) {
+    console.log(`🎃 updateCSSPropertyOnMessageArticleElement(entryOrComment)`, entryOrCommentObject);
+    let messageArticle = null;
+    if (entryOrCommentObject.resource === "entry")
+        messageArticle = mikrochatFeeds.querySelector(`.messageArticle.entry[data-id="${entryOrCommentObject.id}"]`);
+    else if (entryOrCommentObject.resource === "entry_comment")
+        messageArticle = mikrochatFeeds.querySelector(`.messageArticle.entry[data-id="${entryOrCommentObject.id}"]`);
+    if (messageArticle) {
+        if (commentOrVotesObject) {
+            if (commentOrVotesObject.up) {
+                messageArticle.style.setProperty('--votesUp', `"${commentOrVotesObject.up}"`);
+                messageArticle.dataset.votesUp = commentOrVotesObject.up;
+            }
+            if (entryOrCommentObject.resource === "entry" && commentOrVotesObject.count) {
+                messageArticle.style.setProperty('--commentsCount', `"${commentOrVotesObject.count}"`);
+                messageArticle.dataset.commentsCount = commentOrVotesObject.count;
+            }
+        }
+        else {
+            messageArticle.style.setProperty('--votesUp', `"${entryOrCommentObject.votes.up}"`);
+            messageArticle.dataset.votesUp = entryOrCommentObject.votes.up;
+            if (entryOrCommentObject.resource === "entry")
+                messageArticle.style.setProperty('--commentsCount', `"${entryOrCommentObject.comments.count}"`);
+            messageArticle.dataset.commentsCount = entryOrCommentObject.comments.count;
+            messageArticle.dataset.voted = entryOrCommentObject.voted;
+        }
+    }
+}
 async function checkAndInsertNewEntriesInChannel(ChannelObject, limit = 50) {
-    console.log(`checkAndInsertNewEntriesInChannel(ChannelObject: T.Channel) `, ChannelObject.name);
+    console.log(`checkAndInsertNewEntriesInChannel(Channel: ${ChannelObject.name})`);
     const entriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, limit);
     const filteredEntries = entriesArray.filter(entry => !ChannelObject.entries.has(entry.id));
-    console.log("ChannelObject.entries", ChannelObject.entries);
-    console.log("filteredEntries", filteredEntries);
-    for (const entryObject of filteredEntries) {
+    if (filteredEntries.length > 0)
+        insertNewItemsFromArray(ChannelObject, filteredEntries);
+    return filteredEntries;
+}
+function insertNewItemsFromArray(ChannelObject, entriesArray) {
+    for (const entryObject of entriesArray) {
         console.log("filteredEntry: - przed insertMessage", entryObject);
         ChannelObject.users.set(entryObject.author.username, entryObject.author);
         insertNewMessage(entryObject, ChannelObject);
     }
-    return filteredEntries;
 }
 async function checkAndInsertNewCommentsInChannel(ChannelObject) {
     console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: T.Channel) `, ChannelObject.name);
     for (const [entry_id, entryObject] of ChannelObject.entries) {
-        if (entryObject.comments.count > 0) {
+        if (entryObject.comments.count > 0 && entryObject.comments.count > entryObject.last_checked_comments_count) {
             const commentsArray = await api.getAllCommentsFromEntry(entryObject, 400);
             const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
-            if (filteredComments.length > 0) {
-                for (const commentObject of filteredComments) {
-                    ChannelObject.users.set(commentObject.author.username, commentObject.author);
-                    insertNewMessage(commentObject, ChannelObject);
-                }
-            }
+            if (filteredComments.length > 0)
+                insertNewItemsFromArray(ChannelObject, filteredComments);
         }
     }
 }
-async function checkAndInsertNewCommentsInEntry(EntryObject, ChannelObject) {
-    console.log(`checkAndInsertNewCommentsInEntry(EntryObject: ${EntryObject.id})`, EntryObject);
+export async function checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject) {
+    console.log(`checkAndInsertNewCommentsInEntry(ChannelObject: ${ChannelObject.name} | EntryObject: ${EntryObject.id})`, EntryObject);
     if (EntryObject.comments.count > 0) {
         const commentsArray = await api.getAllCommentsFromEntry(EntryObject, 400);
         const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
@@ -244,34 +304,16 @@ async function checkAndInsertNewCommentsInEntry(EntryObject, ChannelObject) {
 }
 async function setCheckingForNewMessagesInChannel(ChannelObject, msInterval = 36000) {
 }
-function closeChannel(ChannelObject) {
-    openedChannels.delete(ChannelObject.name);
-}
-function closeActiveChannel() {
-}
-function getYouTubeFromChannel(ChannelObject) {
-    console.log(`getYouTubeFromChannel`, ChannelObject.name);
-    const currentChannel = openedChannels.get(ChannelObject.name);
-    let EntryWithYouTubeAndMaxVotes = null;
-    let maxVotes = -Infinity;
-    currentChannel.entries.forEach((entry) => {
-        if (entry.media?.embed && entry.votes.up > maxVotes) {
-            maxVotes = entry.votes.up;
-            EntryWithYouTubeAndMaxVotes = entry;
-        }
-    });
-    console.log("▶ Most plused YouTube: maxVotesEntry: ", EntryWithYouTubeAndMaxVotes);
-    return EntryWithYouTubeAndMaxVotes;
-}
 async function insertNewMessage(entryObject, ChannelObject) {
     console.log(`🧡insertNewMessage(entryObject: ${entryObject.id}, ChannelObject: ${ChannelObject.name})`);
+    console.log(`🧡entryObject:`, entryObject);
     const currentChannel = openedChannels.get(ChannelObject.name);
     if (entryObject.resource === "entry" && currentChannel.entries.has(entryObject.id))
         return false;
     if (entryObject.resource === "entry_comment" && currentChannel.comments.has(entryObject.id))
         return false;
     currentChannel.messagesContainer.append(await getMessageHTMLElement(entryObject));
-    currentChannel.addEntryOrCommentToChannelObject(entryObject);
+    currentChannel.addEntryOrCommentToChannelObject(ChannelObject, entryObject);
     if (currentChannel.messagesContainer.dataset.scrollToNew == "1")
         currentChannel.messagesContainer.scrollTop = currentChannel.messagesContainer.scrollHeight;
     if (navigator?.userActivation?.hasBeenActive) {
@@ -286,6 +328,10 @@ async function getMessageHTMLElement(entryObject) {
     const username_span = templateNode.querySelector('.username_span');
     const messageContent = templateNode.querySelector('.messageContent');
     const entryImage = templateNode.querySelector('.entryImage');
+    const entryImageHref = templateNode.querySelector('.entryImageHref');
+    const entryMediaEmbedYouTube = templateNode.querySelector('.entryMediaEmbedYouTube');
+    const entryMediaEmbedStreamable = templateNode.querySelector('.entryMediaEmbedStreamable');
+    const entryMediaEmbedTwitter = templateNode.querySelector('.entryMediaEmbedTwitter');
     const entryDate = templateNode.querySelector('.entryDate');
     const entryDateYYYMMDD = templateNode.querySelector('.entryDateYYYMMDD');
     const entryDateHHMM = templateNode.querySelector('.entryDateHHMM');
@@ -294,7 +340,7 @@ async function getMessageHTMLElement(entryObject) {
     messageArticle.dataset.id = String(entryObject.id);
     messageArticle.dataset.entryId = String(entryObject.entry_id);
     messageArticle.dataset.authorUsername = entryObject.author?.username;
-    messageArticle.style.order = `${entryObject.created_at_Timestamp}`;
+    messageArticle.style.order = `-${entryObject.created_at_Timestamp}`;
     if (entryObject.author?.username === user.username)
         messageArticle.classList.add("own");
     if (entryObject.author?.username === entryObject.channel?.tag?.author?.username)
@@ -342,6 +388,15 @@ async function getMessageHTMLElement(entryObject) {
     }
     if (entryObject.media?.photo?.url) {
         entryImage.src = entryObject.media.photo.url;
+        entryImageHref.href = entryObject.media.photo.url;
+    }
+    if (entryObject.media?.embed?.url && entryObject.media?.embed?.type) {
+        if (entryObject.media?.embed?.type === "youtube")
+            entryMediaEmbedYouTube.href = entryObject.media.embed.url;
+        else if (entryObject.media?.embed?.type === "streamable")
+            entryMediaEmbedStreamable.href = entryObject.media.embed.url;
+        else if (entryObject.media?.embed?.type === "twitter")
+            entryMediaEmbedTwitter.href = entryObject.media.embed.url;
     }
     if (entryObject.deleted) {
         messageArticle.dataset.deleted = `1`;

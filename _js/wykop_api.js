@@ -83,6 +83,10 @@ export async function getXNewestEntriesFromChannelFromPageHash(ChannelObject, pa
     });
 }
 export async function getAllCommentsFromEntry(entry, FETCH_DELAY_MILLISECONDS = 1000) {
+    console.log(`getAllCommentsFromEntry(entry: ${entry.id}, delay: ${FETCH_DELAY_MILLISECONDS})`);
+    console.log(`entry`, entry);
+    console.log(`entry.comments.count`, entry.comments.count);
+    console.log(`entry.last_checked_comments_count`, entry.last_checked_comments_count);
     if (entry.comments.count > 0 && entry.comments.count != entry.last_checked_comments_count) {
         return new Promise(async (resolve, reject) => {
             let totalPages = Math.ceil(entry.comments.count / 50);

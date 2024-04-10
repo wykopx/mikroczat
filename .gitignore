@@ -4,10 +4,9 @@
 /chat/.vscode
 /chat/node_modules
 chat/index.php
-/chat/_ts
 .htaccess
-/_ts
 *.php
 /node_modules
 package-lock.json
 tsconfig.json
+package.json

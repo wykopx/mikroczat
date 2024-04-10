@@ -62,9 +62,6 @@
 			& a.username
 			{
 				display: contents;
-				font-weight: bolder;
-				color: var(--_profileColor);
-				font-size: var(--_fontSize);
 			}
 
 			& .username_span
@@ -101,6 +98,9 @@
 				font-style: italic;
 			}
 
+			& a
+			{}
+
 			& a.href_channel
 			{
 				color: var(--messageAHrefChannelColor);
@@ -109,6 +109,7 @@
 				text-decoration: none;
 				padding: 4px 10px;
 				border-radius: var(--smallBorderRadius);
+				white-space: nowrap;
 			}
 
 			& a.href_channel:hover
@@ -157,16 +158,19 @@
 				background-color: black;
 				padding: 5px 20px;
 				box-shadow: 0px 0px 10px 5px rgb(0 0 0 / 0.3);
+
+				z-index: 1;
 			}
 
 			& abbr
 			{
 				/* <abbr data-mention-user="NadiaFrance">@NadiaFrance</abbr> */
-				border: 1px solid var(--messageAbbrColor);
-				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
-				border-radius: var(--smallBorderRadius);
-				padding: 0px 10px;
 				display: inline flex;
+				padding: 0px 10px;
+				margin-right: 3px;
+				border: 1px solid var(--messageAbbrColor);
+				border-radius: var(--smallBorderRadius);
+				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
 			}
 
 			& abbr.mentions-you

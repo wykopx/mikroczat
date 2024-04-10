@@ -4,7 +4,6 @@
 @import "right-panel.css";
 @import "dialog.css";
 @import "messages.css";
-@import "new-message.css";
 @import "wykopxstyle.css";
 
 
@@ -379,9 +378,26 @@ main#main.grid
 }
 
 
-.resizable
+
+
+/* NICKI UŻYTKOWNIKÓW */
+a.username
+{
+	font-weight: bolder;
+	color: var(--_profileColor);
+	font-size: var(--_fontSize);
+}
+
+a.a.username .username_span
+{}
+
+
+
+
+
 
 /* nieuzywane */
+.resizable
 {
 	resize: both;
 	overflow: auto;
@@ -433,12 +449,17 @@ button:focus
 
 .hidden
 {
-	display: none;
+	display: none !important;
 }
 
 .show
 {
-	display: flex;
+	display: block flex;
+}
+
+.show-inline
+{
+	display: inline flex;
 }
 
 a

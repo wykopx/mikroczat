@@ -51,7 +51,7 @@ export function markdownTagsToLink(text, currentChannelName) {
             return `${textInFront}<a class="href_channel currentChannel" href="/chat/${tag}">#${tag}</a>`;
         }
         else {
-            return `${textInFront}<a class="href_channel" href="/chat/${tag}" target="_blank">#${tag}</a>`;
+            return `${textInFront}<a class="href_channel" href="/chat/${tag}" target="_blank" title='Otwórz kanał "#${tag}" w nowym oknie MikroCzata'>#${tag}</a>`;
         }
     });
 }

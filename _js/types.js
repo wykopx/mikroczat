@@ -1,11 +1,12 @@
 import * as CONST from './const.js';
-import { tokensObject } from './index.js';
+import { tokensObject, checkAndInsertNewCommentsInEntry, updateCSSPropertyOnMessageArticleElement } from './index.js';
 import { pl } from "../node_modules/date-fns/locale.mjs";
 import { parse } from "../node_modules/date-fns/parse.mjs";
 import { format } from "../node_modules/date-fns/format.mjs";
 import { getUnixTime } from "../node_modules/date-fns/getUnixTime.mjs";
 import { formatDistance } from "../node_modules/date-fns/formatDistance.mjs";
 import * as fn from './fn.js';
+export const proxies = new WeakSet();
 export class Tag {
     name;
     created_at;
@@ -109,27 +110,40 @@ export class Channel {
     printChannelDetails() {
         console.log(`Channel name: ${this.name}`);
     }
-    addEntryOrCommentToChannelObject(EntryObject) {
+    addEntryOrCommentToChannelObject(ChannelObject, EntryObject) {
         console.log(`T.Channel.addEntryOrCommentToChannelObject(EntryObject)`, EntryObject);
-        const proxyHandler = {
-            set: function (target, key, value) {
-                if (target === EntryObject.votes && key === 'up' && target[key] !== value) {
-                    console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${value}`);
+        function createProxyHandler(ChannelObject, EntryObject) {
+            return {
+                set: function (originalObject, propertyName, newValue) {
+                    if (originalObject[propertyName] !== newValue) {
+                        if (propertyName === 'count' && EntryObject.resource === "entry") {
+                            console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${newValue}`);
+                            console.log("EntryObject", EntryObject);
+                            console.log("ChannelObject", ChannelObject);
+                            originalObject[propertyName] = newValue;
+                            updateCSSPropertyOnMessageArticleElement(EntryObject, originalObject);
+                            checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject);
+                        }
+                        if (propertyName === 'up' && originalObject[propertyName] !== newValue) {
+                            console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${newValue}`);
+                            originalObject[propertyName] = newValue;
+                            updateCSSPropertyOnMessageArticleElement(EntryObject, originalObject);
+                        }
+                        return true;
+                    }
                 }
-                if (EntryObject.resource === "entry" && target === EntryObject.comments && key === 'count' && target[key] !== value) {
-                    console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${value}`);
-                }
-                target[key] = value;
-                return true;
-            }
-        };
+            };
+        }
         if (EntryObject.resource === "entry_comment") {
-            EntryObject.votes = new Proxy(EntryObject.votes, proxyHandler);
+            EntryObject.votes = new Proxy(EntryObject.votes, createProxyHandler(ChannelObject, EntryObject));
+            proxies.add(EntryObject.votes);
             this.comments.set(EntryObject.id, EntryObject);
         }
-        else if (EntryObject.resource === "entry") {
-            EntryObject.votes = new Proxy(EntryObject.votes, proxyHandler);
-            EntryObject.comments = new Proxy(EntryObject.comments, proxyHandler);
+        if (EntryObject.resource === "entry") {
+            EntryObject.votes = new Proxy(EntryObject.votes, createProxyHandler(ChannelObject, EntryObject));
+            EntryObject.comments = new Proxy(EntryObject.comments, createProxyHandler(ChannelObject, EntryObject));
+            proxies.add(EntryObject.votes);
+            proxies.add(EntryObject.comments);
             this.entries.set(EntryObject.id, EntryObject);
         }
     }
