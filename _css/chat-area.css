@@ -80,8 +80,11 @@
 				scroll-padding: 0;
 				overscroll-behavior-y: contain;
 
-				display: grid;
-				grid-template-columns: [startLine avatarStart] auto [avatarEnd dateStart] auto [dateEnd messageBlockStart] 1fr [messageBlockEnd divRightStart] auto [divRightEnd endLine];
+				display: flex;
+				flex-direction: column;
+
+				/* display: grid; */
+				/* grid-template-columns: [startLine avatarStart] auto [avatarEnd dateStart] auto [dateEnd messageBlockStart] 1fr [messageBlockEnd divRightStart] auto [divRightEnd endLine]; */
 				/* PRZY TYLKO KILKU ELEMENTACH CZY POJAWIAJĄ SIĘ NA GÓRZE, NA DOLE CZY SĄ ROZCIĄGNIĘTE */
 				align-content: start;
 
@@ -92,9 +95,6 @@
 				{
 					/* border: 1px solid red !important; */
 				}
-
-
-
 
 				& article.messageArticle
 				{
@@ -109,13 +109,15 @@
 
 
 					display: grid;
-					grid-template-columns: subgrid;
+					/* grid-template-columns: subgrid; */
+					grid-template-columns: [startLine avatarStart] auto [avatarEnd dateStart] auto [dateEnd messageBlockStart] 1fr [messageBlockEnd divRightStart] auto [divRightEnd endLine];
 					height: max-content;
 
 					/* FLEXBOX */
 					/* display: flex;
 					flex-direction: row; */
-					align-items: baseline;
+					/* align-items: baseline; */
+					align-items: start;
 					column-gap: 10px;
 
 
@@ -222,23 +224,46 @@
 	{
 		grid-column: divRightStart;
 		display: grid;
-		grid-template-columns: [startLine imageStart] minmax(auto, 130px) [imageEnd commentsStart] 1fr [commentsEnd ratingBoxStart] 1fr [ratingBoxEnd endLine];
+		grid-template-columns: [startLine imageStart] auto [imageEnd commentsStart] 1fr [commentsEnd ratingBoxStart] 63px [ratingBoxEnd endLine];
+
+		position: relative;
+		height: 100%;
+		/* border: 1px solid green; */
+	}
+
+	div.right:has(.entryImage[src])
+	{
+		margin-left: 120px;
 	}
 
 	& div.right .entryImage
 	{
 		grid-column: imageStart;
-		max-width: 130px;
-		width: auto;
-		max-height: 70%;
-		position: absolute;
-		border: 1px solid red;
-		/* position: absolute;
-		top: 0;
-		height: 100%;
-		object-fit: cover; */
+		display: none;
 	}
 
+	& div.right .entryImage[src]
+	{
+		display: block flow;
+		position: absolute;
+		top: 0px;
+		right: 20px;
+		width: auto;
+
+		width: 100px;
+		max-width: 100px;
+
+		height: 100%;
+		max-height: inherit;
+		object-fit: contain;
+		object-fit: scale-down;
+		object-position: top right;
+	}
+
+	&[data-comments-count="0"] div.right .entryImage[src]
+	{
+		/* right: 0px; */
+	}
 
 
 
