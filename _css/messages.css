@@ -1,0 +1,265 @@
+.messageArticle
+{
+	background-color: var(--messageBackgroundColor);
+	border: 1px solid var(--messageBorderColor);
+	border-left: 1px solid var(--_genderColor);
+	border-right-width: var(--messageBorderRightWidth);
+	border-radius: 3px;
+	padding: 10px;
+
+	&:hover,
+	&:focus,
+	&:active
+	{
+		background-color: var(--messageBackgroundColorHover)
+	}
+
+	&.entry
+	{
+		border-right-color: var(--messageEntryBorderRightColor);
+	}
+
+	&.comment
+	{
+		border-right-color: var(--messageCommentBorderRightColor);
+	}
+
+	&.own
+	{
+		border-right-color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+	}
+
+	/* usuniety wpis lub komentarz */
+	&[data-deleted="1"]
+	{
+		opacity: 0.3;
+
+		& div.right section.rating-box div.buttons
+		{
+			display: none;
+		}
+	}
+
+	& .avatar
+	{
+		& img.avatar_img
+		{
+			width: 14px;
+			height: 14px;
+			border-radius: 50%;
+		}
+	}
+
+	& .messageBlock
+	{
+
+		& .entryUser
+		{
+			display: inline;
+			column-gap: 5px;
+			display: contents;
+
+			& a.username
+			{
+				display: contents;
+				font-weight: bolder;
+				color: var(--_profileColor);
+				font-size: var(--_fontSize);
+			}
+
+			& .username_span
+			{
+				/* display: contents; */
+				min-width: max-content;
+				/* ikonka banana */
+			}
+		}
+
+		& .messageContent
+		{
+			display: inline;
+			line-height: 1.6em;
+			font-size: var(--_fontSize);
+			text-wrap: pretty;
+
+			color: var(--messageColor);
+
+
+			/* multiple <br> lines */
+			br + br
+			{
+				display: none;
+			}
+
+			& strong
+			{
+				font-weight: bolder;
+			}
+
+			& i
+			{
+				font-style: italic;
+			}
+
+			& a.href_channel
+			{
+				color: var(--messageAHrefChannelColor);
+				background-color: var(--messageAHrefChannelBackgroundColor);
+				position: relative;
+				text-decoration: none;
+				padding: 4px 10px;
+				border-radius: var(--smallBorderRadius);
+			}
+
+			& a.href_channel:hover
+			{
+				filter: brightness(1.4);
+			}
+
+			& a.href_channel::before
+			{
+				content: "💭 ";
+			}
+
+			& a.href_channel.currentChannel:first-child,
+			& a.href_channel.currentChannel:last-child
+			{
+				display: none;
+			}
+
+			& a.href_external
+			{
+				color: var(--messageAHrefExternalColor);
+				background-color: var(--messageAHrefExternalBackgroundColor);
+				position: relative;
+				text-decoration: underline;
+				padding: 4px 10px;
+				border-radius: var(--smallBorderRadius);
+			}
+
+			& a.href_external::after
+			{
+				content: " ↗";
+			}
+
+			& a.href_external:hover
+			{
+				text-decoration: none;
+			}
+
+			& a.href_external:hover::before
+			{
+				content: "Adres www: " attr(href);
+				text-decoration: none;
+				position: absolute;
+				right: -21px;
+				top: -39px;
+				background-color: black;
+				padding: 5px 20px;
+				box-shadow: 0px 0px 10px 5px rgb(0 0 0 / 0.3);
+			}
+
+			& abbr
+			{
+				/* <abbr data-mention-user="NadiaFrance">@NadiaFrance</abbr> */
+				border: 1px solid var(--messageAbbrColor);
+				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
+				border-radius: var(--smallBorderRadius);
+				padding: 0px 10px;
+				display: inline flex;
+			}
+
+			& abbr.mentions-you
+			{
+				/* <abbr data-mention-user="NadiaFrance" class="mention-you">@NadiaFrance</abbr> */
+				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+				animation: heartbeat 3s ease-in-out infinite both;
+				color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+			}
+
+
+			/* CYTATY przez > cytat */
+			blockquote
+			{
+				display: inline flow;
+
+				color: var(--messageBlockquoteColor);
+				background-color: var(--messageBlockquoteBackgroundColor);
+				font-style: var(--messageBlockquoteFontStyle);
+				font-size: var(--messageBlockquoteFontSize);
+				border-radius: var(--messageBlockquoteBorderRadius);
+				padding: 6px 10px;
+			}
+
+
+			/* KILKA ELEMENTÓW BLOCKQUOTE JEDEN PO DRUGIM */
+			/* wszystkie oprócz pierwszego */
+			blockquote + blockquote,
+			/* każdy, który nie jest ostatni */
+			blockquote:has(+ blockquote),
+			blockquote:has(+ br)
+			{
+				display: block flex;
+				border-radius: 0;
+			}
+
+			*:not(blockquote) + blockquote:has(+ blockquote),
+			blockquote:first-child:has(+ blockquote)
+			{
+				/* pierwszy, ale nie ostatni */
+				margin-top: 6px;
+				margin-left: 0;
+				margin-right: 0;
+			}
+
+			blockquote + blockquote:not(:has(+ blockquote))
+			{
+				/* tylko ostatni */
+				margin-bottom: 6px;
+				margin-left: 0;
+				margin-right: 0;
+			}
+
+			blockquote:not(:has(+ blockquote))
+			{
+				margin-bottom: 6px;
+				margin-left: 0;
+				margin-right: 0;
+			}
+
+
+
+			& span.content-spoiler
+			{}
+
+			& code
+			{
+				color: var(--messageCodeColor);
+				background-color: var(--messageCodeBackgroundColor);
+				font-style: var(--messageCodeFontStyle);
+				font-size: var(--messageCodeFontSize);
+				border-radius: var(--messageCodeBorderRadius);
+				padding: 6px 10px;
+				margin: 0px;
+
+				display: block flex;
+				flex-direction: column;
+				font-family: monospace;
+			}
+
+			:not(code) + code
+			{
+				margin-top: 6px;
+			}
+
+			code:not(:has(+ code))
+			{
+				margin-bottom: 6px;
+			}
+
+
+		}
+	}
+
+
+}

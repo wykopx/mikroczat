@@ -41,35 +41,46 @@ export declare class Tag {
     initFromAPI(): Promise<void>;
 }
 export declare class Channel {
-    name: string;
+    pagination: {
+        next: string;
+        prev: string;
+    };
     tag: Tag;
+    name: string;
     entries: Map<number, Entry>;
+    comments: Map<number, Comment>;
     users: Map<string, User>;
-    element: Element;
+    element: HTMLElement;
+    messagesContainer: HTMLElement;
     constructor(tag: Tag);
-    printDetails(): void;
-    addEntry(id: number, EntryObject: Entry): void;
+    printChannelDetails(): void;
+    addEntryOrCommentToChannelObject(EntryObject: Entry): void;
 }
 export declare class Entry {
+    last_checked_comments_datetime: string;
+    last_checked_comments_count?: number;
     id: number;
     entry_id: number;
     resource: string;
+    channel?: Channel;
+    author: User;
+    media?: Media;
+    votes?: Votes;
+    comments?: Comments;
+    actions?: EntryActions;
+    deleted?: boolean;
     adult?: boolean;
     archive?: boolean;
-    author: User;
     content?: string;
     created_at?: string;
     deletable?: boolean;
     device?: string;
     editable?: boolean;
     favourite?: boolean;
-    media?: Media;
     slug?: string;
     status?: string;
     tags?: [string];
     voted?: number;
-    votes?: Votes;
-    channel?: Channel;
     constructor(entryObject: any, channel?: Channel);
     content_parsed(): string;
     get created_at_Date(): Date;
@@ -88,6 +99,10 @@ export declare class Comment extends Entry {
     parent?: Entry;
     constructor(commentObject: any, channel?: Channel);
 }
+export type Comments = {
+    items: Comments[];
+    count: number;
+};
 export type Votes = {
     up: number;
     down: number;
@@ -95,8 +110,17 @@ export type Votes = {
 };
 export type Media = {
     embed?: object;
-    photo?: object;
+    photo?: MediaPhoto;
     survey?: object;
+};
+export type MediaPhoto = {
+    key?: string;
+    label?: string;
+    mime_type?: string;
+    url?: string;
+    size?: number;
+    width?: number;
+    height?: number;
 };
 interface UserObject {
     username: string;
@@ -133,6 +157,14 @@ export type UserColor = {
 export type UserRank = {
     position: number;
     trend: number;
+};
+export type EntryActions = {
+    update?: boolean;
+    delete?: boolean;
+    vote_up?: boolean;
+    create_favourite?: boolean;
+    delete_favourite?: boolean;
+    report?: boolean;
 };
 export type UserActions = {
     update?: boolean;

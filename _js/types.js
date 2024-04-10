@@ -76,7 +76,7 @@ export class Tag {
                 this.media ??= data.data.media;
             if (data.data.actions)
                 this.actions ??= data.data.actions;
-            console.log("Channel constructor().init() -> data from API", this);
+            console.log("Tag constructor().init() -> data from API for tag", this);
         }
         catch (error) {
             console.error('Error:', error);
@@ -84,54 +84,105 @@ export class Tag {
     }
 }
 export class Channel {
-    name;
+    pagination;
     tag;
+    name;
     entries;
+    comments;
     users;
     element;
+    messagesContainer;
     constructor(tag) {
         this.tag = tag;
         this.name = tag.name;
         this.entries = new Map();
+        this.comments = new Map();
         this.users = new Map();
         this.element = null;
-        this.printDetails();
+        this.messagesContainer = null;
+        this.pagination = {
+            next: null,
+            prev: null
+        };
+        this.printChannelDetails();
     }
-    printDetails() {
+    printChannelDetails() {
         console.log(`Channel name: ${this.name}`);
     }
-    addEntry(id, EntryObject) {
-        this.entries.set(id, EntryObject);
+    addEntryOrCommentToChannelObject(EntryObject) {
+        console.log(`T.Channel.addEntryOrCommentToChannelObject(EntryObject)`, EntryObject);
+        const proxyHandler = {
+            set: function (target, key, value) {
+                if (target === EntryObject.votes && key === 'up' && target[key] !== value) {
+                    console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${value}`);
+                }
+                if (EntryObject.resource === "entry" && target === EntryObject.comments && key === 'count' && target[key] !== value) {
+                    console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${value}`);
+                }
+                target[key] = value;
+                return true;
+            }
+        };
+        if (EntryObject.resource === "entry_comment") {
+            EntryObject.votes = new Proxy(EntryObject.votes, proxyHandler);
+            this.comments.set(EntryObject.id, EntryObject);
+        }
+        else if (EntryObject.resource === "entry") {
+            EntryObject.votes = new Proxy(EntryObject.votes, proxyHandler);
+            EntryObject.comments = new Proxy(EntryObject.comments, proxyHandler);
+            this.entries.set(EntryObject.id, EntryObject);
+        }
     }
 }
 export class Entry {
+    last_checked_comments_datetime;
+    last_checked_comments_count;
     id;
     entry_id;
     resource;
+    channel;
+    author;
+    media;
+    votes;
+    comments;
+    actions;
+    deleted;
     adult;
     archive;
-    author;
     content;
     created_at;
     deletable;
     device;
     editable;
     favourite;
-    media;
     slug;
     status;
     tags;
     voted;
-    votes;
-    channel;
     constructor(entryObject, channel) {
         this.id = entryObject.id;
         this.entry_id = entryObject.id;
         this.resource = entryObject.resource;
-        this.author = new User(entryObject.author);
-        this.created_at = entryObject.created_at;
         this.channel = channel;
+        this.author = new User(entryObject.author);
+        this.media = entryObject.media;
+        this.votes = entryObject.votes;
+        this.comments = entryObject.comments;
+        this.last_checked_comments_count = 0;
+        this.actions = entryObject.actions;
+        this.deleted = entryObject.deleted;
+        this.adult = entryObject.adult;
+        this.archive = entryObject.archive;
         this.content = entryObject.content;
+        this.created_at = entryObject.created_at;
+        this.deletable = entryObject.deletable;
+        this.device = entryObject.device;
+        this.editable = entryObject.editable;
+        this.favourite = entryObject.favourite;
+        this.slug = entryObject.slug;
+        this.status = entryObject.status;
+        this.tags = entryObject.tags;
+        this.voted = entryObject.voted;
     }
     content_parsed() {
         let content_parsed = this.content;
@@ -151,15 +202,18 @@ export class Entry {
                 content_parsed = parts[0];
             }
         }
-        console.log("💚 content_parsed: ", content_parsed);
+        content_parsed = fn.replaceAngleBrackets(content_parsed);
         content_parsed = fn.markdownBacktickToCode(content_parsed);
         content_parsed = fn.markdownUnderscoreToItalics(content_parsed);
         content_parsed = fn.markdownAsteriskToStrong(content_parsed);
+        content_parsed = fn.markdownUsernameToAbbr(content_parsed);
+        content_parsed = fn.markdownGtToBlockquote(content_parsed);
         content_parsed = fn.markdownExclamationMarkToSpoiler(content_parsed);
-        content_parsed = fn.markdownGtToBlackquote(content_parsed);
+        content_parsed = fn.markdownToLink(content_parsed);
         content_parsed = fn.parseURLToLink(content_parsed);
-        console.log("💙 PARSED CODE:");
-        console.log(content_parsed);
+        content_parsed = fn.markdownNewLineToBr(content_parsed);
+        content_parsed = fn.markdownTagsToLink(content_parsed, this.channel.name);
+        content_parsed = fn.markdownTextToSpan(content_parsed);
         return content_parsed;
     }
     get created_at_Date() {
