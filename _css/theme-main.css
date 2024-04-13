@@ -1,22 +1,63 @@
 :root
 {
-	--chatInnerPadding: 8px 45px 17px 15px;
+	--chatInnerPadding: 120px 16px 16px 16px;
 	--chatBaseFontSize: 16px;
-	--borderRadius: 7px;
+
+
+	--smallBorderRadius: 4px;
+	--mediumBorderRadius: 8px;
+	--largeBorderRadius: 16px;
+
 	--messagesGap: 10px;
 
 	--mainBackground: linear-gradient(225deg, #202020, #222222);
 	--chatBackground: rgb(54, 54, 54);
 
-
 	--chatBaseColor: rgb(240, 240, 240);
 	--userListBackground: var(--chatBackground);
 
 
+	/* messageArticle */
+	--messageColor: rgb(240, 240, 240);
+	--messageBackgroundColor: var(--chatBackground);
+	--messageBackgroundColor: rgb(44, 44, 44);
+
+	--messageBackgroundColorHover: rgb(44, 44, 44);
+
+	--messageBorderColor: rgb(0 0 0 / 0.1);
+	--messageOwnBorderColor: rgb(42 119 119 / 0.8);
+
+	--messageBorderRightWidth: 5px;
+
+	--messageEntryBorderRightColor: goldenrod;
+	--messageCommentBorderRightColor: var(--messageBorderColor);
+	--messageBorderRadius: var(--mediumBorderRadius);
+
+
+	--messageAHrefChannelColor: rgb(60, 136, 218);
+	--messageAHrefChannelBackgroundColor: rgb(38, 42, 46);
+
+	--messageAHrefExternalColor: rgb(147, 187, 231);
+	--messageAHrefExternalBackgroundColor: rgb(38, 42, 46);
+
+
+	--messageBlockquoteColor: rgb(219 219 219);
+	--messageBlockquoteBackgroundColor: rgb(20, 20, 20);
+	--messageBlockquoteFontStyle: italic;
+	--messageBlockquoteFontSize: 0.85em;
+	--messageBlockquoteBorderRadius: var(--mediumBorderRadius);
+
+	--messageCodeColor: rgb(181 255 199);
+	--messageCodeBackgroundColor: rgb(20, 20, 20);
+	--messageCodeFontStyle: normal;
+	--messageCodeFontSize: 0.85em;
+	--messageCodeBorderRadius: 0;
+
+	--messageAbbrColor: rgb(0 183 255 / 0.7);
+
+
 	/* GUTTERS */
 	--gutterBackground: transparent;
-
-
 
 	--successColor: rgb(49, 163, 59);
 	--errorColor: rgb(211, 77, 37);
@@ -33,4 +74,56 @@
 
 	/* GUTTERS */
 	--gutterBackground: transparent;
+}
+
+
+
+
+
+article.messageArticle
+{
+	--_genderColor: var(--niebieskiPasek1);
+	--_profileColor: var(--nicknameOrange1);
+	--_fontSize: 16px;
+}
+
+.orange-profile
+{
+	--_profileColor: var(--nicknameOrange1);
+}
+
+.burgundy-profile
+{
+	--_profileColor: var(--nicknameBordeaux1);
+}
+
+.green-profile
+{
+	--_profileColor: var(--nicknameGreen1);
+}
+
+.null-gender
+{
+	--_genderColor: var(--bezplciowyPasek1);
+}
+
+.f-gender
+{
+	--_genderColor: var(--rozowyPasek1);
+}
+
+.m-gender
+{
+	--_genderColor: var(--niebieskiPasek1);
+}
+
+.banned
+{
+	--_statusColor: var(--banned)
+}
+
+article.messageArticle.channelOwner
+{
+	/* wiadomosc od autora kanału */
+	border: 1px solid orange;
 }

@@ -2,8 +2,9 @@
 @import "main-grid.css";
 @import "chat-area.css";
 @import "right-panel.css";
+@import "users-list.css";
 @import "dialog.css";
-
+@import "messages.css";
 @import "wykopxstyle.css";
 
 
@@ -352,6 +353,12 @@ main#main.grid
 
 
 
+#centerHeader
+{
+	background-position-x: center;
+	background-repeat: repeat-x;
+	background-size: contain;
+}
 
 #rightPanelArea
 {
@@ -361,7 +368,7 @@ main#main.grid
 	height: auto;
 	min-height: 100%;
 
-	border-radius: 0px var(--borderRadius) var(--borderRadius) 0px;
+	border-radius: 0px var(--mediumBorderRadius) var(--mediumBorderRadius) 0px;
 }
 
 
@@ -371,6 +378,26 @@ main#main.grid
 	background: var(--userListBackground);
 }
 
+
+
+
+/* NICKI UŻYTKOWNIKÓW */
+a.username
+{
+	font-weight: bolder;
+	color: var(--_profileColor);
+	font-size: var(--_fontSize);
+}
+
+a.a.username .username_span
+{}
+
+
+
+
+
+
+/* nieuzywane */
 .resizable
 {
 	resize: both;
@@ -383,6 +410,29 @@ main#main.grid
 	scrollbar-width: none;
 }
 
+.scrollerContainer
+{
+	width: 100%;
+	height: 100%;
+}
+
+.scroller
+{
+	height: 100%;
+	min-height: 100%;
+	width: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+
+
+ul,
+li
+{
+	list-style: none;
+	display: block flow;
+}
 
 button
 {
@@ -400,12 +450,17 @@ button:focus
 
 .hidden
 {
-	display: none;
+	display: none !important;
 }
 
 .show
 {
-	display: flex;
+	display: block flex;
+}
+
+.show-inline
+{
+	display: inline flex;
 }
 
 a

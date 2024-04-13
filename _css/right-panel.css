@@ -7,14 +7,17 @@
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+
 	}
 
 	#usersPanel
 	{
-		display: none;
+		/* display: none; */
 	}
 
 
 	#roomsPanel
-	{}
+	{
+		display: none;
+	}
 }

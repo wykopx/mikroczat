@@ -1,0 +1,93 @@
+#rightPanelArea #usersPanel .usersList .usersListContainer
+{
+	display: flex;
+	flex-direction: column;
+
+	& .userListItem
+	{
+		display: flex;
+		flex-direction: row;
+		padding: 10px 10px;
+		gap: 8px;
+
+
+		&.own
+		{}
+
+		&.channelOwnerLabel
+		{
+			display: none;
+		}
+
+		&.channelOwner .channelOwnerLabel
+		{
+			border: 1px solid darkgoldenrod;
+			border-radius: 0.4em;
+			padding: 0px 4px;
+			display: inline flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 0.7em;
+			color: darkgoldenrod;
+		}
+
+
+		&.channelOwner .channelOwnerLabel::after
+		{
+			content: "OP";
+			font-size: inherit;
+		}
+
+		& .statusIcon
+		{
+			display: none;
+		}
+
+		&.online .statusOnline
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&:not(.online) .statusOffline
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&.f-gender .statusFemale
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&.m-gender .statusMale
+		{
+			/* display: inline flex; */
+			scale: 0.5;
+		}
+
+		& figure.avatar
+		{
+			& img.avatar_img
+			{
+				width: 20px;
+				height: 20px;
+				max-width: 20px;
+				border-radius: 50%;
+			}
+		}
+
+		& span
+		{
+			white-space: nowrap;
+
+			& a.username
+			{
+
+				& .username_span
+				{}
+			}
+		}
+	}
+}

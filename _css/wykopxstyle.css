@@ -1,9 +1,17 @@
 :root
 {
+	/* KOLORY WYKOPOWE */
+	--gullGray: #95a9bb;
+	--whitish: #fff;
+	--blackish: #04080a;
+
 	/* KOLORY PLUSÓW I MINUSÓW */
+
 	--green: rgb(59, 145, 95);
 	--red: rgb(192, 57, 43);
 	--golden: goldenrod;
+
+	--colorPlusesCount: var(--green);
 
 	/* KOLORY */
 	--nicknameGreen1: rgba(51, 153, 51, 1);
@@ -171,6 +179,11 @@
 /* TRYB NOCNY */
 :root [data-night-mode]
 {
+	/* KOLORY WYKOPOWE */
+	--gullGray: #6a6a6c;
+	--whitish: #222225;
+	--blackish: #f8fafc;
+
 	/* KOLORY PLUSÓW I MINUSÓW */
 	--green: rgb(59, 145, 95);
 	--red: rgb(193, 58, 45);
