@@ -1,3 +1,4 @@
+export declare const proxies: WeakSet<object>;
 export type TokensObject = {
     token?: string;
     refresh_token?: string;
@@ -41,35 +42,47 @@ export declare class Tag {
     initFromAPI(): Promise<void>;
 }
 export declare class Channel {
-    name: string;
+    pagination: {
+        next: string;
+        prev: string;
+    };
     tag: Tag;
+    name: string;
     entries: Map<number, Entry>;
+    comments: Map<number, Comment>;
     users: Map<string, User>;
-    element: Element;
+    element: HTMLElement;
+    messagesContainer: HTMLElement;
+    usersListContainer: HTMLElement;
     constructor(tag: Tag);
-    printDetails(): void;
-    addEntry(id: number, EntryObject: Entry): void;
+    printChannelDetails(): void;
+    addEntryOrCommentToChannelObject(ChannelObject: Channel, EntryObject: Entry | Comment): void;
 }
 export declare class Entry {
+    last_checked_comments_datetime: string;
+    last_checked_comments_count?: number;
     id: number;
     entry_id: number;
     resource: string;
+    channel?: Channel;
+    author: User;
+    media?: Media;
+    votes?: Votes;
+    comments?: Comments;
+    actions?: EntryActions;
+    deleted?: boolean;
     adult?: boolean;
     archive?: boolean;
-    author: User;
     content?: string;
     created_at?: string;
     deletable?: boolean;
     device?: string;
     editable?: boolean;
     favourite?: boolean;
-    media?: Media;
     slug?: string;
     status?: string;
     tags?: [string];
     voted?: number;
-    votes?: Votes;
-    channel?: Channel;
     constructor(entryObject: any, channel?: Channel);
     content_parsed(): string;
     get created_at_Date(): Date;
@@ -88,51 +101,135 @@ export declare class Comment extends Entry {
     parent?: Entry;
     constructor(commentObject: any, channel?: Channel);
 }
+export type Comments = {
+    items: Comments[];
+    count: number;
+};
 export type Votes = {
     up: number;
     down: number;
     users?: [object];
 };
 export type Media = {
-    embed?: object;
-    photo?: object;
-    survey?: object;
+    embed?: MediaEmbed;
+    photo?: MediaPhoto;
+    survey?: MediaSurvey;
+};
+export type MediaPhoto = {
+    key?: string;
+    label?: string;
+    mime_type?: string;
+    url?: string;
+    size?: number;
+    width?: number;
+    height?: number;
+};
+export type MediaEmbed = {
+    key?: string;
+    type?: string;
+    thumbnail?: string;
+    url?: string;
+    age_category?: string;
+};
+export type MediaSurvey = {
+    key?: string;
+    TODO?: null;
 };
 interface UserObject {
     username: string;
-    gender?: string;
+    about?: string;
+    actions?: UserActions;
     avatar?: string;
-    status?: string;
+    background?: string;
+    blacklist?: boolean;
+    city?: string;
+    color?: UserColor;
+    company?: boolean;
+    follow?: boolean;
+    followers?: number;
+    gender?: string;
+    member_since?: string;
+    name?: string;
     note?: boolean;
     online?: boolean;
-    verified?: boolean;
-    follow?: boolean;
-    color?: UserColor;
+    public_email?: string;
     rank?: UserRank;
-    actions?: UserActions;
+    social_media?: UserSocialMedia;
+    summary?: UserSummary;
+    status?: string;
+    verified?: boolean;
+    website?: string;
 }
 export declare class User {
     username: string;
-    gender?: string;
+    about?: string;
     avatar?: string;
-    status?: string;
+    actions?: UserActions;
+    background?: string;
+    blacklist?: boolean;
+    city?: string;
+    color?: UserColor;
+    company?: boolean;
+    follow?: boolean;
+    followers?: number;
+    gender?: string;
+    member_since?: string;
+    name?: string;
     note?: boolean;
     online?: boolean;
-    verified?: boolean;
-    follow?: boolean;
-    color?: UserColor;
+    public_email?: string;
     rank?: UserRank;
-    actions?: UserActions;
-    constructor(userObject: UserObject);
+    summary?: UserSummary;
+    social_media?: UserSocialMedia;
+    status?: string;
+    verified?: boolean;
+    website?: string;
+    channel?: Channel;
+    constructor(userObject: UserObject | string, channel?: Channel);
+    get numericalOrder(): number;
 }
 export type UserColor = {
     name: string;
     hex?: string;
     hex_dark?: string;
 };
+export type UserSocialMedia = {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+};
 export type UserRank = {
     position: number;
     trend: number;
+};
+export type UserSummary = {
+    actions: number;
+    links: number;
+    links_details: {
+        added: number;
+        commented: number;
+        published: number;
+        related: number;
+        up: number;
+        down: number;
+    };
+    entries: number;
+    entries_details: {
+        added: number;
+        commented: number;
+        voted: number;
+    };
+    followers: number;
+    following_users: number;
+    following_tags: number;
+};
+export type EntryActions = {
+    update?: boolean;
+    delete?: boolean;
+    vote_up?: boolean;
+    create_favourite?: boolean;
+    delete_favourite?: boolean;
+    report?: boolean;
 };
 export type UserActions = {
     update?: boolean;
