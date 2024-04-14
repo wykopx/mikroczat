@@ -99,8 +99,9 @@ dialog
 
 .openChannelButton
 {
-	min-width: 450px;
-	max-width: 85%;
+	min-width: 350px;
+	max-width: 55%;
+
 	max-height: 400px;
 	aspect-ratio: 16 / 7;
 	font-size: 60%;
@@ -113,7 +114,6 @@ dialog
 		-5px -5px 15px rgba(14, 14, 14, 0.2);
 
 	background-size: 300%;
-	cursor: pointer;
 
 	translate: 0px 0px;
 	animation: gradient 15s ease-in infinite;
@@ -139,21 +139,48 @@ dialog
 	translate: 0px -3px;
 }
 
-.openChannelButton#wroclaw
+
+
+
+
+.openChannelButton#chcepogadac
 {
-	background-image: url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_wroclaw_9Sfsl6FLz46Tf4YzVDuB.jpg");
-	background-position: left;
-	animation-duration: 13s;
-	animation-delay: 0.6s
+	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://cdn5.vectorstock.com/i/1000x1000/16/34/let-s-talk-neon-sign-on-brick-wall-background-vector-42781634.jpg");
+	background-size: 120%;
+	animation: none;
+	background-position: -40px;
 }
 
-.openChannelButton#warszawa
+.openChannelButton#heheszki
 {
-	background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_warszawa_S8rkMuOiBVwddEZyGDAv.jpg");
-	background-size: 300%;
-	animation-duration: 18s;
-	animation-delay: 1.2s
+	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://i.imgur.com/5gZJARQ.png");
+	background-size: 118%;
+	animation: none;
+	background-position: center;
 }
+
+.openChannelButton#hydepark
+{
+	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://i.scdn.co/image/ab67616d0000b273faa24ef59539c6a88efa596a");
+	background-size: 120%;
+	animation: none;
+	background-position: -40px;
+}
+
+.openChannelButton#kanalzero
+{
+	background-image: url("https://www.omediach.info/wp-content/uploads/2024/01/kanalzerologo.png");
+	background-position: center;
+	background-size: 115%;
+	animation: none;
+}
+
+.openChannelButton#kosmos
+{
+	background-image: linear-gradient(-90deg, rgba(8, 5, 192, 0.1), rgba(26, 1, 253, 0.1), rgba(0, 204, 255, 0.2), rgba(0, 4, 255, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/a84d15b74c99088ad39876f82fa26db9a7a8ae7c5c2dcdef33d76511325a1838.png");
+	background-position: center;
+}
+
 
 .openChannelButton#krakow
 {
@@ -161,10 +188,11 @@ dialog
 	background-position: right;
 }
 
-.openChannelButton#sejm
+
+.openChannelButton#mecz
 {
-	background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(35, 213, 171, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/36efc485a771c434f4fa16e8463f25d1b659c4fcac04b4b9ab3a93ec962c262f.png");
-	background-position-x: 28%;
+	background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(27, 12, 80, 0.452)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_mecz_e1sL8gR7PFrFUIwXgvOi.jpg");
+	background-position: right;
 }
 
 .openChannelButton#przegryw
@@ -175,6 +203,13 @@ dialog
 	animation: none;
 }
 
+.openChannelButton#nocnazmiana
+{
+	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(13, 13, 36, 0.1), rgba(37, 35, 11, 0.2), rgba(17, 19, 44, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_nocnazmiana_CvLN6lRMUtSYsNSYEokj.jpg");
+	background-size: 250% !important;
+	background-position: center right;
+}
+
 .openChannelButton#poznan
 {
 	background-image: linear-gradient(-45deg, rgba(248, 234, 38, 0.2), rgba(243, 120, 4, 0.1), rgba(37, 35, 11, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_poznan_dbJtieBTF7QEUdSqu3r9.jpg");
@@ -183,21 +218,58 @@ dialog
 	animation-direction: alternate-reverse;
 }
 
-.openChannelButton#nocnazmiana
+.openChannelButton#sejm
 {
-	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(13, 13, 36, 0.1), rgba(37, 35, 11, 0.2), rgba(17, 19, 44, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_nocnazmiana_CvLN6lRMUtSYsNSYEokj.jpg");
-	background-size: 250% !important;
-	background-position: center right;
+	background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(35, 213, 171, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/36efc485a771c434f4fa16e8463f25d1b659c4fcac04b4b9ab3a93ec962c262f.png");
+	background-position-x: 28%;
 }
 
-.openChannelButton#chcepogadac
+.openChannelButton#tvrepublika
 {
-	background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://cdn5.vectorstock.com/i/1000x1000/16/34/let-s-talk-neon-sign-on-brick-wall-background-vector-42781634.jpg");
-	background-size: 120%;
+	background-image: url("https://pbs.twimg.com/media/GCgT09BWoAAL3Pd.jpg");
+	background-position: center;
+	background-size: 115%;
 	animation: none;
-	background-position: -40px;
 }
 
+.openChannelButton#warszawa
+{
+	background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_warszawa_S8rkMuOiBVwddEZyGDAv.jpg");
+	background-size: 300%;
+	animation-duration: 18s;
+	animation-delay: 1.2s
+}
+
+.openChannelButton#wojna
+{
+	background-image: url("https://i.imgur.com/TW33CQ4.png");
+	background-position: left;
+	background-size: 100%;
+	animation: none;
+}
+
+.openChannelButton#wroclaw
+{
+	background-image: url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_wroclaw_9Sfsl6FLz46Tf4YzVDuB.jpg");
+	background-position: left;
+	animation-duration: 13s;
+	animation-delay: 0.6s
+}
+
+.openChannelButton#zalesie
+{
+	background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_zalesie_ckLyoQ1Qtw1A9lgwlKZC.jpg");
+	background-size: 300%;
+	animation: none;
+	background-position: -624px;
+}
+
+.openChannelButton#zwiazki
+{
+	background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://naszeinspiracje.com/wp-content/uploads/2015/08/milosc-na-probe-790x470.jpg");
+	background-size: 100%;
+	animation: none;
+}
 
 
 
@@ -215,6 +287,10 @@ dialog#chooseChannelDialog
 	padding: 40px 20px;
 	scrollbar-width: none;
 
+	button
+	{
+		cursor: pointer;
+	}
 
 	.container
 	{
@@ -224,12 +300,57 @@ dialog#chooseChannelDialog
 		gap: 10vh;
 		height: max-content;
 		justify-content: center;
-		align-self: center;
 
-		/* align-content: end;
-		
-		align-items: center;
-		justify-content: center; */
+		position: relative;
+
+		header
+		{
+			color: white;
+			/* flex-basis: 10%; */
+			/* margin: auto; */
+			position: absolute;
+			top: -10px;
+			left: -62px;
+			padding: 0px 20px;
+			font-size: 40px;
+			font-family: 'Teko', sans-serif;
+			rotate: -15deg;
+			border: 1px solid rgb(220 220 220 / 0.5);
+			background-color: rgba(20, 22, 24, 0.5);
+			border-radius: 10px;
+
+			box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+		}
+
+		footer
+		{
+			display: flex;
+			justify-content: center;
+			flex-wrap: wrap;
+			width: 100%;
+			gap: 40px;
+
+
+			button
+			{
+				--_accentColor: rgb(36, 126, 179);
+				min-width: 150px;
+				background-color: color-mix(in srgb, transparent 95%, var(--_accentColor));
+				color: color-mix(in srgb, white 40%, var(--_accentColor));
+				border: 1px solid color-mix(in srgb, black 75%, var(--_accentColor));
+				box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+				border-radius: 3px;
+				height: 40px;
+			}
+
+			button:hover
+			{
+				background-color: color-mix(in srgb, transparent 75%, var(--_accentColor));
+				color: color-mix(in srgb, white 60%, var(--_accentColor));
+				box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+				border: 1px solid var(--_accentColor);
+			}
+		}
 
 		.openChannelButton
 		{
@@ -245,7 +366,6 @@ dialog#chooseChannelDialog
 				color: #fff;
 				text-shadow: 4px 4px 3px rgb(0 0 0 / 0.2), 0px 0px 9px rgb(0 0 0 / 0.6), 0px 0px 1px rgba(0, 0, 0, 0.9);
 				position: absolute;
-
 			}
 
 			&:hover
@@ -281,7 +401,7 @@ dialog#chooseChannelDialog
 	}
 }
 
-@media (max-width: 600px)
+@media (max-width: 1300px)
 {
 	dialog#chooseChannelDialog
 	{
@@ -311,7 +431,7 @@ dialog#loginDialog
 		display: flex;
 		flex-direction: column;
 		place-content: center;
-		font-size: 1.8em;
+		font-size: 0.8em;
 
 		row-gap: 16px;
 		padding: 32px;

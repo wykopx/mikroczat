@@ -30,10 +30,17 @@
 
 		& time
 		{
-			/* font-size: 0.8em; */
 			color: gray;
 			font-size: var(--_fontSize);
+			font-size: 0.7em;
 			display: none;
+			align-self: start;
+			padding-top: 0.7em;
+
+			&:hover
+			{
+				filter: brightness(1.4);
+			}
 		}
 
 		&[data-entry-date="YYYMMDD"] time.entryDateYYYMMDD
@@ -57,6 +64,7 @@
 			width: 100%;
 			height: 100%;
 			display: none;
+			position: relative;
 
 			&[data-active="true"]
 			{
@@ -97,6 +105,14 @@
 
 				& article.messageArticle
 				{
+					z-index: 1;
+
+					&:hover
+					{
+						z-index: 2;
+					}
+
+
 					scroll-margin: var(--messagesGap);
 					scroll-snap-align: end;
 					scroll-snap-stop: normal;
@@ -150,19 +166,25 @@
 						grid-column: messageBlockStart;
 						display: block flow-root;
 					}
-
-
-
-
 				}
 			}
 
+
+			& .newMessageTextareaContainer
+			{
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				border-top: 1px solid rgb(0, 0, 0);
+				box-shadow: var(--scrollbarWidth) -4px 12px rgb(27 27 27);
+				border-radius: 0px;
+			}
 
 			/* OKNO PISANIA NOWEJ WIADOMOŚCI */
 			& .newMessageTextarea
 			{
 				grid-row: 2;
-				margin-top: 3px;
+				margin-top: 0px;
 
 				direction: ltr;
 				font: small / 1.5 Arial, Helvetica, sans-serif;
@@ -183,17 +205,19 @@
 				max-height: 300px;
 
 				padding: 16px;
-				border-radius: 4px;
+				border-radius: 0px;
 				font-size: 19px;
-				background-color: rgb(255 255 255 / 0.8);
-				color: black;
+				background-color: rgb(44, 44, 44);
+				color: rgb(153, 153, 153);
+
 
 				&:hover,
 				&:focus,
 				&:active
 				{
-					background-color: rgb(255 255 255 / 1);
-					border: inherit;
+					background-color: rgba(65, 66, 68, 0.8);
+					color: rgb(201, 209, 224);
+					border: none;
 					outline: none;
 				}
 
@@ -211,6 +235,30 @@
 					}
 				}
 			}
+
+			/* PRZYCISK WYSYŁANIA NOWEJ WIADOMOŚCI */
+			& .newMessageSendButton
+			{
+				font-family: "Roboto", "Arial", sans-serif;
+				font-size: 1.1em;
+				font-weight: normal;
+				width: 3%;
+				min-width: 200px;
+
+				color: rgb(180, 180, 180);
+
+				border: 1px solid transparent;
+				background: #292929;
+
+				&:hover,
+				&:focus,
+				&:active
+				{
+					color: rgb(220, 220, 220);
+					background: linear-gradient(145deg, rgb(44, 44, 44), rgb(37 37 37));
+					box-shadow: -5px 3px 13px rgb(15 15 15 / 0.3);
+				}
+			}
 		}
 	}
 }
@@ -220,7 +268,7 @@
 
 
 /* PLUSY I RATING BOX */
-#chatArea #mikrochatFeeds .messageArticle
+#chatArea .messageArticle
 {
 	& div.right
 	{
@@ -343,38 +391,7 @@
 		display: none;
 	}
 
-	/* PRZYCISK PLUSOWANIA */
-	& div.right section.rating-box
-	{
-		div.buttons
-		{
-			button.plus
-			{
-				height: 20px;
-				width: 20px;
-				padding: unset;
-				margin: unset;
 
-				border: 3px solid var(--colorPlusesCount);
-				border-radius: 4px;
-				color: var(--colorPlusesCount);
-				background-color: transparent;
-			}
-		}
-	}
-
-	&[data-voted="1"] div.right section.rating-box
-	{
-		div.buttons
-		{
-			button.plus
-			{
-				border: 3px solid transparent;
-				background-color: var(--colorPlusesCount);
-				color: white;
-			}
-		}
-	}
 
 
 	/* LICZBA KOMENTARZY POD WPISEM */
@@ -414,7 +431,50 @@
 }
 
 
+#chatArea
+{
 
+	/* PRZYCISK PLUSOWANIA */
+	&:not([data-plus-button-show="true"]) div.right section.rating-box div.buttons
+	{
+		display: none;
+
+	}
+
+	&[data-plus-button-show="true"]
+	{
+		div.right section.rating-box div.buttons
+		{
+
+			button.plus
+			{
+				height: 20px;
+				width: 20px;
+				padding: unset;
+				margin: unset;
+
+				border: 3px solid var(--colorPlusesCount);
+				border-radius: 4px;
+				color: var(--colorPlusesCount);
+				background-color: transparent;
+			}
+		}
+
+		.messageArticle[data-voted="1"] div.right section.rating-box div.buttons
+		{
+			button.plus
+			{
+				border: 3px solid transparent;
+				background-color: var(--colorPlusesCount);
+				color: white;
+			}
+
+		}
+	}
+
+
+
+}
 
 
 
@@ -431,6 +491,32 @@
 
 
 
+
+
+#chatArea #mikrochatFeeds .channelFeed .channelStatistics
+{
+	z-index: 2;
+	display: block flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 8px;
+	padding: 16px;
+	min-width: 300px;
+
+	position: absolute;
+	top: 21px;
+	right: 45px;
+	color: white;
+	border: 1px solid rgb(21 168 236 / 0.4);
+	background-color: rgb(20 20 20);
+	border-radius: var(--mediumBorderRadius);
+	box-shadow: 10px 10px 80px rgb(0 0 0 / 0.7), 0px 0px 14px rgb(0 0 0 / 1);
+
+	& var
+	{
+		font-style: normal;
+	}
+}
 
 #chatArea #mikrochatFeeds .channelFeed .channelFeedInfo
 {
@@ -466,7 +552,7 @@
 }
 
 
-#chatArea #mikrochatFeeds .channelFeed .messageArticle.quickHighlight
+#chatArea #mikrochatFeeds .channelFeed .messageArticle.highlightQuick
 {
 	/* cool! */
 	background-color: color-mix(in srgb, transparent 95%, var(--messageEntryBorderRightColor));

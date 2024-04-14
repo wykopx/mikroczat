@@ -49,7 +49,7 @@ main#main.grid
 
 	--gutterWidth: 16px;
 	grid-template-columns: 100px 16px 1fr 16px 308px;
-	grid-template-rows: 173px 16px 1fr 16px 50px;
+	grid-template-rows: 173px 16px 1fr 16px 25px;
 }
 
 main#main.grid
@@ -162,13 +162,13 @@ main#main.grid
 		grid-row: 3 / -1;
 	}
 
-	& > footer
+	& > #mainAppFooter
 	{
 		grid-column: 1 / -2;
 		grid-row: 5 / -1;
 	}
 
-	&[data-youtube-player="cl"] > footer
+	&[data-youtube-player="cl"] > #mainAppFooter
 	{
 		grid-column: 3 / -2;
 		grid-row: 5 / -1;
@@ -296,7 +296,7 @@ main#main.grid
 			height: 80vh
 		}
 
-		&[id] > footer
+		&[id] > #mainAppFooter
 		{
 			grid-column: 1;
 			grid-row: 6;
@@ -358,7 +358,57 @@ main#main.grid
 	background-position-x: center;
 	background-repeat: repeat-x;
 	background-size: contain;
+
+	display: flex;
+	position: relative;
 }
+
+.headerButtonsContainer
+{
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
+	justify-self: end;
+
+	position: absolute;
+	top: 0px;
+	right: 0px;
+
+	background: var(--mainBackground);
+	width: max-content;
+
+
+
+	& .textButton
+	{
+		background: var(--mainBackground);
+		color: white;
+		margin: 0px;
+		border-radius: 0 !important;
+		padding: 0.5em 1.4em;
+		height: 3em;
+		cursor: pointer;
+
+		&:hover
+		{
+			background: rgb(20, 20, 20);
+		}
+
+		&:first-child
+		{
+			/* border-bottom-left-radius: 20px !important; */
+		}
+	}
+}
+
+.textButton
+{
+	padding: unset;
+	background-color: unset;
+	border: unset;
+	outline: unset;
+}
+
 
 #rightPanelArea
 {
@@ -378,6 +428,28 @@ main#main.grid
 	background: var(--userListBackground);
 }
 
+
+#mainAppFooter
+{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-between;
+	align-items: end;
+
+	.count
+	{
+		color: color-mix(in srgb, transparent 80%, var(--messageColor));
+		padding-right: 16px;
+		font-size: 0.8em;
+
+		&:hover
+		{
+			color: var(--messageColor);
+			cursor: help;
+		}
+	}
+}
 
 
 

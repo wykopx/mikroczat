@@ -41,7 +41,9 @@ export declare class Tag {
     constructor(tag: TagObject | string);
     initFromAPI(): Promise<void>;
 }
+type LoadingStatus = "before" | "preloaded" | "loaded";
 export declare class Channel {
+    loadingStatus?: LoadingStatus;
     pagination: {
         next: string;
         prev: string;
@@ -51,22 +53,38 @@ export declare class Channel {
     entries: Map<number, Entry>;
     comments: Map<number, Comment>;
     users: Map<string, User>;
-    element: HTMLElement;
-    messagesContainer: HTMLElement;
-    usersListContainer: HTMLElement;
+    elements: {
+        channelFeed: HTMLElement;
+        messagesContainer: HTMLElement;
+        usersListContainer: HTMLElement;
+        newMessageTextarea: HTMLElement;
+    };
     constructor(tag: Tag);
     printChannelDetails(): void;
     addEntryOrCommentToChannelObject(ChannelObject: Channel, EntryObject: Entry | Comment): void;
 }
+export interface NewMessageBodyData {
+    content?: string;
+    photo?: string;
+    embed?: string;
+    survey?: string;
+    adult?: boolean;
+    resource?: Resource;
+    entry_id?: number;
+}
+export type Resource = "entry" | "entry_comment";
 export declare class Entry {
     last_checked_comments_datetime: string;
     last_checked_comments_count?: number;
-    id: number;
+    id?: number;
     entry_id: number;
-    resource: string;
+    resource: Resource;
     channel?: Channel;
     author: User;
     media?: Media;
+    photo?: string;
+    embed?: string;
+    survey?: string;
     votes?: Votes;
     comments?: Comments;
     actions?: EntryActions;
@@ -83,12 +101,13 @@ export declare class Entry {
     status?: string;
     tags?: [string];
     voted?: number;
-    constructor(entryObject: any, channel?: Channel);
+    constructor(entryObject: Entry | NewMessageBodyData, channel?: Channel);
     content_parsed(): string;
     get created_at_Date(): Date;
     get created_at_Timestamp(): number;
     get created_at_FormatDistance(): string;
     get created_at_FormatDistanceSuffix(): string;
+    get created_at_SecondsAgo(): number;
     created_at_Format(formatString: string): string;
     get created_at_Time(): string;
     get created_at_YYYY_MM_DD(): string;
@@ -99,7 +118,7 @@ export declare class Entry {
 }
 export declare class Comment extends Entry {
     parent?: Entry;
-    constructor(commentObject: any, channel?: Channel);
+    constructor(commentObject: Comment, channel?: Channel);
 }
 export type Comments = {
     items: Comments[];

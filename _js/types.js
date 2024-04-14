@@ -1,14 +1,16 @@
 import * as CONST from './const.js';
-import { tokensObject, checkAndInsertNewCommentsInEntry, updateCSSPropertyOnMessageArticleElement } from './index.js';
+import { settings, tokensObject, checkAndInsertNewCommentsInEntry, updateCSSPropertyOnMessageArticleElement } from './index.js';
+import { setDefaultOptions } from "../../node_modules/date-fns/setDefaultOptions.mjs";
 import { pl } from "../../node_modules/date-fns/locale.mjs";
+setDefaultOptions({ locale: pl });
 import { parse } from "../../node_modules/date-fns/parse.mjs";
 import { format } from "../../node_modules/date-fns/format.mjs";
 import { getUnixTime } from "../../node_modules/date-fns/getUnixTime.mjs";
 import { formatDistance } from "../../node_modules/date-fns/formatDistance.mjs";
+import { differenceInSeconds } from "../../node_modules/date-fns/differenceInSeconds.mjs";
 import * as fn from './fn.js';
 export const proxies = new WeakSet();
-export class Tag
-{
+export class Tag {
     name;
     created_at;
     author;
@@ -22,14 +24,11 @@ export class Tag
     promoted;
     media;
     actions;
-    constructor(tag)
-    {
-        if (typeof tag === "string")
-        {
+    constructor(tag) {
+        if (typeof tag === "string") {
             this.name = tag;
         }
-        else
-        {
+        else {
             this.name = tag.name;
             this.created_at = tag.created_at;
             this.author = new User(tag.author);
@@ -45,10 +44,8 @@ export class Tag
             this.actions = tag.actions;
         }
     }
-    async initFromAPI()
-    {
-        try
-        {
+    async initFromAPI() {
+        try {
             let response = await fetch(`${CONST.apiPrefixURL}/tags/${this.name}`, {
                 method: "GET",
                 headers: {
@@ -85,66 +82,58 @@ export class Tag
                 this.actions ??= data.data.actions;
             console.log("Tag constructor().init() -> data from API for tag", this);
         }
-        catch (error)
-        {
+        catch (error) {
             console.error('Error:', error);
         }
     }
 }
-export class Channel
-{
+export class Channel {
+    loadingStatus;
     pagination;
     tag;
     name;
     entries;
     comments;
     users;
-    element;
-    messagesContainer;
-    usersListContainer;
-    constructor(tag)
-    {
+    elements;
+    constructor(tag) {
+        this.loadingStatus = "before";
         this.tag = tag;
         this.name = tag.name;
         this.entries = new Map();
         this.comments = new Map();
         this.users = new Map();
-        this.element = null;
-        this.messagesContainer = null;
-        this.usersListContainer = null;
+        this.elements =
+            {
+                channelFeed: null,
+                messagesContainer: null,
+                usersListContainer: null,
+                newMessageTextarea: null
+            };
         this.pagination = {
             next: null,
             prev: null
         };
         this.printChannelDetails();
     }
-    printChannelDetails()
-    {
+    printChannelDetails() {
         console.log(`Channel name: ${this.name}`);
     }
-    addEntryOrCommentToChannelObject(ChannelObject, EntryObject)
-    {
+    addEntryOrCommentToChannelObject(ChannelObject, EntryObject) {
         console.log(`T.Channel.addEntryOrCommentToChannelObject(EntryObject)`, EntryObject);
-        function createProxyHandler(ChannelObject, EntryObject)
-        {
+        function createProxyHandler(ChannelObject, EntryObject) {
             return {
-                get: function (target, prop)
-                {
-                    if (typeof target[prop] === 'object' && target[prop] !== null)
-                    {
+                get: function (target, prop) {
+                    if (typeof target[prop] === 'object' && target[prop] !== null) {
                         return new Proxy(target[prop], this);
                     }
-                    else
-                    {
+                    else {
                         return target[prop];
                     }
                 },
-                set: function (originalProperty, changedPropertyName, newValue)
-                {
-                    if (originalProperty[changedPropertyName] !== newValue)
-                    {
-                        if (EntryObject.resource === "entry" && changedPropertyName === 'count')
-                        {
+                set: function (originalProperty, changedPropertyName, newValue) {
+                    if (originalProperty[changedPropertyName] !== newValue) {
+                        if (EntryObject.resource === "entry" && changedPropertyName === 'count') {
                             console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${newValue}`);
                             console.log("EntryObject", EntryObject);
                             console.log("ChannelObject", ChannelObject);
@@ -152,14 +141,12 @@ export class Channel
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
                             checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject);
                         }
-                        if (changedPropertyName === 'up')
-                        {
+                        if (changedPropertyName === 'up') {
                             console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${newValue}`);
                             originalProperty[changedPropertyName] = newValue;
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
                         }
-                        if (changedPropertyName === 'voted')
-                        {
+                        if (changedPropertyName === 'voted') {
                             console.log(`🎃 PROXY - UŻYTKOWNIK DAŁ PLUSA: ${newValue}`);
                             originalProperty[changedPropertyName] = newValue;
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
@@ -170,18 +157,22 @@ export class Channel
             };
         }
         EntryObject = new Proxy(EntryObject, createProxyHandler(ChannelObject, EntryObject));
-        if (EntryObject.resource === "entry_comment")
-        {
+        if (EntryObject.resource === "entry_comment") {
             this.comments.set(EntryObject.id, EntryObject);
         }
-        if (EntryObject.resource === "entry")
-        {
+        if (EntryObject.resource === "entry") {
             this.entries.set(EntryObject.id, EntryObject);
+            if (settings.channelStatistics)
+                document.getElementById(`${ChannelObject.name}_entriesCount`).innerText = String(ChannelObject.entries.size);
+        }
+        if (settings.channelStatistics) {
+            document.getElementById(`${ChannelObject.name}_messagesCount`).innerText = String(ChannelObject.entries.size + ChannelObject.comments.size);
+            document.getElementById(`${ChannelObject.name}_plusesCount`).innerText = String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0));
+            document.getElementById(`${ChannelObject.name}_timespan`).innerText = String(Array.from(ChannelObject.entries.values()).reduce((oldest, entry) => new Date(entry.created_at) < new Date(oldest) ? entry.created_at : oldest, new Date()));
         }
     }
 }
-export class Entry
-{
+export class Entry {
     last_checked_comments_datetime;
     last_checked_comments_count;
     id;
@@ -190,6 +181,9 @@ export class Entry
     channel;
     author;
     media;
+    photo;
+    embed;
+    survey;
     votes;
     comments;
     actions;
@@ -206,34 +200,44 @@ export class Entry
     status;
     tags;
     voted;
-    constructor(entryObject, channel)
-    {
-        this.id = entryObject.id;
-        this.entry_id = entryObject.id;
-        this.resource = entryObject.resource;
-        this.channel = channel;
-        this.author = new User(entryObject.author);
-        this.media = entryObject.media;
-        this.votes = entryObject.votes;
-        this.comments = entryObject.comments;
-        this.last_checked_comments_count = 0;
-        this.actions = entryObject.actions;
-        this.deleted = entryObject.deleted;
-        this.adult = entryObject.adult;
-        this.archive = entryObject.archive;
-        this.content = entryObject.content;
-        this.created_at = entryObject.created_at;
-        this.deletable = entryObject.deletable;
-        this.device = entryObject.device;
-        this.editable = entryObject.editable;
-        this.favourite = entryObject.favourite;
-        this.slug = entryObject.slug;
-        this.status = entryObject.status;
-        this.tags = entryObject.tags;
-        this.voted = entryObject.voted;
+    constructor(entryObject, channel) {
+        if ('id' in entryObject) {
+            this.id = entryObject.id;
+            this.entry_id = entryObject.id;
+            this.resource = entryObject.resource;
+            this.channel = channel;
+            this.author = new User(entryObject.author);
+            this.media = entryObject.media;
+            this.votes = entryObject.votes;
+            this.comments = entryObject.comments;
+            this.last_checked_comments_count = 0;
+            this.actions = entryObject.actions;
+            this.deleted = entryObject.deleted;
+            this.adult = entryObject.adult;
+            this.archive = entryObject.archive;
+            this.content = entryObject.content;
+            this.created_at = entryObject.created_at;
+            this.deletable = entryObject.deletable;
+            this.device = entryObject.device;
+            this.editable = entryObject.editable;
+            this.favourite = entryObject.favourite;
+            this.slug = entryObject.slug;
+            this.status = entryObject.status;
+            this.tags = entryObject.tags;
+            this.voted = entryObject.voted;
+            console.log("Entry constructor() EntryObject: ", this);
+        }
+        else {
+            this.resource = entryObject.resource;
+            this.content = entryObject.content;
+            this.adult = entryObject.adult;
+            this.photo = entryObject.photo;
+            this.embed = entryObject.embed;
+            this.survey = entryObject.survey;
+            this.entry_id = entryObject.entry_id;
+        }
     }
-    content_parsed()
-    {
+    content_parsed() {
         let content_parsed = this.content;
         let blacklist = [];
         blacklist.push('✨️ **Obserwuj** #mirkoanonim');
@@ -245,11 +249,9 @@ export class Entry
         splitters.push("Wpis został dodany za pomocą");
         splitters.push("[Regulamin](https://barylkakrwi.org/regulamin)");
         splitters.push("! #januszowybot <- obserwuj/czarnolistuj");
-        for (let splitter of splitters)
-        {
+        for (let splitter of splitters) {
             const parts = content_parsed?.split(splitter);
-            if (parts && parts.length > 1)
-            {
+            if (parts && parts.length > 1) {
                 content_parsed = parts[0];
             }
         }
@@ -257,73 +259,62 @@ export class Entry
         content_parsed = fn.markdownBacktickToCode(content_parsed);
         content_parsed = fn.markdownUnderscoreToItalics(content_parsed);
         content_parsed = fn.markdownAsteriskToStrong(content_parsed);
+        content_parsed = fn.markdownToLink(content_parsed);
+        content_parsed = fn.parseURLToLink(content_parsed);
         content_parsed = fn.markdownUsernameToAbbr(content_parsed);
         content_parsed = fn.markdownGtToBlockquote(content_parsed);
         content_parsed = fn.markdownExclamationMarkToSpoiler(content_parsed);
-        content_parsed = fn.markdownToLink(content_parsed);
-        content_parsed = fn.parseURLToLink(content_parsed);
         content_parsed = fn.markdownNewLineToBr(content_parsed);
         content_parsed = fn.markdownTagsToLink(content_parsed, this.channel.name);
         content_parsed = fn.markdownTextToSpan(content_parsed);
         return content_parsed;
     }
-    get created_at_Date()
-    {
+    get created_at_Date() {
         return parse(this.created_at, 'yyyy-MM-dd HH:mm:ss', new Date());
     }
-    get created_at_Timestamp()
-    {
+    get created_at_Timestamp() {
         return getUnixTime(this.created_at_Date);
     }
-    get created_at_FormatDistance()
-    {
-        return formatDistance(this.created_at_Date, new Date(), { addSuffix: false, locale: pl });
+    get created_at_FormatDistance() {
+        return formatDistance(this.created_at_Date, new Date(), { addSuffix: false });
     }
-    get created_at_FormatDistanceSuffix()
-    {
-        return formatDistance(this.created_at_Date, new Date(), { addSuffix: true, locale: pl });
+    get created_at_FormatDistanceSuffix() {
+        return formatDistance(this.created_at_Date, new Date(), { addSuffix: true });
     }
-    created_at_Format(formatString)
-    {
-        return format(this.created_at_Date, formatString, { locale: pl });
+    get created_at_SecondsAgo() {
+        return differenceInSeconds(new Date(), this.created_at_Date);
     }
-    get created_at_Time()
-    {
+    created_at_Format(formatString) {
+        return format(this.created_at_Date, formatString);
+    }
+    get created_at_Time() {
         return format(this.created_at_Date, 'HH:mm');
     }
-    get created_at_YYYY_MM_DD()
-    {
+    get created_at_YYYY_MM_DD() {
         return format(this.created_at_Date, 'yyyy-MM-dd');
     }
-    get created_at_e()
-    {
-        return format(this.created_at_Date, 'e', { locale: pl });
+    get created_at_e() {
+        return format(this.created_at_Date, 'e');
     }
-    get created_at_ee()
-    {
-        return format(this.created_at_Date, 'ee', { locale: pl });
+    get created_at_ee() {
+        return format(this.created_at_Date, 'ee');
     }
-    get created_at_eee()
-    {
-        return format(this.created_at_Date, 'eee', { locale: pl });
+    get created_at_eee() {
+        return format(this.created_at_Date, 'eee');
     }
-    get created_at_eeee()
-    {
-        return format(this.created_at_Date, 'eeee', { locale: pl });
+    get created_at_eeee() {
+        return format(this.created_at_Date, 'eeee');
     }
 }
-export class Comment extends Entry
-{
+export class Comment extends Entry {
     parent;
-    constructor(commentObject, channel)
-    {
+    constructor(commentObject, channel) {
         super(commentObject, channel);
         this.entry_id = commentObject.parent.id;
         this.parent = new Entry(commentObject.parent, channel);
     }
 }
-export class User
-{
+export class User {
     username;
     about;
     avatar;
@@ -348,13 +339,10 @@ export class User
     verified;
     website;
     channel;
-    constructor(userObject, channel)
-    {
-        if (typeof userObject === "string")
-        {
+    constructor(userObject, channel) {
+        if (typeof userObject === "string") {
         }
-        else if (typeof userObject === "object")
-        {
+        else if (typeof userObject === "object") {
             this.username = userObject.username;
             this.about = userObject.about;
             this.actions = userObject.actions;
@@ -384,8 +372,7 @@ export class User
             this.channel = channel;
         }
     }
-    get numericalOrder()
-    {
+    get numericalOrder() {
         let numerical = 0;
         let usernameFirst5 = this.username.substring(0, 5).toLowerCase().padEnd(5, 'a').replaceAll("_", "z").replaceAll("-", "z");
         numerical = usernameFirst5.charCodeAt(0) * 10000 + usernameFirst5.charCodeAt(1) * 1000 + usernameFirst5.charCodeAt(2) * 100 + usernameFirst5.charCodeAt(3) * 10 + usernameFirst5.charCodeAt(4);
@@ -396,8 +383,7 @@ export class User
         return numerical;
     }
 }
-function isUserColor(obj)
-{
+function isUserColor(obj) {
     return 'name' in obj && typeof obj.name === 'string' &&
         (!obj.hex || typeof obj.hex === 'string') &&
         (!obj.hex_dark || typeof obj.hex_dark === 'string');

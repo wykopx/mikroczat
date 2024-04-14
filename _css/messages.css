@@ -26,7 +26,7 @@
 
 	&.own
 	{
-		border-right-color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+		border-right-color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
 	}
 
 	/* usuniety wpis lub komentarz */
@@ -44,9 +44,12 @@
 	{
 		& img.avatar_img
 		{
-			width: 14px;
-			height: 14px;
+			width: 18px;
+			height: auto;
 			border-radius: 50%;
+			position: relative;
+			top: 5px;
+			left: 2px;
 		}
 	}
 
@@ -101,21 +104,43 @@
 			& a
 			{}
 
+			/* 	! wyłączenie wyświetlania tagów w wiadomościach */
 			& a.href_channel
 			{
 				display: none;
-				/* 	! wyłączenie wyświetlania tagów w wiadomościach */
+				white-space: nowrap;
+				text-decoration: none;
 			}
 
-			& a.href_channel
+			/* & a.href_channel.currentChannel:first-child, */
+			& a.href_channel.currentChannel:last-child
+			{
+				display: none;
+			}
+
+			/* wyswietlanie tagów w środku tekstu */
+			& a.href_channel:has(+ :is(span))
+			{
+				display: inline;
+			}
+
+			& a.href_channel.currentChannel
+			{
+				color: var(--messageColor);
+			}
+
+			& a.href_channel:not(.currentChannel)
 			{
 				color: var(--messageAHrefChannelColor);
 				background-color: var(--messageAHrefChannelBackgroundColor);
 				position: relative;
-				text-decoration: none;
 				padding: 4px 10px;
 				border-radius: var(--smallBorderRadius);
-				white-space: nowrap;
+			}
+
+			& a.href_channel:not(.currentChannel)::before
+			{
+				content: "💭 ";
 			}
 
 			& a.href_channel:hover
@@ -123,16 +148,8 @@
 				filter: brightness(1.4);
 			}
 
-			& a.href_channel::before
-			{
-				content: "💭 ";
-			}
 
-			& a.href_channel.currentChannel:first-child,
-			& a.href_channel.currentChannel:last-child
-			{
-				display: none;
-			}
+
 
 			& a.href_external
 			{
@@ -168,24 +185,36 @@
 				z-index: 1;
 			}
 
+
+
+
+
 			& abbr
 			{
 				/* <abbr data-mention-user="NadiaFrance">@NadiaFrance</abbr> */
 				display: inline flex;
 				width: max-width;
-				padding: 0px 10px;
-				margin-right: 3px;
-				border: 1px solid var(--messageAbbrColor);
-				border-radius: var(--smallBorderRadius);
-				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
+				color: var(--messageAbbrColor);
+				font-weight: bolder;
 			}
+
+
 
 			& abbr.mentions-you
 			{
 				/* <abbr data-mention-user="NadiaFrance" class="mention-you">@NadiaFrance</abbr> */
-				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
+				color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
+
+				border: 1px solid var(--messageAbbrColor);
+				border-radius: var(--smallBorderRadius);
+				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
+
+				padding: 0px 10px;
+				margin-right: 3px;
+
 				animation: heartbeat 3s ease-in-out infinite both;
-				color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+
 			}
 
 

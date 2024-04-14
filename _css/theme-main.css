@@ -2,7 +2,8 @@
 {
 	--chatInnerPadding: 120px 16px 16px 16px;
 	--chatBaseFontSize: 16px;
-
+	--accentColor: rgb(60, 136, 218);
+	--yourAccentColor: rgba(0, 183, 255, 0.8);
 
 	--smallBorderRadius: 4px;
 	--mediumBorderRadius: 8px;
@@ -25,7 +26,7 @@
 	--messageBackgroundColorHover: rgb(44, 44, 44);
 
 	--messageBorderColor: rgb(0 0 0 / 0.1);
-	--messageOwnBorderColor: rgb(42 119 119 / 0.8);
+	--messageYourBorderColor: var(--yourAccentColor);
 
 	--messageBorderRightWidth: 5px;
 
@@ -53,7 +54,9 @@
 	--messageCodeFontSize: 0.85em;
 	--messageCodeBorderRadius: 0;
 
-	--messageAbbrColor: rgb(0 183 255 / 0.7);
+	--messageAbbrColor: var(--messageColor);
+	--messageAbbrMentionsYouColor: var(--yourAccentColor);
+
 
 
 	/* GUTTERS */

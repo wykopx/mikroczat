@@ -1,7 +1,8 @@
 import * as CONST from './const.js';
 import * as T from './types.js';
 import * as fn from './fn.js';
-export async function getXNewestEntriesFromChannel(ChannelObject, limit = 50, FETCH_DELAY_MILLISECONDS = 200) {
+import { settings } from './index.js';
+export async function getXNewestEntriesFromChannel(ChannelObject, limit = settings.fetch.numbersOfEntriesToLoadInChannel, FETCH_DELAY_MILLISECONDS = 200) {
     console.log(`getXNewestEntriesFromChannel(channel: '${ChannelObject.name}', limit: ${limit})`);
     return new Promise(async (resolve, reject) => {
         await fetch(`https://wykop.pl/api/v3/tags/${ChannelObject.name}/stream?limit=${limit}&sort=all&type=entry`, {
@@ -26,7 +27,7 @@ export async function getXNewestEntriesFromChannel(ChannelObject, limit = 50, FE
             entries.forEach((entryObject) => {
                 EntriesArray.push(new T.Entry(entryObject, ChannelObject));
             });
-            let totalPages = Math.ceil(limit / 50);
+            let totalPages = Math.ceil(limit / settings.fetch.numbersOfEntriesToLoadInChannel);
             for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
                 console.log(`Pobieramy kolejną stronę wpisów | page: ${pageNumber} | totalPages: ${totalPages}`);
                 EntriesArray.push(...await getXNewestEntriesFromChannelFromPageHash(ChannelObject, ChannelObject.pagination.next, limit));
@@ -45,7 +46,7 @@ export async function getXNewestEntriesFromChannel(ChannelObject, limit = 50, FE
         });
     });
 }
-export async function getXNewestEntriesFromChannelFromPageHash(ChannelObject, pageHash, limit = 50) {
+export async function getXNewestEntriesFromChannelFromPageHash(ChannelObject, pageHash, limit = settings.fetch.numbersOfEntriesToLoadInChannel) {
     console.log(`getXNewestEntriesFromChannelFromPageNumber(channel: '${ChannelObject.name}', limit: ${limit}, pageHash: ${pageHash})`);
     return new Promise(async (resolve, reject) => {
         await fetch(`https://wykop.pl/api/v3/tags/${ChannelObject.name}/stream?limit=${limit}&sort=all&type=entry&page=${pageHash}`, {
@@ -89,11 +90,11 @@ export async function getAllCommentsFromEntry(entry, FETCH_DELAY_MILLISECONDS = 
     console.log(`entry.last_checked_comments_count`, entry.last_checked_comments_count);
     if (entry.comments.count > 0 && entry.comments.count != entry.last_checked_comments_count) {
         return new Promise(async (resolve, reject) => {
-            let totalPages = Math.ceil(entry.comments.count / 50);
+            let totalPages = Math.ceil(entry.comments.count / settings.fetch.numbersOfCommentsToLoad);
             const CommentsArray = [];
             for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
                 console.log(`getAllCommentsFromEntry(${entry.entry_id})  | page: ${pageNumber} | totalPages: ${totalPages} | entry.comments.count: ${entry.comments.count} | entry.last_checked_comments_count ${entry.last_checked_comments_count}`);
-                CommentsArray.push(...await getCommentsFromEntryFromPageNumber(entry, pageNumber, 50));
+                CommentsArray.push(...await getCommentsFromEntryFromPageNumber(entry, pageNumber, settings.fetch.numbersOfCommentsToLoad));
                 await new Promise(resolve => setTimeout(resolve, FETCH_DELAY_MILLISECONDS));
             }
             CommentsArray.sort((a, b) => a.id - b.id);
@@ -126,11 +127,66 @@ export async function getCommentsFromEntryFromPageNumber(entry, page = 1, limit 
             .then((responseJSON) => {
             let comments = [...responseJSON.data];
             const CommentsArray = [];
-            comments.forEach((entryObject) => {
-                CommentsArray.push(new T.Comment(entryObject, entry.channel));
+            comments.forEach((commentObject) => {
+                CommentsArray.push(new T.Comment(commentObject, entry.channel));
             });
             CommentsArray.sort((a, b) => a.id - b.id);
             resolve(CommentsArray);
+        }).catch((error) => {
+            if (error instanceof TypeError) {
+                console.error('xxx Network error:', error);
+            }
+            else {
+                console.error('Other error:', error);
+            }
+            reject(error);
+        });
+    });
+}
+export async function postNewMessageToChannel(ChannelObject, message) {
+    console.log(`postNewMessageToChannel: "${ChannelObject.name}" | message: `, message);
+    let apiURL = "https://wykop.pl/api/v3/entries";
+    if (message.resource && message.resource == "entry_comment" && message.entry_id) {
+        apiURL = `https://wykop.pl/api/v3/entries/${message.entry_id}/comments`;
+    }
+    let bodyData = {};
+    message.content ? bodyData.content = message.content : "";
+    message.photo ? bodyData.photo = message.photo : "";
+    message.embed ? bodyData.embed = message.embed : "";
+    message.survey ? bodyData.survey = message.survey : "";
+    message.adult ? bodyData.adult = message.adult : "";
+    console.log("bodyData to send: ", bodyData);
+    console.log("apiURL: ", apiURL);
+    return new Promise(async (resolve, reject) => {
+        await fetch(apiURL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
+            body: JSON.stringify({
+                "data": bodyData
+            })
+        })
+            .then((response) => {
+            console.log("response", response);
+            if (!response.ok) {
+                console.log("HTTP error! status: ${response.status}");
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+            .then(async (responseJSON) => {
+            console.log("responseJSON");
+            console.log(responseJSON);
+            console.log("ChannelObject", ChannelObject);
+            let newEntry;
+            if (responseJSON.data.resource == "entry_comment")
+                newEntry = new T.Comment(responseJSON.data, ChannelObject);
+            else
+                newEntry = new T.Entry(responseJSON.data, ChannelObject);
+            console.log("const newEntry inside fetch (before resolve): ", newEntry);
+            resolve(newEntry);
         }).catch((error) => {
             if (error instanceof TypeError) {
                 console.error('xxx Network error:', error);

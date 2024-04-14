@@ -1,4 +1,5 @@
 import * as T from './types.js';
+export declare let settings: any;
 declare global {
     interface Window {
         logout: () => void;
