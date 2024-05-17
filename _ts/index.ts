@@ -1,19 +1,121 @@
 'use strict';
+// export const version: string = "3.0.17";
 import * as api from './wykop_api.js';
 import * as CONST from './const.js';
+import { settings, setSettings } from './settings.js';
 import * as T from './types.js';
-import { pl } from "../node_modules/date-fns/locale.mjs";
-import { parse } from "../node_modules/date-fns/parse.mjs";
-import { format } from "../node_modules/date-fns/format.mjs";
-import { subDays } from "../node_modules/date-fns/subDays.mjs";
-import { parseJSON } from "../node_modules/date-fns/parseJSON.mjs";
-import { getUnixTime } from "../node_modules/date-fns/getUnixTime.mjs";
-import { formatDistance } from "../node_modules/date-fns/formatDistance.mjs";
-import * as fn from './fn.js';
-declare var openChannelsFromURLArray: string[];
+import * as ch from './ch.js';
+import * as ch_fn from './ch_fn.js';
+import * as login from './login.js';
+import * as notifications from './wykop_notifications.js';
 
-const openedChannels: Map<string, T.Channel> = new Map();
-const activeChannels: [T.Channel, T.Channel] = [null, null];
+import { pl } from "../../node_modules/date-fns/locale.mjs";
+import { parse } from "../../node_modules/date-fns/parse.mjs";
+import { format } from "../../node_modules/date-fns/format.mjs";
+import { sub } from "../../node_modules/date-fns/sub.mjs";
+import { subDays } from "../../node_modules/date-fns/subDays.mjs";
+import { parseJSON } from "../../node_modules/date-fns/parseJSON.mjs";
+import { getUnixTime } from "../../node_modules/date-fns/getUnixTime.mjs";
+import { formatDistance } from "../../node_modules/date-fns/formatDistance.mjs";
+import * as fn from './fn.js';
+
+import * as qr from '../_js-lib/qrcodegen.js';
+
+let nightMode: string | null = localStorage.getItem('nightMode');
+
+export let wykopDomain = "https://wykop.pl";
+let wxDomain = "https://wykopx.pl";
+let mikroczatDomain = "https://mikroczat.pl";
+
+export const root = document.documentElement;
+export const head = document.head;
+export const body = document.body;
+export const main = document.getElementById("main");
+
+export const centerHeader = document.getElementById("centerHeader");
+export const youtubeIframe = document.getElementById("youtubeIframe") as HTMLIFrameElement;
+export const chooseChannelDialog = document.querySelector("#chooseChannelDialog") as HTMLDialogElement;
+
+
+declare var openChannelsFromURLArray: string[];
+declare var $folder: string;
+declare let $dev: boolean;
+declare let dev: boolean;
+declare var hotChannels: string[];
+
+// export let dev = false;
+// if ($folder == "chat") dev = true;
+
+if (dev)
+{
+	// dev settings
+	// settings.css.main.channelStats = "show";
+	// settings.rightClickOnUsernameCopiesToClipboard = true;
+
+	settings.highlightQuick = true;
+
+	settings.promoFooter.enable = true;
+	settings.promoFooter.emoji = true;
+	settings.promoFooter.label = true;
+	settings.promoFooter.roomInfo = true;
+	// settings.promoFooter.mikroczatLinks = false;
+	// settings.sounds.incoming_entry.enabled = true;
+	// settings.sounds.incoming_comment.enabled = true;
+	settings.tabTitle.unreadMentionsBadge.enabled = true;
+	settings.tabTitle.unreadMentionsBadge.showIcon = true;
+	settings.tabTitle.unreadMentionsBadge.showCount = true;
+	settings.tabTitle.unreadMessagesBadge.enabled = true;
+	settings.tabTitle.unreadMessagesBadge.showIcon = true;
+	settings.tabTitle.unreadMessagesBadge.showCount = true;
+	// settings.css.chatArea.msgFilterMikroczat = true;
+}
+// if (dev) console.log("login.loggedUser: ", login.loggedUser);
+
+
+
+
+if (!settings.promoFooter.enable && (settings.promoFooter.emoji || settings.promoFooter.label || settings.promoFooter.roomInfo || settings.promoFooter.mikroczatLinks)) settings.promoFooter.enable = true;
+const lennyArray = ["ᘳಠ ͟ʖಠᘰ", "¯\\\_(ツ)\_/¯"];
+export const openedChannels: Map<string, T.Channel> = new Map();
+export const activeChannels: [T.Channel | null, T.Channel | null] = [null, null];
+
+
+// ! TESTING
+if (dev)
+{
+	test();
+
+	var intervalID = setInterval(test, 1000);
+
+	function test()
+	{
+		// console.log("🔄 TESTOWANIE openChannelsFromURLArray", openChannelsFromURLArray)
+		// console.log("🔄 TESTOWANIE openedChannels", openedChannels)
+		// console.log("🔄 TESTOWANIE activeChannels", activeChannels)
+		// console.log("🔄 TESTOWANIE activeChannels[0]", activeChannels[0])
+		// if (activeChannels[0]) console.log("🔄 TESTOWANIE ChannelObject - loadingStatus: ", activeChannels[0].loadingStatus)
+	}
+}
+
+
+
+
+
+
+
+export const sounds: T.Sounds =
+{
+	logged_in: new Audio(`/_sounds/${settings.sounds.logged_in.file}`),
+	logged_out: new Audio(`/_sounds/${settings.sounds.logged_out.file}`),
+
+	outgoing_entry: new Audio(`/_sounds/${settings.sounds.outgoing_entry.file}`),
+	outgoing_comment: new Audio(`/_sounds/${settings.sounds.outgoing_comment.file}`),
+
+	incoming_entry: new Audio(`/_sounds/${settings.sounds.incoming_entry.file}`),
+	incoming_comment: new Audio(`/_sounds/${settings.sounds.incoming_comment.file}`),
+	incoming_mention: new Audio(`/_sounds/${settings.sounds.incoming_mention.file}`),
+}
+
 
 declare var Split: any;
 declare global 
@@ -22,811 +124,98 @@ declare global
 	{
 		logout: () => void,
 		youtubeswitch: () => void,
-		spotifyswitch: () => void,
-		activateChannel: (channel: string | T.Channel) => void
+		spotifyswitch: () => void
 	}
 }
 
 
-const numbersOfEntriesToLoadOnChannelOpen = 1; // max 50
-const numbersOfEntriesToLoadInChannel = 49; // max 50
-const numbersOfEntriesToCheck = 2;	// max 50
-const numbersOfCommentsToLoad = 50; // max 50
-let nightMode: string = localStorage.getItem('nightMode');
-
-let mikroczatLoggedIn = false;
-let wykopDomain = "https://wykop.pl";
-let wxDomain = "https://wykopx.pl";
-let mikroczatDomain = "https://mikroczat.pl";
-
-const root = document.documentElement;
-const head = document.head;
-const body = document.body;
-const main = document.getElementById("main");
-const centerHeader = document.getElementById("centerHeader");
-const template_channelFeed = document.getElementById("template_channelFeed") as HTMLTemplateElement;
-const template_messageArticle = document.getElementById("template_messageArticle") as HTMLTemplateElement;
-const chatArea = document.getElementById("chatArea");
-const mikrochatFeeds = document.getElementById("mikrochatFeeds");
-
-// const newMessageSound = new Audio('/_sounds/switch-7.wav');
-// const newMessageSound = new Audio('/_sounds/31899.mp3');
-const newMessageSound = new Audio('/_sounds/80177.mp3');
-
-export let user: T.User = { username: "Anonim (Ty)" };
-export let tokensObject: T.TokensObject = api.getTokenFromDatabase(); // authObject w db.js node
-if ((tokensObject.token || tokensObject.refresh_token) && !mikroczatLoggedIn) logIn();
 
 
+// alert(navigator.userAgent)
 
-// ? TESTING
-var intervalID = setInterval(function ()
+if (/Mobi|Android/i.test(navigator.userAgent))
 {
-	// console.log("openedChannels", openedChannels)
-}, 10000);
-
-
-
-
-const loginDialog = document.querySelector("#loginDialog") as HTMLDialogElement;
-const loginInput = document.querySelector("#loginInput");
-const loginAlertTokenSuccess = document.querySelector("#loginDialog #loggedInToken");
-const loginAlertRefreshTokenSuccess = document.querySelector("#loginDialog #loggedInRefreshToken");
-const loginAlertError = document.querySelector("#loginDialog .alert-error");
-
-
-const showLoginDialogButton = document.querySelector("#showLoginDialog");
-const closeLoginDialogButton = document.querySelector("#closeLoginDialogButton");
-
-// "Show the dialog" button opens the dialog modally
-showLoginDialogButton.addEventListener("click", () =>
+	// alert("mobile")
+	// user is on mobile device
+	root.dataset.device = "mobile";
+} else
 {
-	loginDialog.showModal();
+	// alert("desktop")
+	// user is on desktop
+	root.dataset.device = "desktop";
+}
+
+
+
+export function generateTabTitle(ChannelObject: T.Channel): string
+{
+	// if(dev) console.log("getTabTitle() -> ChannelObject: ", ChannelObject);
+	// if(dev) console.log("getTabTitle() -> activeChannels: ", activeChannels);
+
+	let tabTitle: string = "";
+
+	if (settings.tabTitle.unreadMentionsBadge.enabled && ChannelObject.unreadMentionsCount > 0)
+	{
+		if (settings.tabTitle.unreadMentionsBadge.showIcon)
+		{
+			tabTitle += `${settings.tabTitle.unreadMentionsBadge.icon} `;	// 🔔
+		}
+
+		if (settings.tabTitle.unreadMentionsBadge.showCount)
+		{
+			tabTitle += `(`;
+			tabTitle += ChannelObject.unreadMentionsCount;					// 🔔 (1)
+
+			if (settings.tabTitle.unreadMessagesBadge.enabled && settings.tabTitle.unreadMessagesBadge.showCount)
+			{
+				tabTitle += `/${ChannelObject.unreadMessagesCount}`;		// 🔔 (1/14) - liczba nowych wiadomosci z mentions i ogolem
+			}
+			tabTitle += `) `;
+		}
+		else if (settings.tabTitle.unreadMessagesBadge.showCount)
+		{
+			tabTitle += `(${ChannelObject.unreadMessagesCount}) `;			// 🔔 (14) 
+		}
+	}
+	else if (settings.tabTitle.unreadMessagesBadge.enabled && ChannelObject.unreadMessagesCount > 0)
+	{
+		if (settings.tabTitle.unreadMessagesBadge.showIcon)
+		{
+			tabTitle += `${settings.tabTitle.unreadMessagesBadge.icon} `; 	// 🕭
+		}
+		if (settings.tabTitle.unreadMessagesBadge.showCount)
+		{
+			tabTitle += `(${ChannelObject.unreadMessagesCount}) `;			// 🕭 (14)
+		}
+	}
+
+
+	tabTitle += CONST.ChannelsSpecialMap.has(ChannelObject.name) ? CONST.ChannelsSpecialMap.get(ChannelObject.name).tabTitle : ChannelObject.name;
+
+
+	tabTitle += ` | ${CONST.tabTitleTemplate}`;
+
+	return tabTitle;
+}
+
+
+document.addEventListener('visibilitychange', function ()
+{
+	if (document.visibilityState === 'visible')
+	{
+		if (activeChannels[0] && activeChannels[0].loadingStatus == "loaded")
+		{
+			activeChannels[0].unreadMessagesCount = 0;
+			activeChannels[0].unreadMentionsCount = 0;
+
+			window.top.document.title = generateTabTitle(activeChannels[0]);
+		}
+	}
+	else if (document.visibilityState === 'hidden')
+	{
+
+	}
 });
-// "Close" button closes the dialog
-closeLoginDialogButton.addEventListener("click", () =>
-{
-	if (processLoginData((loginInput as HTMLInputElement).value)) logIn();
-	loginDialog.close();
-});
-loginInput.addEventListener("paste", (event: ClipboardEvent) =>
-{
-	console.log(event);
-	processLoginData((event.target as HTMLInputElement).value);
-})
-loginInput.addEventListener("change", (event) =>
-{
-	console.log(event);
-	processLoginData((event.target as HTMLInputElement).value);
-})
-loginInput.addEventListener("input", (event) =>
-{
-	console.log(event);
-	processLoginData((event.target as HTMLInputElement).value);
-})
-function processLoginData(pastedData: string)
-{
-	if (pastedData == "" || pastedData == null || pastedData == undefined)
-	{
-		return false;
-	}
-	if (pastedData.length < 64)
-	{
-		fn.hide(loginAlertRefreshTokenSuccess);
-		fn.hide(loginAlertTokenSuccess);
-		fn.show(loginAlertError);
-		return false;
-	}
-
-	let tokensObject = api.saveToken({ tokenValue: pastedData });
-	if (tokensObject !== false)
-	{
-		fn.hide(loginAlertError);
-		if ('refreshToken' in tokensObject)
-		{
-			fn.show(loginAlertRefreshTokenSuccess);
-			return true;
-		}
-		else if ('token' in tokensObject)
-		{
-			fn.show(loginAlertTokenSuccess);
-			return true;
-		}
-	}
-	else
-	{
-		fn.hide(loginAlertRefreshTokenSuccess);
-		fn.hide(loginAlertTokenSuccess);
-		fn.show(loginAlertError);
-		return false;
-	}
-}
-async function logIn()
-{
-	console.log(`logIn()`);
-
-	if (tokensObject.refresh_token)
-	{
-		let newTokensObject: T.TokensObject | boolean = await api.fetchAPIrefreshTokens();
-		if (newTokensObject !== false)
-		{
-			if (typeof newTokensObject === 'object' && 'token' in newTokensObject) 
-			{
-				tokensObject.token = newTokensObject.token;
-			}
-		}
-	}
-
-	if (!tokensObject.token) tokensObject = api.getTokenFromDatabase();
-
-
-	await fetch(`${CONST.apiPrefixURL}/profile/short`, {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: "Bearer " + window.localStorage.getItem("token"),
-		},
-	})
-		.then(async (response) =>
-		{
-			console.log("logIn() > response from", response);
-
-			// nieaktualny token
-			if (!response.ok)
-			{
-				mikroczatLoggedIn = false;
-				console.log(`Problem z logowaniem: ${response.status}`);
-				await api.fetchAPIrefreshTokens();
-				return false;
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			return response.json();
-		})
-		.then((responseJSON) =>
-		{
-			console.log("🟢🟢🟢 responseJSON - api/v3/profile/short")
-			console.log(responseJSON)
-			user = responseJSON.data;
-			console.log(`user: ${user.username}`, user);
-			window.localStorage.setItem("username", user.username);
-			confirmLoggedIn();
-			return true;
-
-		})
-		.catch((error) =>
-		{
-			mikroczatLoggedIn = false;
-
-			loginDialog.showModal();
-
-			if (error instanceof TypeError)
-			{
-				console.error('Network error:', error); // AWARIA SERWERA
-			} else
-			{
-				console.error('Other error:', error);
-			}
-		});
-}
-async function confirmLoggedIn()
-{
-
-	console.log(`confirmLoggedIn()`)
-	console.log("user:", user)
-	mikroczatLoggedIn = true;
-
-	fn.innerHTML(".loggedInUsername", user.username)
-
-
-	document.querySelectorAll("a.loggedInHref").forEach((el: HTMLAnchorElement) =>
-	{
-		el.href = 'https://go.wykopx.pl/@${user.username}';
-		el.classList.add(`${user.status}`, `${user.color}-profile`, `${user.gender}-gender`); // "active/banned/suspended, "orange-profile", "m-gender/f-gender/null-gender";
-	});
-
-
-
-
-	// MESSAGE WYKOP.PL
-	if (window.opener) window.opener.postMessage('mikroczatLoggedInIn', wykopDomain);
-
-	// console.log("openChannelsFromURLArray", openChannelsFromURLArray);
-	if (openChannelsFromURLArray.length > 0)
-	{
-		for (const channelName of openChannelsFromURLArray)
-		{
-			const newTag = new T.Tag(channelName);
-			const newChannel = new T.Channel(newTag);
-			openedChannels.set(channelName, newChannel)
-		}
-	}
-
-	if (openedChannels.size > 0)
-	{
-		console.log("💜openedChannels: ", openedChannels);
-
-		for (let [, ChannelObject] of openedChannels)
-		{
-			openNewChannel(ChannelObject);
-
-			ChannelObject.users.set(user.username, user);			// dodajemy uzytkownika na listę osob na kanale
-			window.activateChannel(ChannelObject);
-
-			console.log('⌛ Promise delay: 4 sekundy');
-			await new Promise(resolve => setTimeout(resolve, 4000)); // wait 1s pomiedzy otwieraniem kilku kanalow na raz
-		}
-	}
-}
-
-
-
-
-// 	<div data-channel="wojna" class="channelFeed column" data-loaded="true" data-active="false"></div>
-async function openNewChannel(ChannelObject: T.Channel): Promise<T.Channel> 
-{
-	await ChannelObject.tag.initFromAPI().then(() =>
-	{
-		openedChannels.set(ChannelObject.name, ChannelObject)
-	});
-
-	//if (!openedChannels.has(ChannelObject.name)) {	} else	{	}
-
-	console.log(`openNewChannel: `, ChannelObject.name)
-	const templateNode = template_channelFeed.content.cloneNode(true) as Element;
-	const channelFeedDiv = templateNode.querySelector('.channelFeed') as HTMLElement;
-	channelFeedDiv.dataset.channel = `channel_${ChannelObject.name}`;
-	channelFeedDiv.id = `channel_${ChannelObject.name}`;
-	mikrochatFeeds.appendChild(templateNode); // tworzymy okno nowego kanału
-
-	openedChannels.get(ChannelObject.name).element = document.getElementById(`channel_${ChannelObject.name}`);
-	openedChannels.get(ChannelObject.name).messagesContainer = openedChannels.get(ChannelObject.name).element.querySelector(".messagesContainer");
-
-
-	console.log(openedChannels.get(ChannelObject.name).element)
-
-	// pobieramy najnowszych X wpisów z kanału podczas otwierania
-	await checkAndInsertNewEntriesInChannel(ChannelObject, numbersOfEntriesToLoadOnChannelOpen);
-
-	// ładujemy do każdego wpisu komentarze. Liczba komentarzy zapisana jest w ChannelObject.entries.[entry].comments.count
-	console.log("ChannelObject.entries.size", ChannelObject.entries.size)
-	if (ChannelObject.entries.size > 0) await checkAndInsertNewCommentsInChannel(ChannelObject);
-
-	//setCheckingForNewMessagesInChannel(ChannelObject);
-	// console.log(`openNewChannel() ChannelObject: `, ChannelObject)
-	// console.log(`openNewChannel() ChannelObject.entries: `, ChannelObject.entries)
-	// console.log(`openNewChannel() ChannelObject.comments: `, ChannelObject.comments)
-	// TODO zapisac liste otwartych kanalow w localstorage za pomocą localforage
-
-	mikrochatFeeds.querySelector(".loadingInfo").classList.add("hidden");
-	setupScrollListener(openedChannels.get(ChannelObject.name).messagesContainer);
-
-	fetchOpenedChannelsData(ChannelObject);
-
-	return ChannelObject;
-}
-
-
-
-
-const FETCH_DELAY_MILLISECONDS = 300;
-
-// async function fetchOpenedChannelsData()
-// {
-// 	console.log(`🌍 fetchOpenedChannelsData()`);
-// 	// sprawdzamy po kolei wszystkie kanaly
-// 	for (let channelObject of openedChannels.values())
-// 	{
-// 		console.log(`💚 ROZPOCZYNAM AKTUALIZACJĘ WPISÓW NA KANALE [${channelObject.name}]`)
-
-// 		let newEntriesInsertedArray: T.Entry[] = [];
-// 		// jesli po otwarci kanalu sa zaladowane tylko 3 wpisy wczytujemy resztę do najnowszych 50
-// 		if (channelObject.entries.size <= numbersOfEntriesToLoadOnChannelOpen)
-// 		{
-// 			newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(channelObject, numbersOfEntriesToLoadInChannel);
-// 		}
-
-// 		console.log('⌛ Promise delay: 20 sekund');
-// 		await new Promise(resolve => setTimeout(resolve, 20000));
-// 		await refreshAllEntriesCommentsCountAndVotesUpInChannel(channelObject);
-
-// 		// JESLI WCZYTALISMY NOWE WPISY WCZYTUJEMY DO KAZDEGO NOWEGO WPISU WSZYSTKIE KOMENTARZE
-// 		// if (newEntriesInsertedArray.length > 0)
-// 		// {
-// 		// 	for (let entryObject of newEntriesInsertedArray)
-// 		// 	{
-// 		// 		if (entryObject.comments.count > 0)
-// 		// 		{
-// 		// 			await checkAndInsertNewCommentsInEntry(channelObject, entryObject);
-// 		// 		}
-// 		// 	}
-// 		// }
-// 	}
-// }
-
-async function fetchOpenedChannelsData(channelObject: T.Channel)
-{
-	console.log(`🌍 fetchOpenedChannelsData()`);
-	console.log(`💚 ROZPOCZYNAM AKTUALIZACJĘ WPISÓW NA KANALE [${channelObject.name}]`)
-
-	let newEntriesInsertedArray: T.Entry[] = [];
-	/* jesli po otwarci kanalu sa zaladowane tylko 3 wpisy wczytujemy resztę do najnowszych 50 */
-	if (channelObject.entries.size <= numbersOfEntriesToLoadOnChannelOpen)
-	{
-		newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(channelObject, numbersOfEntriesToLoadInChannel);
-	}
-
-	/* JESLI WCZYTALISMY NOWE WPISY WCZYTUJEMY DO KAZDEGO NOWEGO WPISU WSZYSTKIE KOMENTARZE */
-	if (newEntriesInsertedArray.length > 0)
-	{
-		for (let entryObject of newEntriesInsertedArray)
-		{
-			if (entryObject.comments.count > 0)
-			{
-				await checkAndInsertNewCommentsInEntry(channelObject, entryObject);
-			}
-		}
-	}
-
-	while (true)
-	{
-		console.log('⌛ Promise delay: 10 sekund');
-		await new Promise(resolve => setTimeout(resolve, 10000));
-		await refreshAllEntriesCommentsCountAndVotesUpInChannel(channelObject);
-
-	}
-}
-
-// var intervalID = setInterval(async function ()
-// {
-// 	// TODO dodać debounce + zmniejszyć czas
-// 	await fetchOpenedChannelsData();
-// 	console.log('⌛ setInterval delay: 10 sekund');
-
-// }, 5000);
-
-
-
-// AKTUALIZACJA ISTNIEJĄCYCH WPISÓW (LICZBA KOMENTARZY I LICZBA PLUSÓW)
-async function refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject: T.Channel): Promise<boolean>
-{
-	console.log(`refreshAllEntriesCommentsCountAndVotesUpInChannel(Channel: ${ChannelObject.name})`)
-	console.log(`--- aktualizacja liczby plusów i komentarzy we wszystkich otwartych wpisach (${ChannelObject.entries.size} wpisów)`);
-
-	const refreshedEntriesArray: T.Entry[] = await api.getXNewestEntriesFromChannel(ChannelObject, ChannelObject.entries.size); // wszystkie otwarte wpisy
-	if (refreshedEntriesArray.length > 0) analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, refreshedEntriesArray);
-
-	return true;
-}
-
-// AKTUALIZACJA DANYCH, KTÓRE ZOSTAŁY ZMIENIONE
-// votes.up | comments.count | voted
-function analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject: T.Channel, messagesArray: T.Entry[] | T.Comment[])
-{
-	// console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries(ChannelObject: ${ChannelObject.name}, entriesArray:)`, entriesArray)
-
-	for (const entryObject of messagesArray)
-	{
-		console.log(`entryObject`, entryObject);
-		console.log(`entryObject.id`, entryObject.id);
-		console.log(`ChannelObject.entries.get(entryObject.id)`, ChannelObject.entries.get(entryObject.id));
-		console.log(`ChannelObject.entries`, ChannelObject.entries);
-
-		// nowy wpis, którego jeszcze nie dodawaliśmy
-		if (!ChannelObject.entries.has(entryObject.id))
-		{
-			insertNewItem(ChannelObject, entryObject);
-		}
-
-		// aktualizujemy dane wpisu
-		else
-		{
-			if (entryObject.comments?.count && entryObject.comments.count != ChannelObject.entries.get(entryObject.id).comments.count)
-			{
-				console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments)
-				// 🎃 DLA PROXY - ZMIENIŁA SIĘ LICZBA KOMENTARZY
-				console.log(`💭 We wpisie ${entryObject.id} zmieniła się liczba komentarzy z [${ChannelObject.entries.get(entryObject.id).comments.count}] na [${entryObject.comments.count}]`);
-				console.log(entryObject);
-				console.log(entryObject.comments);
-				ChannelObject.entries.get(entryObject.id).comments.count = entryObject.comments.count;
-			}
-
-			// 🎃 DLA PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW
-			if (entryObject.votes?.up && entryObject.votes.up != ChannelObject.entries.get(entryObject.id).votes.up)
-			{
-				console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.votes `, entryObject.votes)
-				console.log(`🔼 We wpisie ${entryObject.id} zmieniła się liczba plusów z [${ChannelObject.entries.get(entryObject.id).votes.up}] na [${entryObject.votes.up}]`);
-				ChannelObject.entries.get(entryObject.id).votes.up = entryObject.votes.up;
-			}
-
-
-			// 🎃 DLA PROXY - UŻYTKOWNIK ZAGŁOSOWAŁ NA WPIS
-			if (entryObject.voted && entryObject.voted != ChannelObject.entries.get(entryObject.id).voted)
-			{
-				console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.voted `, entryObject.voted)
-				console.log(`entryObject`, entryObject)
-				console.log(`➕ Użytkownik zaplusował wpis/komentarz ${entryObject.id} zmiana .voted z: [${ChannelObject.entries.get(entryObject.id).voted}] na [${entryObject.voted}]`);
-
-				ChannelObject.entries.get(entryObject.id).voted = entryObject.voted;
-			}
-		}
-
-	}
-}
-
-
-
-export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject: T.Entry | T.Comment, changedPropertyName: string, changedObject?: T.Entry | T.Votes | T.Comments)
-{
-
-	let messageArticle = null;
-	if (entryOrCommentObject.resource === "entry") messageArticle = mikrochatFeeds.querySelector(`.messageArticle[data-id="${entryOrCommentObject.id}"]`) as HTMLElement;
-	else if (entryOrCommentObject.resource === "entry_comment") messageArticle = mikrochatFeeds.querySelector(`.messageArticle[data-id="${entryOrCommentObject.id}"]`) as HTMLElement;
-
-	// console.log(`🎃 updateCSSPropertyOnMessageArticleElement | entryOrComment:`, entryOrCommentObject);
-	// console.log(`🎃 updateCSSPropertyOnMessageArticleElement | changedProperty: `, changedObject);
-	// console.log(`🎃 updateCSSPropertyOnMessageArticleElement | changedPropertyName: [${changedPropertyName}]`);
-	// console.log(`🎃 messageArticle: `, messageArticle);
-
-	if (messageArticle)
-	{
-		if (changedObject)
-		{
-			if (changedPropertyName === "up")
-			{
-				messageArticle.style.setProperty('--votesUp', `"${(changedObject as T.Votes).up}"`);					// var(--votesUp) = "12"
-				messageArticle.dataset.votesUp = (changedObject as T.Votes).up;
-			}
-			if (entryOrCommentObject.resource === "entry" && changedPropertyName === "count")
-			{
-				messageArticle.style.setProperty('--commentsCount', `"${(changedObject as T.Comments).count}"`);		// var(--commentsCount) = "12"
-				messageArticle.dataset.commentsCount = (changedObject as T.Comments).count;
-			}
-			if (changedPropertyName === "voted")
-			{
-				messageArticle.dataset.voted = (changedObject as T.Entry).voted;
-			}
-		}
-		else if (entryOrCommentObject)
-		{
-			messageArticle.style.setProperty('--votesUp', `"${entryOrCommentObject.votes.up}"`);							// var(--votesUp) = "12"
-			messageArticle.dataset.votesUp = entryOrCommentObject.votes.up;
-
-			if (entryOrCommentObject.resource === "entry") messageArticle.style.setProperty('--commentsCount', `"${entryOrCommentObject.comments.count}"`);			// var(--commentsCount) = "12"
-			messageArticle.dataset.commentsCount = entryOrCommentObject.comments.count;
-
-			messageArticle.dataset.voted = entryOrCommentObject.voted;
-		}
-
-	}
-
-}
-
-
-// SPRAWDZANIE NOWYCH WIADOMOŚCI NA KANALE
-async function checkAndInsertNewEntriesInChannel(ChannelObject: T.Channel, limit: number = 50): Promise<T.Entry[]>
-{
-	console.log(`checkAndInsertNewEntriesInChannel(Channel: ${ChannelObject.name})`)
-	const entriesArray: T.Entry[] = await api.getXNewestEntriesFromChannel(ChannelObject, limit);
-	const filteredEntries: T.Entry[] = entriesArray.filter(entry => !ChannelObject.entries.has(entry.id));
-
-	// console.log("ChannelObject.entries", ChannelObject.entries);
-	// console.log("filteredEntries", filteredEntries);
-	if (filteredEntries.length > 0) insertNewItemsFromArray(ChannelObject, filteredEntries);
-
-	return filteredEntries;
-}
-
-
-
-
-
-// POBIERA TABLICĘ WPISÓW LUB KOMENTARZY I DODAJE ICH HTML DO OKNA KANAŁU ORAZ DODAJE AUTORA DO LISTY UŻYTKOWNIKÓW
-function insertNewItemsFromArray(ChannelObject: T.Channel, messagesObjectsArray: T.Entry[] | T.Comment[])
-{
-	for (const messageObject of messagesObjectsArray)
-	{
-		console.log("filteredEntry: - przed insertMessage", messageObject);
-		ChannelObject.users.set(messageObject.author.username, messageObject.author);	// dodajemy autorów wpisów na liste osob na kanale
-		insertNewMessage(messageObject, ChannelObject);
-	}
-}
-
-function insertNewItem(ChannelObject: T.Channel, messageObject: T.Entry | T.Comment)
-{
-	if (messageObject.id)
-	{
-		console.log(`insertNewItem() Channel: ${ChannelObject.name}, entry: ${messageObject.id}`, messageObject);
-		ChannelObject.users.set(messageObject.author.username, messageObject.author);	// dodajemy autora nowego wpisu na liste osob na kanale
-		insertNewMessage(messageObject, ChannelObject);
-	}
-}
-
-
-
-// DODAWANIE NOWYCH KOMENTARZY POD WPISAMI, KTÓRE MAJĄ JAKIEŚ KOMENTARZE
-// sprawdzamy czy aktualna liczba comments.count jest większa niż poprzednio zapisana
-async function checkAndInsertNewCommentsInChannel(ChannelObject: T.Channel) 
-{
-	console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: ${ChannelObject.name})`, ChannelObject);
-
-	//  Liczba komentarzy zapisana jest w ChannelObject.entries.entry.comments.count
-	for (const [entry_id, entryObject] of ChannelObject.entries)
-	{
-		if (entryObject?.comments?.count > 0 && entryObject.comments.count > entryObject.last_checked_comments_count)
-		{
-			const commentsArray: T.Comment[] = await api.getAllCommentsFromEntry(entryObject, 400); 	// pobiera WSZYSTKIE komentarze pod wpisem, aktualizacja pola entryObject.last_checked_comments_count
-			const filteredComments: T.Comment[] = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
-
-			if (filteredComments.length > 0) insertNewItemsFromArray(ChannelObject, filteredComments);
-		}
-	}
-}
-
-
-// SPRAWDZANIE NOWYCH KOMENTARZY POD WPISAMI NA KANALE
-export async function checkAndInsertNewCommentsInEntry(ChannelObject: T.Channel, EntryObject: T.Entry) 
-{
-	console.log(`checkAndInsertNewCommentsInEntry(ChannelObject: ${ChannelObject.name} | EntryObject: ${EntryObject.id})`, EntryObject);
-
-	// ładujemy do jednego wpisu komentarze. Liczba komentarzy zapisana jest w EntryObject.comments.count
-	if (EntryObject.comments.count > 0)
-	{
-		const commentsArray: T.Comment[] = await api.getAllCommentsFromEntry(EntryObject, 400); 	// pobiera WSZYSTKIE komentarze pod wpisem
-		const filteredComments: T.Comment[] = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
-		// const filteredComments: T.Comment[] = commentsArray.filter(comment => !openedChannels.get(EntryObject.channel.name).comments.has(comment.id));
-
-		console.log(`commentsArray for entry ${EntryObject.id}, `, commentsArray)
-		console.log(`filteredComments for entry ${EntryObject.id}, `, filteredComments)
-		if (filteredComments.length > 0)
-		{
-			for (const commentObject of filteredComments)
-			{
-				ChannelObject.users.set(commentObject.author.username, commentObject.author);	// dodajemy autorów komentarzy na liste osob na kanale // TODO mozna dodać licznik ile dodany wpisow/komentarzy
-				// openedChannels.get(EntryObject.channel.name).users.set(commentObject.author.username, commentObject.author);	// dodajemy autorów komentarzy na liste osob na kanale // TODO mozna dodać licznik ile dodany wpisow/komentarzy
-				insertNewMessage(commentObject, ChannelObject);
-				// insertNewMessage(commentObject, openedChannels.get(EntryObject.channel.name));
-			}
-		}
-	}
-}
-
-
-// URUCHOMIENIE SPRAWDZANIA NOWYCH WIADOMOSCI NA KANALE CO X SEKUND
-async function setCheckingForNewMessagesInChannel(ChannelObject: T.Channel, msInterval = 36000)
-{
-	// console.log(`setCheckingForNewMessagesInChannel() every msInterval, `, ChannelObject)
-	// console.log(ChannelObject.name)
-
-	// checkAndInsertNewEntriesInChannel(ChannelObject);
-	// checkAndInsertNewCommentsInChannel(ChannelObject);
-
-	// let i = 1;
-	// let timeoutId = null
-	// timeoutId = setTimeout(function startCheckingForNewMessages()
-	// {
-	// 	console.log(`startCheckingForNewMessages()`);
-	// 	setTimeout(setCheckingForNewMessagesInChannel, msInterval + Math.floor(Math.random() * (3000 - 500 + 1)) + 500, ChannelObject);
-	// }, msInterval);
-}
-
-
-
-
-
-
-
-// ZAMYKANIE KANAŁU
-// TODO
-// function closeChannel(ChannelObject: T.Channel)
-// {
-// 	openedChannels.delete(ChannelObject.name)
-// 	// TODO usunac z listy otwartych kanalow w localstorage 
-// }
-// ZAMYKANIE AKTYWNEGO KANAŁU
-// function closeActiveChannel()
-// {
-// 	//closeChannel(activechannelobject) // TODO
-// }
-
-// function getYouTubeFromChannel(ChannelObject: T.Channel): T.Entry
-// {
-// 	console.log(`getYouTubeFromChannel`, ChannelObject.name)
-// 	const currentChannel = openedChannels.get(ChannelObject.name);
-
-// 	let EntryWithYouTubeAndMaxVotes: T.Entry = null;
-// 	let maxVotes: number = -Infinity;
-
-// 	currentChannel.entries.forEach((entry) =>
-// 	{
-// 		// console.log("entry: ", entry);
-
-// 		if (entry.media?.embed && entry.votes.up > maxVotes)
-// 		{
-// 			maxVotes = entry.votes.up;
-// 			EntryWithYouTubeAndMaxVotes = entry;
-// 		}
-// 	});
-
-// 	console.log("▶ Most plused YouTube: maxVotesEntry: ", EntryWithYouTubeAndMaxVotes)
-
-// 	return EntryWithYouTubeAndMaxVotes;
-// }
-
-
-async function insertNewMessage(entryObject: T.Entry, ChannelObject: T.Channel)
-{
-	console.log(`🧡insertNewMessage(entryObject: ${entryObject.id}, ChannelObject: ${ChannelObject.name})`);
-	console.log(`🧡entryObject:`, entryObject);
-	// console.log(`🧡ChannelObject:`, ChannelObject);
-
-
-	const currentChannel = openedChannels.get(ChannelObject.name);
-	if (entryObject.resource === "entry" && currentChannel.entries.has(entryObject.id)) return false; 										// ten wpis jest juz w Map Channel.entries
-	if (entryObject.resource === "entry_comment" && currentChannel.comments.has(entryObject.id)) return false; 								// ten komentarz jest juz w Map Channel.comments
-
-
-	//if (chatArea.querySelector(`[data-id="${entryObject.id}"]`)) return false;					// sprawdzic czy html jest juz dodany ale tylko w oknie tego kanalu bo moze byc tezna innym
-	currentChannel.messagesContainer.append(await getMessageHTMLElement(entryObject));				// dodajemy HTML wpisu/komentarza do okna kanału
-	currentChannel.addEntryOrCommentToChannelObject(ChannelObject, entryObject);					// dodajemy wpis do Mapy Channel.entries / Channel.comments oraz ustawiamy proxy na zmianę liczby komentarzy/plusów
-
-	// jeśli uzytkownik nie przesunął okna kanału, scrollujemy na sam dół okna do nowododanej wiadomosci
-	if (currentChannel.messagesContainer.dataset.scrollToNew == "1") currentChannel.messagesContainer.scrollTop = currentChannel.messagesContainer.scrollHeight;
-
-	// SOUND OF NEW INCOMMING MESSAGE
-	if (navigator?.userActivation?.hasBeenActive) // https://developer.mozilla.org/en-US/docs/Web/API/UserActivation
-	{
-		//newMessageSound.play(); // TODO settings
-	}
-
-}
-
-
-
-
-
-async function getMessageHTMLElement(entryObject: T.Entry): Promise<Element>
-{
-	console.log(`getMessageHTMLElement(entryObject), `, entryObject);
-
-	// TEMPLATE
-	const templateNode = template_messageArticle.content.cloneNode(true) as Element;
-
-	const messageArticle = templateNode.querySelector('.messageArticle') as HTMLElement;
-	const permalinkHref = templateNode.querySelector('.permalinkHref') as HTMLElement;
-	const username = templateNode.querySelector('a.username') as HTMLElement;
-	const username_span = templateNode.querySelector('.username_span') as HTMLElement;
-	const messageContent = templateNode.querySelector('.messageContent') as HTMLElement;
-	const entryImage = templateNode.querySelector('.entryImage') as HTMLImageElement;
-	const entryImageHref = templateNode.querySelector('.entryImageHref') as HTMLAnchorElement;
-
-	const entryMediaEmbedYouTube = templateNode.querySelector('.entryMediaEmbedYouTube') as HTMLAnchorElement;
-	const entryMediaEmbedStreamable = templateNode.querySelector('.entryMediaEmbedStreamable') as HTMLAnchorElement;
-	const entryMediaEmbedTwitter = templateNode.querySelector('.entryMediaEmbedTwitter') as HTMLAnchorElement;
-
-
-	const entryDate = templateNode.querySelector('.entryDate') as HTMLElement;
-	const entryDateYYYMMDD = templateNode.querySelector('.entryDateYYYMMDD') as HTMLElement;
-	const entryDateHHMM = templateNode.querySelector('.entryDateHHMM') as HTMLElement;
-	const entryDateHHMMSS = templateNode.querySelector('.entryDateHHMMSS') as HTMLElement;
-
-	// BASIC DATA
-	messageArticle.id = `${entryObject.resource}-${String(entryObject.id)}`;											// id="entry-1234567" or id="entry_comment-123456789"
-	messageArticle.dataset.id = String(entryObject.id);																	// data-id="123456"
-	messageArticle.dataset.entryId = String(entryObject.entry_id);														// data-entry-id="123456"
-	messageArticle.dataset.authorUsername = entryObject.author?.username;												// data-author-username="NadiaFrance"
-	messageArticle.style.order = `-${entryObject.created_at_Timestamp}`; 				// FLEXBOX flex-direction: column-reverse UNIX TIMESTAMP SECONDS // column (z "-" flex-direction: column-reverse)
-	// messageArticle.style.order = `${entryObject.created_at_Timestamp}`; 					// GRID UNIX TIMESTAMP SECONDS // column (z "-" flex-direction: column-reverse)
-
-
-	/* .own WIADOMOSC WYSLANA PRZEZ ZALOGOWANEGO UZYTKOWNIKA */
-	if (entryObject.author?.username === user.username) messageArticle.classList.add("own"); 												// class="own"
-
-	/* .channelOwner WIADOMOŚĆ WYSŁANA PRZEZ AUTORA KANAŁU */
-	if (entryObject.author?.username === entryObject.channel?.tag?.author?.username) messageArticle.classList.add("channelOwner"); 			// class="channelOwner"
-
-
-	/* DATA I CZAS WIADOMOŚCI */
-	entryDate.title = `${entryObject.created_at_Format("eeee BBBB")} | ${entryObject.created_at_FormatDistanceSuffix} \n${entryObject.created_at_Format("yyyy-MM-dd 'o godz.' HH:mm ")}`;
-	entryDateYYYMMDD.textContent = entryObject.created_at_Format("yyyy-MM-dd");
-	entryDateHHMM.textContent = entryObject.created_at_Format("HH:mm");
-	entryDateHHMMSS.textContent = entryObject.created_at_Format("HH:mm:ss");
-
-
-	/* var(--votesUp) LICZBA PLUSÓW */
-	messageArticle.style.setProperty('--votesUp', `"${entryObject.votes.up}"`);						// var(--votesUp) = "12"
-	messageArticle.dataset.votesUp = `${entryObject.votes.up}`;										// data-votes-up="12"
-
-	messageArticle.dataset.voted = `${entryObject.voted}`;											// data-voted="0"	/ data-voted="1"
-
-
-	if (entryObject.resource === "entry")
-	{
-		messageArticle.classList.add(`entry`);														// class="messageArticle entry"
-		permalinkHref.setAttribute("href", `https://go.wykopx.pl/w${entryObject.entry_id}`);
-		/* LICZBA KOMENTARZY */
-		messageArticle.dataset.commentsCount = `${entryObject.comments.count}`;						// data-comments-count="12"
-		messageArticle.style.setProperty('--commentsCount', `"${entryObject.comments.count}"`);		// var(--commentsCount) = "12"
-	}
-	else if (entryObject.resource === "entry_comment")
-	{
-		messageArticle.classList.add(`comment`, `reply`);											// class="messageArticle comment reply"
-		permalinkHref.setAttribute("href", `https://go.wykopx.pl/w${entryObject.entry_id}k${entryObject.id}`);
-	}
-
-	/* AVATAR AUTORA */
-	if (entryObject.author.avatar)
-	{
-		const avatar_img = templateNode.querySelector('.avatar_img') as HTMLElement;
-		avatar_img.setAttribute("src", entryObject.author.avatar)
-	}
-
-
-	/* NAZWA AUTORA */
-	username.setAttribute("href", `https://go.wykopx.pl/@${entryObject.author.username}`);
-	messageArticle.classList.add(entryObject.author?.status);															// <article class="messageArticle banned"> // suspended // active
-	username.classList.add(entryObject.author?.status);																	// <a class="username banned"> 	// suspended // active
-	username_span.textContent = entryObject.author.username;
-
-	/* KOLOR PROFILU AUTORA GREEN, ORANGE, BURGUNDY */
-	if (entryObject.author?.color?.name)
-	{
-		// TODO color hex
-		messageArticle.classList.add(`${entryObject.author?.color?.name}-profile`);										// <article class="messageArticle orange-profile" 
-		username.classList.add(`${entryObject.author?.color?.name}-profile`);											// <a class="username  orange-profile" 
-	}
-	// MALE / FEMALE
-	if (entryObject.author?.gender == "m")
-	{
-		messageArticle.classList.add('male', "m-gender");					// class="messageArticle male m-gender"
-		username.classList.add('male', "m-gender");
-	}
-	else if (entryObject.author?.gender == "f")
-	{
-		messageArticle.classList.add('female', "f-gender");					// class="messageArticle female f-gender"
-		username.classList.add('female', "f-gender");						// <a class="username  orange-profile" 
-	}
-	else
-	{
-		messageArticle.classList.add("null-gender");						// class="messageArticle null-gender"
-		username.classList.add("null-gender");								// <a class="username  orange-profile" 
-	}
-
-	if (entryObject.media?.photo?.url)
-	{
-		entryImage.src = entryObject.media.photo.url;
-		entryImageHref.href = entryObject.media.photo.url;
-	}
-	/* YOUTUBE | STREAMABLE | TWITTER */
-	if (entryObject.media?.embed?.url && entryObject.media?.embed?.type)
-	{
-		if (entryObject.media?.embed?.type === "youtube") entryMediaEmbedYouTube.href = entryObject.media.embed.url;
-		else if (entryObject.media?.embed?.type === "streamable") entryMediaEmbedStreamable.href = entryObject.media.embed.url;
-		else if (entryObject.media?.embed?.type === "twitter") entryMediaEmbedTwitter.href = entryObject.media.embed.url;
-	}
-
-	/* WIADOMOŚĆ USUNIĘTA */
-	if (entryObject.deleted)
-	{
-		messageArticle.dataset.deleted = `1`;									// data-deleted="1"
-		messageContent.innerHTML = "(wiadomość usunięta)"
-	}
-	else
-	{
-		messageContent.innerHTML = entryObject.content_parsed();
-	}
-
-
-
-	return templateNode;
-}
-
-
-
-
-
-
-
-
 
 
 
@@ -869,127 +258,38 @@ Split({
 
 
 
-// communication with opener window
-if (window.opener)
+
+/* status online/offline events */
+window.addEventListener("offline", (e) =>
 {
-	window.opener.postMessage('MikroCzatOpened', 'https://wykop.pl');
-}
+	// console.log("offline");
+});
 
-// MESSAGES FROM WYKOP.PL
-window.addEventListener('message', function (event)
+window.addEventListener("online", (e) =>
 {
-	console.log("event received", event);
-	console.log("event.origin", event.origin);
-	console.log("event.data", event.data);
-
-	if (event.origin !== wykopDomain || !event?.data?.type) return;
-
-	switch (event.data.type)
-	{
-		case "token":
-			if (event.data.token && !window.sessionStorage.getItem("mikroczatLoggedOut"))
-			{
-				api.saveToken({ tokenValue: event.data.token, tokenType: "token" });
-			}
-			break;
-		case "userKeep":
-			if (event.data.userKeep && !window.sessionStorage.getItem("mikroczatLoggedOut"))
-			{
-				api.saveToken({ tokenValue: event.data.userKeep, tokenType: "userKeep" });
-			}
-			break;
-		case "TokensObject":
-			if (event.data.token && !window.sessionStorage.getItem("mikroczatLoggedOut"))
-			{
-				api.saveToken({ tokenValue: event.data.token, tokenType: "token" });
-			}
-			if (event.data.userKeep && !window.sessionStorage.getItem("mikroczatLoggedOut"))
-			{
-				api.saveToken({ tokenValue: event.data.userKeep, tokenType: "userKeep" });
-			}
-			break;
-		case "nightMode":
-			toggleNightMode(event.data.value);
-			break;
-		default:
-			return false;
-	}
-
-	console.log(`received '${event.data.type}'  from wykop.pl: `, event.data.value);
-	console.log("window.opener", window.opener)
-
-	if (!mikroczatLoggedIn) logIn();
-
-}, false);
+	// console.log("online");
+});
 
 
-// BUTTONS
-window.logout = function ()
-{
-	tokensObject = null;
-	window.sessionStorage.setItem("mikroczatLoggedOut", "true");
-	window.localStorage.removeItem("token")
-	window.localStorage.removeItem("userKeep");
-	alert("Wylogowano z MikroCzata")
-	window.location.reload();
-}
 
 
 window.youtubeswitch = function ()
 {
-	if (main.dataset.youtubePlayer == "tr") main.dataset.youtubePlayer = "cl";
-	else if (main.dataset.youtubePlayer == "hidden") main.dataset.youtubePlayer = "tr";
-	else main.dataset.youtubePlayer = "hidden";
+	const array = ["tr", "trsmall", "cl", "cc", "horizontalcenter", "horizontalbottom", "hidden"]; // topright, centerleft, bottom, hidden
+	const currentIndex = array.indexOf(main.dataset.youtubePlayer);
+	const nextIndex = (currentIndex + 1) % array.length;
+	main.dataset.youtubePlayer = array[nextIndex];
 }
+
+
 window.spotifyswitch = function ()
 {
 	if (main.dataset.spotifyPlayer == "tc" && main.dataset.youtubePlayer != "tr") main.dataset.spotifyPlayer = "tr";
 	else if (main.dataset.spotifyPlayer == "hidden") main.dataset.spotifyPlayer = "tc";
 	else main.dataset.spotifyPlayer = "hidden";
 }
-window.activateChannel = async function (ChannelObject: string | T.Channel)
-{
-	if (typeof ChannelObject === "string")
-	{
-		if (openedChannels.has(ChannelObject)) ChannelObject = openedChannels.get(ChannelObject);
-		else
-		{
-			ChannelObject = new T.Channel(new T.Tag(ChannelObject));
-		}
-	}
 
-	let newActiveChannelElement = body.querySelector(`.channelFeed[data-channel="channel_${ChannelObject.name}"]`) as HTMLElement;
 
-	if (!newActiveChannelElement) // otwieranie nieistniejącego jeszcze kanalu
-	{
-		ChannelObject = await openNewChannel(ChannelObject);
-		newActiveChannelElement = ChannelObject.element as HTMLElement;
-	}
-
-	if (newActiveChannelElement)
-	{
-		const previousActiveChannel = body.querySelector(`.channelFeed[data-active="true"]`) as HTMLElement;
-		if (previousActiveChannel && previousActiveChannel.dataset.channel === `channel_${ChannelObject.name}`) return;
-		if (previousActiveChannel) previousActiveChannel.dataset.active = "false";
-		newActiveChannelElement.dataset.active = "true";
-		activeChannels[0] = ChannelObject;
-		activeChannels[0].messagesContainer.scrollTop = activeChannels[0].messagesContainer.scrollHeight;
-
-		if (ChannelObject.tag?.media?.photo?.url)
-		{
-			centerHeader.style.backgroundImage = `url(${ChannelObject.tag?.media?.photo?.url})`;
-		}
-		else
-		{
-			centerHeader.style.backgroundImage = `unset`;
-		}
-
-	}
-
-	history.pushState(null, null, `/chat/${ChannelObject.name}`);
-	console.log("openedChannels", openedChannels)
-	console.log("activeChannels", activeChannels)
-}
 
 
 
@@ -999,124 +299,725 @@ window.activateChannel = async function (ChannelObject: string | T.Channel)
 
 window.onload = function ()
 {
-	toggleNightMode(nightMode);
+	fn.toggleNightMode(nightMode);
 };
-// toggleNightMode()
-// toggleNightMode(1)
-// toggleNightMode("1")
-// toggleNightMode(true)
-// toggleNightMode(0)
-// toggleNightMode("0")
-// toggleNightMode(false)
-function toggleNightMode(nightModeOn: number | string | boolean = true)
+
+
+
+(function hotChannelsFn(): void
 {
-	if (nightModeOn == "1" || nightModeOn == 1) nightModeOn = true;
-	else if (nightModeOn == "0" || nightModeOn == 0) nightModeOn = false;
-
-	if (nightModeOn == false || body.dataset.nightMode == "1")
+	if (hotChannels && hotChannels.length > 0 && chooseChannelDialog)
 	{
-		body.dataset.nightMode = "0";
-		nightMode = "0";
+		hotChannels.forEach(hotChanelName =>
+		{
+			(chooseChannelDialog.querySelector(`#${hotChanelName}`) as HTMLElement)?.classList.add("hotChannel");
+		});
 	}
-	else
-	{
-		body.dataset.nightMode = "1";
-		nightMode = "1";
-	}
-	localStorage.setItem(`nightMode`, nightMode);
-}
+})();
 
 
 
-document.addEventListener('DOMContentLoaded', (event) =>
+
+
+
+/* EVENT LISTENERS */
+
+document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 {
-	// po najechaniu na komentarz podswietla wpis, po najechaniu wpisu podswietla wszystkie komentarze
+	if (!dev) console.clear();
+
+
+
+
+
+	// OKNO DIALOGOWE WYBORU KANAŁÓW
+	(document.querySelector("#showChannelDialogButton") as HTMLButtonElement).addEventListener("click", function (e: MouseEvent)
+	{
+		chooseChannelDialog.showModal();
+	});
+	(document.querySelector("#closeChannelDialogButton") as HTMLButtonElement).addEventListener("click", function (e: MouseEvent)
+	{
+		chooseChannelDialog.close();
+	});
+
+
+	function supportsPopover(): boolean
+	{
+		return HTMLElement.prototype.hasOwnProperty("popover");
+	}
+	const popoverSupported = supportsPopover();
+
+
+	// mouseover - QUICK HIGHLIGHT - po najechaniu na komentarz podswietla wpis, po najechaniu wpisu podswietla wszystkie komentarze
 	document.body.addEventListener(`mouseover`, function (e: MouseEvent)
 	{
 		let target = e.target as HTMLElement;
-		let messageArticle = target.closest(`.messageArticle[data-entry-id]`) as HTMLElement;
 
-		if (messageArticle && !messageArticle.classList.contains(`highlightLock`) && !messageArticle.classList.contains(`quickHighlight`))
+		// if (popoverSupported && target.matches("img.avatar_img"))
+		// {
+		//  const popover = target.closest("div.avatar_popover") as HTMLElement;
+		// 	const popover = target.nextElementSibling as HTMLElement;
+		// 	popover.showPopover();
+		// }
+
+		if (settings.highlightQuick && target.closest("article.messageArticle[data-entry-id]"))
 		{
-			if (messageArticle.classList.contains(`comment`))
+			const messageArticle = target.closest(`.messageArticle[data-entry-id]`) as HTMLElement;
+			const channelFeed = target.closest(`.channelFeed`) as HTMLElement;
+
+			// TODO dodać tylko dla aktualnego kanału
+			if (messageArticle && !messageArticle.classList.contains(`discussionView`) && !messageArticle.classList.contains(`highlightQuick`) && !channelFeed.dataset.discussionViewEntryId)
 			{
-				messageArticle.classList.add(`quickHighlight`);
-				highlight(`.messageArticle.entry[data-id="${messageArticle.dataset.entryId}"]`, `quickHighlight`);
-				mouseOutAddEventListenerRemoveQuickHighlight(messageArticle);
-			}
-			else if (messageArticle.classList.contains("entry") && messageArticle.dataset.commentsCount != "0")
-			{
-				messageArticle.classList.add(`quickHighlight`);
-				highlight(`.messageArticle.comment[data-entry-id="${messageArticle.dataset.entryId}"]`, `quickHighlight`);
-				mouseOutAddEventListenerRemoveQuickHighlight(messageArticle);
+				if (messageArticle.classList.contains(`comment`))
+				{
+					messageArticle.classList.add(`highlightQuick`);
+					ch.highlight(`.messageArticle.entry[data-id="${messageArticle.dataset.entryId}"]`, `highlightQuick`);
+					ch.mouseOutAddEventListenerRemoveHighlightQuick(messageArticle);
+				}
+				else if (messageArticle.classList.contains("entry") && messageArticle.dataset.commentsCount != "0")
+				{
+					messageArticle.classList.add(`highlightQuick`);
+					ch.highlight(`.messageArticle.comment[data-entry-id="${messageArticle.dataset.entryId}"]`, `highlightQuick`);
+					ch.mouseOutAddEventListenerRemoveHighlightQuick(messageArticle);
+				}
 			}
 		}
 	});
 
-	function mouseOutAddEventListenerRemoveQuickHighlight(el)
+
+	// contextmenu - PREVENT CONTEXT MENU ON RIGHT CLICK ON USERNAME
+	document.body.addEventListener('contextmenu', function (e: MouseEvent)
 	{
-		el.addEventListener(`mouseout`, function (e: MouseEvent)
+		if (!settings.rightClickOnUsernameShowContextMenu)
 		{
-			el.classList.remove(`quickHighlight`);
-			unhighlight(`.messageArticle.quickHighlight`, `quickHighlight`);
-		});
+			let target = e.target as HTMLElement;
+			let usernameAHref = target.closest(`.username`) as HTMLElement;
+			if (usernameAHref && usernameAHref.dataset.username)
+			{
+				e.preventDefault();
+			}
+		}
+	});
+
+
+
+
+	// mousedown -
+	// - RIGHT CLICK - na nickname użytkownika
+	// - skopiowanie do schowka
+	// - LEFT CLICK - na nickname użytkownika
+	// - tryb odpowiedzi komentarzem do użytkownika
+	document.body.addEventListener("mousedown", async (e: MouseEvent) => 
+	{
+		const target = e.target as HTMLElement;
+		const usernameAHref = target.closest(`.username`) as HTMLElement;
+		if (usernameAHref && usernameAHref.dataset.username)
+		{
+			e.preventDefault();
+			// a.username albo abbr.username
+			ch.fetch.fetchOnHold = 2;
+			const username = `@${usernameAHref.dataset.username}`;
+
+			// LEFT CLICK
+			if (e.button === 0)
+			{
+
+				if (settings.leftClickOnUsernameInsertsToNewMessage || settings.leftClickOnUsernameSetsReplyEntry)
+				{
+					const ChannelObject = openedChannels.get(usernameAHref.dataset.channel) as T.Channel;
+					if (!ChannelObject) return;
+					const channelFeed = ChannelObject.elements.channelFeed as HTMLElement;
+					if (!channelFeed) return;
+					const newMessageTextareaContainer = ChannelObject.elements.newMessageTextareaContainer as HTMLElement;
+					const newMessageTextarea = ChannelObject.elements.newMessageTextarea as HTMLElement;
+					if (!newMessageTextarea || !newMessageTextareaContainer) return false;
+					const messageArticle = usernameAHref.closest(".messageArticle") as HTMLElement;
+					if (!messageArticle) return false;
+					const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
+					const messageEntryId = MessageObject.entry_id;
+
+
+
+					if (settings.leftClickOnUsernameSetsReplyEntry)
+					{
+						// NIE USTAWIONO JESZCZE TRYBU ODPOWIEDZI - USTAWIAMY WPIS DO ODPOWIEDZI
+						if (!newMessageTextareaContainer.dataset.entryId)
+						{
+							// USTAWIENIE ODPOWIADANEJ WIADOMOSCI
+							ch.setReplyEntryID(ChannelObject, MessageObject);
+						}
+					}
+
+					// DODAWANIE UŻYTKOWNIKA DO NOWEJ WIADOMOŚCI // 	WKLEJANIE NAZW UŻYTKOWNIKA DO POLA NOWEJ WIADOMOŚCI
+					if (settings.leftClickOnUsernameInsertsToNewMessage)
+					{
+						let pasteText: string = "";
+
+						if (newMessageTextarea.innerText != "")
+						{
+							if (newMessageTextarea.innerText.includes(username)) return false; // w tresci była już wklejona nazwa TEGO użytkownika, pomijamy
+							pasteText = "<span> </span>";
+						}
+
+						pasteText += `<span class="entryUser" contenteditable="true"><abbr class="${usernameAHref.getAttribute('class')}" data-channel="nocnazmiana" data-username="${usernameAHref.dataset.username}"><span class="username_span">@${usernameAHref.dataset.username}</span></abbr></span><span contenteditable="true"> </span>`;
+
+						pasteText = newMessageTextarea.innerHTML.trimEnd() + pasteText;
+						newMessageTextarea.innerHTML = pasteText;
+
+
+						// ustawienie kursora na końcu textarea
+						var range = document.createRange();
+						var sel = window.getSelection();
+						var lastChild = newMessageTextarea.lastChild;
+						var textNode = lastChild.firstChild as Text;
+						range.setStart(textNode, 1);
+						range.collapse(true);
+						sel.removeAllRanges();
+						sel.addRange(range);
+						// textarea.focus();
+					}
+				}
+
+			}
+
+
+			// RIGHT CLICK
+			else if (e.button === 2)
+			{
+				// KOPIOWANIE NAZWY UŻYTKOWNIKA DO SCHOWKA
+				if (settings.rightClickOnUsernameCopiesToClipboard)
+				{
+					navigator.permissions.query({ name: 'clipboard-read' as any }).then(permissionStatus =>
+					{
+						if (permissionStatus.state == 'granted' || permissionStatus.state == 'prompt')
+						{
+							navigator.clipboard.readText().then((clipboardText) =>
+							{
+								let newClipboardText = username;
+								if (clipboardText.startsWith('@'))
+								{
+									// DODAWANIA NAZWY UŻYTKOWNIKA TYLKO JEŚLI JESZCZE NIE ZOSTAŁ DODANY
+									if (!clipboardText.includes(username)) newClipboardText = clipboardText + ', ' + username;
+								}
+								navigator.permissions.query({ name: 'clipboard-write' as any }).then(permissionStatus =>
+								{
+									if (permissionStatus.state == 'granted' || permissionStatus.state == 'prompt')
+									{
+										navigator.clipboard.writeText(newClipboardText)
+											.then(() =>
+											{
+												//alert(`Nazwa użytkownika: "${usernameAHref.dataset.username}" skopiowana do schowka`);
+											})
+											.catch(err =>
+											{
+												console.error('Failed to copy username: ', err);
+											});
+									} else
+									{
+										console.error('Clipboard write permission denied');
+									}
+								});
+							}).catch(() =>
+							{
+								console.error('Clipboard read permission denied');
+							});
+						} else
+						{
+							console.error('Clipboard read permission denied');
+						}
+					});
+				}
+			}
+
+			// MIDDLE CLICK
+			else if (e.button === 1)
+			{
+
+			}
+		}
+	});
+
+
+	document.body.addEventListener("mouseup", async (e: MouseEvent) => 
+	{
+		const target = e.target as HTMLElement;
+		const usernameAHref = target.closest(`.username`) as HTMLElement;
+
+		if (usernameAHref && usernameAHref.dataset.username)
+		{
+			e.preventDefault();
+		}
+		console.log("mouseup, event: ", e)
+		console.log("mouseup, target: ", target)
+	});
+
+
+	function openImageURLInNewWindow(args: any)
+	{
+		if (!args.src) return;
+
+		let windowFeatures = "popup";	// https://developer.mozilla.org/en-US/docs/Web/API/Window/open#popup
+
+		const imageHeight: number = parseInt(args.height) || 600;
+		const screenHeight: number = window.screen.height;
+
+		const screenWidth: number = window.screen.width;
+		const imageWidth: number = parseInt(args.width) || 800;
+
+		const windowHeight: number = imageHeight < screenHeight ? imageHeight : screenHeight;
+		const windowWidth: number = imageHeight < screenHeight ? imageWidth : imageWidth + 20;
+
+
+		const topPosition: number = imageHeight < screenHeight ? (screenHeight - windowHeight) / 2 : 0;
+		const leftPosition: number = (screenWidth - windowWidth) / 2;
+
+		windowFeatures += `,width=${windowWidth},height=${windowHeight},left=${leftPosition},top=${topPosition}`;
+
+		//windowFeatures += 'resizable=yes,scrollbars=yes,menubar=no';
+
+		const imageWindow = window.open(args.src, 'image', windowFeatures);
+
+		if (!imageWindow)
+		{
+			// The window wasn't allowed to open
+			// This is likely caused by built-in popup blockers.
+			return null;
+		}
+
+		// crossorigin policy return imageWindow;
 	}
 
-	// double click - pokazuje wybraną konwersację po kliknięciu na wpis lub komentarz
-	document.body.addEventListener('dblclick', function (e: MouseEvent)
+
+
+	/* click - KLIKNIĘCIE  NA STRONIE */
+	document.body.addEventListener("click", async function (e: MouseEvent): Promise<boolean>
 	{
 		let target = e.target as HTMLElement;
-		let messageArticle = target.closest(".messageArticle[data-entry-id]") as HTMLElement;
-		if (messageArticle)
+
+		// OBRAZEK WE WPISIE/KOMENTARZU
+		if (target.tagName === 'IMG' && target.classList.contains('entryImage'))
 		{
-			if (messageArticle.classList.contains("highlightLock"))
+			const entryImage = target;
+			e.preventDefault();
+			openImageURLInNewWindow({ src: entryImage.dataset.full, width: entryImage.dataset.width, height: entryImage.dataset.height });
+			return true;
+		}
+
+
+
+		// PRZYCISK "ZAŁADUJ WIĘCEJ STARSZYCH WIADOMOŚCI"
+		if (target.tagName === 'BUTTON' && target.classList.contains('loadOlderMessagesButton'))
+		{
+			e.preventDefault();
+
+			const channelName = (target.closest(".channelFeed") as HTMLElement).dataset.channel; // nazwa kanalu z data-channel="heheszki"
+			const ChannelObject = openedChannels.get(channelName);
+			const loadOlderMessagesButton = target.closest("button.loadOlderMessagesButton") as HTMLButtonElement;
+
+			if (dev) console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" obecnie na kanale jest: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
+
+			// WCZYTANIE KOLEJNYCH 50 STARSZYCH WIADOMOŚCI
+			if (loadOlderMessagesButton)
 			{
-				fn.removeClass(`.messageArticle.highlightedItem`, "highlightedItem");
-				unhighlight(`.messageArticle[data-entry-id="${messageArticle.dataset.entryId}"]`, "highlightLock");
+				// wczytanie 50 starszych wpisów
+				let olderEntriesArray = await api.getXNewestEntriesFromChannelFromPageHash(ChannelObject, ChannelObject.pagination.next, settings.fetch.numberOfEntries2ndPreload);
+				if (olderEntriesArray.length > 0)
+				{
+					// dodanie starszych wpisów na listę
+					ch.analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, olderEntriesArray);
+
+					// dla wczytanych starszych wpisów, wczytujemy komentarze
+					for (let entryObject of olderEntriesArray)
+					{
+						if (entryObject.comments.count > 0)
+						{
+							await ch.checkAndInsertNewCommentsInEntry(ChannelObject, entryObject);
+						}
+					}
+				}
+				return true;
+			}
+			if (dev) console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" po załadowaniu: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
+		}
+
+
+		/* PRZYCISK YOUTUBE */
+		if (settings.leftClickOnYouTubeLoadsToIframe && target.tagName === "A" && target.classList.contains("entryMediaEmbedYouTube"))
+		{
+			e.preventDefault();
+			let embedVideoId = fn.getEmbedVideoIDCodeFromYouTubeURL((target as HTMLAnchorElement).href)
+			if (embedVideoId && typeof embedVideoId === "string")
+			{
+				youtubeIframe.src = `https://www.youtube.com/embed/${embedVideoId}?autoplay=1&mute=0&start=0`;
+			}
+			return true;
+		}
+
+
+		// PRZYCISK "WYŚLIJ" - WYSYŁANIE WIADOMOŚCI
+		if (settings.newMessageSendButton && target.tagName === 'BUTTON' && target.classList.contains('newMessageSendButton'))
+		{
+			const channelName = target.dataset.channel; 			// nazwa kanalu z data-channel="heheszki"
+			const ChannelObject = openedChannels.get(channelName);
+			const newMessageTextarea = target.previousElementSibling as HTMLElement;
+
+			if (ChannelObject && newMessageTextarea)
+			{
+				e.preventDefault();
+				await ch.executePostNewMessageToChannelFromTextarea(ChannelObject);
+				return true;
+			}
+		}
+
+
+		// PRZYCISK [+] DODAWANIE/ODEJMOWANIE PLUSA
+		if (target.tagName === 'BUTTON' && target.classList.contains("plus"))
+		{
+			const channelName: string = (target.closest(".channelFeed") as HTMLElement).dataset.channel; // nazwa kanalu z data-channel="heheszki"
+			const ChannelObject: T.Channel = openedChannels.get(channelName);
+			const messageArticle: HTMLElement = target.closest(".messageArticle") as HTMLElement;
+			const ratingBoxSection: HTMLElement = target.closest("section.rating-box") as HTMLElement;
+
+			const messageTemplateForVoting: T.MessageTemplate = {
+				resource: messageArticle.dataset.resource as T.Resource,
+				id: parseInt(messageArticle.dataset.id),
+				entry_id: parseInt(messageArticle.dataset.entryId)
+			};
+
+			let objectForVoting: T.Entry | T.Comment;
+			if (messageTemplateForVoting.resource === "entry") objectForVoting = new T.Entry(messageTemplateForVoting);
+
+			else if (messageTemplateForVoting.resource === "entry_comment")
+			{
+				messageTemplateForVoting.parent = { id: messageTemplateForVoting.entry_id };
+				objectForVoting = new T.Comment(messageTemplateForVoting);
+			}
+
+			let upODdown: string = messageArticle.dataset.voted == "1" ? "down" : "up";
+
+			// TODO dodać sprawdzenie aktualnej liczby plusow podczas glosowania
+			const votedobj = await api.voteMessage(objectForVoting, upODdown);
+			// console.log("await return: ", votedobj);
+
+			let newVotesUpCount: number;
+			if (upODdown == "up")
+			{
+				newVotesUpCount = parseInt(messageArticle.dataset.votesUp) + 1;
+				target.classList.add("voted");
 			}
 			else
 			{
-				messageArticle.classList.add("highlightedItem");
-				highlight(`.messageArticle[data-entry-id="${messageArticle.dataset.entryId}"]`, "highlightLock");
+				newVotesUpCount = parseInt(messageArticle.dataset.votesUp) - 1
+				target.classList.remove("voted");
+			}
+
+			messageArticle.dataset.voted = fn.toggle01(messageArticle.dataset.voted) as string;
+			messageArticle.dataset.votesUp = String(newVotesUpCount);
+			messageArticle.style.setProperty('--votesUp', `"${newVotesUpCount}"`);	// var(--votesUp) = "12"
+
+			if (messageTemplateForVoting.resource === "entry")
+			{
+				ChannelObject.entries.get(messageTemplateForVoting.id).votes.up = newVotesUpCount;
+			}
+			else
+			{
+				ChannelObject.comments.get(messageTemplateForVoting.id).votes.up = newVotesUpCount;
+			}
+			fn.innerText(`.${ChannelObject.name}_plusesCount`, String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0)));	// <div>Plusów: <var class="heheszki_plusesCount"></var></div>
+
+			return true;
+		}
+
+		// PRZYCISK x ZAMYKANIA STATYSTYK KANAŁU (zmiana settings.css.main.channelStats)
+		if (target.tagName === 'BUTTON' && target.classList.contains("channelStatsHideButton"))
+		{
+			setSettings("settings.css.main.channelStats", "hide");
+			return;
+
+		}
+		// PRZYCISK x ZAMYKANIA STATYSTYK KANAŁU (zmiana settings.css.main.channelStats)
+		if (target.tagName === 'BUTTON' && target.classList.contains("channelStatsShowButton"))
+		{
+			setSettings("settings.css.main.channelStats", "show");
+			return;
+		}
+
+		// A.HREF.USERNAME > SPAN
+		if (target.tagName === 'SPAN')
+		{
+			const target = e.target as HTMLElement;
+			const usernameAHref = target.closest(`.username`) as HTMLElement;
+			if (usernameAHref && usernameAHref.dataset.username)
+			{
+				e.preventDefault();
+				return false;
+			}
+		}
+
+		return false;
+		// END "click" listener
+	})
+
+
+
+
+	/* --- KLAWIATURA --- */
+
+	// CTRL+S -> keydown - prevent SAVE window on CTRL+S
+	document.body.addEventListener("keydown", async function (e: KeyboardEvent)
+	{
+		// TYLKO CTRL+S  - prevent SAVE window
+		const target = e.target as HTMLElement;
+		if (e.ctrlKey && e.key == 's') e.preventDefault();
+	});
+
+
+
+	function ifCursorIsAfterUsernameRemoveUsernameElement()
+	{
+		const selection = window.getSelection();
+		console.log("Selection: ", selection);
+		if (!selection.rangeCount) return false;
+
+		const range = selection.getRangeAt(0);
+		if (range.commonAncestorContainer.parentElement.tagName === "SECTION") return false;
+		if (range.commonAncestorContainer.nodeName === "#text" && range.commonAncestorContainer instanceof Text && String(range.commonAncestorContainer.data).startsWith("@") && range.commonAncestorContainer.parentElement.classList.contains("username_span"))
+		{
+			range.commonAncestorContainer.parentElement.remove();
+			// if (dev)
+			// {
+			// 	console.log("range.commonAncestorContainer.parentElement.classList", range.commonAncestorContainer.parentElement.classList)
+			// 	console.log("range.commonAncestorContainer.parentElement.classList.contains(username_span)", range.commonAncestorContainer.parentElement.classList.contains("username_span"))
+
+			// 	console.log("range: ", range);
+			// 	console.log("range.commonAncestorContainer: ", range.commonAncestorContainer);
+			// 	console.log("range.commonAncestorContainer.nodeName: ", range.commonAncestorContainer.nodeName);
+			// 	console.log("range.commonAncestorContainer.data: ", range.commonAncestorContainer.data);
+			// }
+		}
+	}
+	document.body.addEventListener('input', function (e: InputEvent)
+	{
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea") && e.inputType == "deleteContentBackward")
+		{
+			ifCursorIsAfterUsernameRemoveUsernameElement();
+			// e.inputType // deleteContentBackward https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/inputType
+		}
+	});
+
+	document.body.addEventListener('compositionstart', function (e: CompositionEvent)
+	{
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
+		{
+			// alert(`compositionstart | length: ${(e.target as HTMLElement).textContent.length} | e.inputType: ${e.data}`);
+		}
+	});
+	document.body.addEventListener('compositionupdate', function (e: CompositionEvent)
+	{
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
+		{
+			// alert(`compositionupdate | length: ${(e.target as HTMLElement).textContent.length} | e.inputType: ${e.data}`);
+		}
+	});
+	document.body.addEventListener('keydown', function (e: InputEvent)
+	{
+		{
+			// alert(`keydown | code: ${e.code} | isComposing: ${e.isComposing} | e.key: ${e.key} `);
+		}
+	});
+	document.body.addEventListener('keyup', function (e: KeyboardEvent)
+	{
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
+		{
+			// alert(`keyup | code: ${e.code} | isComposing: ${e.isComposing} | e.key: ${e.key} `);
+		}
+	});
+
+
+	// https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API#control_the_virtual_keyboard_on_contenteditable_elements
+	// https://developer.chrome.com/docs/web-platform/virtual-keyboard/
+
+	/* keyup - PRZYCISKI NA KLAWIATURZE */
+	/* WYSYLANIE NOWEJ WIADOMOSCI W TEXTAREA SKRÓTEM ENTER / CTRL+ENTER */
+	document.body.addEventListener("keyup", async function (e: KeyboardEvent)
+	{
+		// alert(`keyup, e.key, [${e.key}]`);
+
+		const target = e.target as HTMLElement;
+		const newMessageTextareaContainer = target.closest(".newMessageTextareaContainer") as HTMLButtonElement;
+
+		if (newMessageTextareaContainer && newMessageTextareaContainer.dataset)
+		{
+			const ChannelObject = openedChannels.get(newMessageTextareaContainer.dataset.channel);
+			const newMessageTextarea = ChannelObject.elements.newMessageTextarea as HTMLButtonElement;
+
+			if (newMessageTextarea)
+			{
+				if (newMessageTextarea.innerText === "\n")
+				{
+					newMessageTextarea.innerText = "";
+				}
+
+				// USUNIĘTO TREŚĆ A NIE JESTEŚMY W WIDOKU DYSKUSJI, USUWAMY TRYB ODPOWIADANIA 
+				if (!ChannelObject.discussionViewEntryId && (newMessageTextarea.innerText === "" || newMessageTextarea.innerText === " ") && newMessageTextareaContainer.dataset.entryId)
+				{
+					ch.removeReplyEntryID(ChannelObject);
+				}
+				// NIE USUNIĘTO TREŚCI, SPRAWDZAMY FLAGI
+				else
+				{
+					ch.setReplyEntryID(ChannelObject);
+				}
+			}
+
+			// TYLKO CTRL+S ALBO CTRL+ENTER
+			if (!e.ctrlKey || (e.key != 'Enter' && e.key != 's')) return false;
+			// if (e.ctrlKey && e.key == 's') e.preventDefault();
+			if (newMessageTextarea && newMessageTextarea.innerText.length > 1) // TODO sprawdzic czy dodany obrazek i dodać jako OR
+			{
+				if (
+					(settings.editorSendHotkey.enter && e.key === 'Enter')
+					|| (settings.editorSendHotkey.ctrl_enter && e.ctrlKey && e.key === 'Enter')
+					|| (settings.editorSendHotkey.ctrl_s && e.ctrlKey && e.key === 's'))
+				{
+					// e.preventDefault();
+					await ch.executePostNewMessageToChannelFromTextarea(ChannelObject);
+					return true;
+				}
+
+				ch.fetch.fetchOnHold = 2;
 			}
 		}
 	});
 
-	function highlight(highlightElementSelector: string, highlightClass: string)
+
+
+
+	// dbclick - DOUBLE CLICK - HIGHLIGHT - pokazuje wybraną DYSKUSJĘ po kliknięciu na wpis lub komentarz
+	document.body.addEventListener('dblclick', function (e: MouseEvent)
 	{
-		fn.addClass(highlightElementSelector, highlightClass);
-	}
-	function unhighlight(highlightElementSelector: string, highlightClass: string)
-	{
-		fn.removeClass(highlightElementSelector, highlightClass);
-	}
+		if (settings.discussionView)
+		{
+			let target = e.target as HTMLElement;
+			let messageArticle = target.closest(".messageArticle[data-entry-id]") as HTMLElement;
+			if (messageArticle)
+			{
+				const ChannelObject = openedChannels.get(messageArticle.dataset.channel);
+				const channelFeed = ChannelObject.elements.channelFeed;
+				const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
+
+				// USUWAMY DISCUSSION VIEW
+				if (head.querySelector(`style[data-fn="discussionView"][data-channel="${ChannelObject.name}"]`))
+				{
+					fn.removeClass(`.channelFeed[data-channel="${ChannelObject.name}"] .messageArticle[data-entry-id="${MessageObject.entry_id}"].discussionView`, "discussionView");
+					ch.discussionViewOFF(ChannelObject, MessageObject);
+				}
+				// DODAJEMY DISCUSSION VIEW
+				else
+				{
+					messageArticle.classList.add("discussionView");
+					ch.discussionViewON(ChannelObject, MessageObject);
+				}
+			}
+		}
+	});
+
 });
 
 
-// Dodaje event listenera: jesli przesunieto okno z wiadomosciami wyzej, nie scrolluje w dol przy nowej wiadomosci
-function setupScrollListener(messagesContainer: HTMLElement)
+
+
+// 		QR CODE
+const showLoginQRCodeButton = document.getElementById("showLoginQRCode") as HTMLButtonElement;
+const qrCodeContainer = document.getElementById("qrCodeContainer") as HTMLCanvasElement;
+const qrCodeCanvas = document.getElementById("qrCodeCanvas") as HTMLCanvasElement;
+
+qrCodeContainer.addEventListener("click", async function (e: MouseEvent)
 {
-	if (messagesContainer)
+	delete showLoginQRCodeButton.dataset.qrShown;
+	qrCodeContainer.classList.remove("scaleInAnimation");
+	qrCodeContainer.classList.add("scaleOutAnimation");
+});
+
+showLoginQRCodeButton.addEventListener("click", async function (e: MouseEvent)
+{
+	// e.stopPropagation();
+
+	if (dev) console.log(e);
+
+	if (showLoginQRCodeButton.dataset.qrShown == "true")
 	{
-		// console.log(`setupScrollListener(messageContainer)`, messagesContainer);
+		qrCodeContainer.classList.add("scaleOutAnimation");
+		qrCodeContainer.classList.remove("scaleInAnimation");
+		delete showLoginQRCodeButton.dataset.qrShown;
 
-		messagesContainer.addEventListener('scroll', function ()
+		if (dev) console.log(` ` + showLoginQRCodeButton.dataset.qrShown);
+	}
+	else
+	{
+		showLoginQRCodeButton.dataset.qrShown = "true";
+
+		if (dev) console.log(showLoginQRCodeButton.dataset.qrShown);
+		qrCodeContainer.classList.add("scaleInAnimation");
+		qrCodeContainer.classList.remove("scaleOutAnimation");
+
+		const QRC = qr.qrcodegen.QrCode;
+		let qrText = `https://mikroczat.pl/login/`;
+
+		if (login.tokensObject.refresh_token) qrText += `${login.tokensObject.refresh_token}/`;
+		else if (login.tokensObject.token) qrText += `${login.tokensObject.token}/`;
+		else return;
+
+		if (activeChannels[0]) qrText += activeChannels[0].name;
+		else if (activeChannels[1]) qrText += activeChannels[1].name;
+		else qrText += "x_plus";
+
+		const qr0 = QRC.encodeText(qrText, QRC.Ecc.MEDIUM);
+		if (dev) console.log("qr0", qr0);
+		drawQR(qr0, 10, 4, "rgb(255 255 255 / 0.5)", "rgb(0 0 0 / 1)", qrCodeCanvas);
+	}
+})
+
+
+
+
+function drawQR(qrObject: any, scale: number, padding: number, lightColor: string, darkColor: string, canvas: HTMLCanvasElement)
+{
+	if (scale <= 0 || padding < 0)
+		throw new RangeError("Value out of range");
+	const width = (qrObject.size + padding * 2) * scale;
+	canvas.width = width;
+	canvas.height = width;
+	let ctx = canvas.getContext("2d");
+	for (let y = -padding; y < qrObject.size + padding; y++)
+	{
+		for (let x = -padding; x < qrObject.size + padding; x++)
 		{
-			// console.log(`🔖 SCROLL EVENT: scrollTop: [${messagesContainer.scrollTop}] clientHeight: [${messagesContainer.clientHeight}] | data-scroll-to-new="${messagesContainer.dataset.scrollToNew}"`);
-			// console.log(`🔖 Math.abs(messagesContainer.scrollTop): `, Math.abs(messagesContainer.scrollTop));
-			// console.log(`🔖 Math.abs(messagesContainer.scrollTop) < messagesContainer.clientHeight: `, Math.abs(messagesContainer.scrollTop) < messagesContainer.clientHeight);
-
-
-			// messagesContainer.scrollTop = od -1500 do 0 (bottom). scroll-snap-type: both mandatory; makes it goes to ca. -6px
-			if (Math.abs(messagesContainer.scrollTop) < messagesContainer.clientHeight)				// jesli dol kanalu jest widoczny, scrollujemy przy nowej wiadomosci
-			{
-				if (messagesContainer.dataset.scrollToNew === "0") messagesContainer.dataset.scrollToNew = "1";
-			}
-			else 	// przesunieto okno wiadomosci wyzej i nie widac najnowszych wiadomosci - wyłączamy automatyczne scrollowanie przy nowej wiadomosci
-			{
-				if (messagesContainer.dataset.scrollToNew === "1") messagesContainer.dataset.scrollToNew = "0";
-			}
-		}, false);
+			ctx.fillStyle = qrObject.getModule(x, y) ? darkColor : lightColor;
+			ctx.fillRect((x + padding) * scale, (y + padding) * scale, scale, scale);
+		}
 	}
 }
+
+
+(function applySettingsCSS()
+{
+	if (settings.css)
+	{
+
+		for (const id in settings.css)
+		{
+			const element = document.getElementById(id);
+
+			if (element)
+			{
+				for (const prop in settings.css[id])
+				{
+					element.dataset[prop] = settings.css[id][prop];	// settings.css.chatArea.plusButtonShow = true -> <div id="chatArea" data-plus-button-show="true">
+				}
+			}
+		}
+	}
+})();
+
 

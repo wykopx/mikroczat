@@ -1,10 +1,645 @@
-dialog#loginDialog
+@import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');
+@import url('https://fonts.googleapis.com/css?family=Teko:700');
+
+
+
+:popover-open
+{
+	position: absolute;
+	inset: unset;
+	top: 40px;
+}
+
+
+
+
+
+
+dialog
 {
 	place-self: center center;
+	z-index: 10000;
+	box-shadow: 5px 5px 15px rgb(22 22 22 / 1),
+		-5px -5px 15px rgb(14 14 14 / 0.1),
+		0px 0px 40px rgba(14 14 14 / 0.2);
+}
+
+
+
+
+main .openChannelButton
+{
+	--_channelButtonsHeight: 125px;
+
+	min-width: 290px;
+	max-width: 55%;
+
+	max-height: var(--_channelButtonsHeight);
+	aspect-ratio: 16 / 7;
+
+	font-size: 60%;
+	font-weight: 900;
+
+	background-position: left;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-size: 300%;
+
+	box-shadow: 5px 5px 15px rgba(22, 22, 22, 0.2),
+		-5px -5px 15px rgba(14, 14, 14, 0.2);
+
+	translate: 0px 0px;
+
+	outline: none;
+	border: 1px solid black;
+	border-radius: var(--mediumBorderRadius);
+
+
+	/* overflow: hidden; */
+	.openChannelButtonVideoContainer
+	{
+		overflow: hidden;
+		max-height: var(--_channelButtonsHeight);
+		width: 100%;
+		border-radius: var(--mediumBorderRadius);
+
+		video
+		{}
+	}
+
+
+}
+
+main .openChannelButton:hover,
+main .openChannelButton:focus,
+main .openChannelButton:active,
+main .openChannelButton:focus-visible
+{
+	animation-play-state: paused !important;
+
+	scale: 1.01;
+	transition-property: scale box-shadow translate !important;
+	transition-duration: 0.4s !important;
+	transition-timing-function: ease !important;
+
+	box-shadow: 20px 20px 60px rgb(22, 22, 22),
+		-5px -5px 60px rgb(14, 14, 14);
+
+	translate: 0px -3px;
+}
+
+
+main .openChannelButton:focus,
+main .openChannelButton:active,
+main .openChannelButton:focus-visible
+{
+	box-shadow: 20px 20px 60px rgb(22, 22, 22),
+		-5px -5px 60px rgb(14, 14, 14),
+		0px 0px 12px rgba(85, 165, 255, 0.7);
+}
+
+
+
+.openChannelButton.bucketChannel
+{
+	&::after
+	{
+		content: "+";
+		display: block flex;
+		position: absolute;
+		right: 0px;
+		top: 0px;
+
+		width: 40px;
+		height: 40px;
+		padding-top: 8px;
+		padding-right: 3px;
+		justify-content: end;
+		align-items: start;
+
+		color: white;
+		font-size: 1.2em;
+		line-height: 0px;
+		font-weight: bolder;
+		background: linear-gradient(-135deg, var(--bucketChannelColor) 15px, transparent 0);
+		text-shadow: 0px 1px 1px rgb(288 135 2 / 1);
+		border-top-right-radius: inherit;
+	}
+
+
+	main &::after
+	{
+		font-size: 1.6em;
+		padding-right: 5px;
+		padding-top: 12px;
+		background: linear-gradient(-135deg, var(--bucketChannelColor) 24px, transparent 0);
+	}
+}
+
+
+.openChannelButton.streamChannel
+{
+	&::before
+	{
+		content: "";
+		display: block flex;
+		position: absolute;
+		left: 10px;
+		bottom: 0px;
+		width: 20px;
+		height: 100%;
+		align-items: center;
+		background-image: url("https://i.imgur.com/XEKi3v1.png");
+		background-size: 15px auto;
+		background-repeat: no-repeat;
+		background-position: left center;
+	}
+
+
+	main &::before
+	{
+		background-size: 23px auto;
+		align-items: end;
+		background-position: left bottom;
+		width: 26px;
+		opacity: 0.6;
+	}
+
+	main &:hover::before
+	{
+		opacity: 1;
+	}
+
+	footer &::before
+	{
+		filter: blur(0.3px) sepia(1) hue-rotate(176deg);
+	}
+
+	footer &:hover::before
+	{
+		filter: none;
+	}
+}
+
+main .openChannelButton
+{
+	background-image: linear-gradient(145deg, rgb(21, 21, 22), rgb(32, 32, 43), rgba(0, 0, 0, 1) 70%);
+	background-size: 500%;
+	background-position: center;
+
+
+
+	&#x,
+	&#x_plus,
+	&#x_minus
+	{
+		background-image: url("/_img/channel_images/mikroblog_plus.png");
+		background-size: 100%;
+		background-position: 0px;
+	}
+
+	&#matura
+	{
+		background-image: url("/_img/channel_images/matura2024.png");
+		background-size: 100%;
+		background-position: 0px;
+	}
+
+	&#eurowizja
+	{
+		background-image: url("/_img/channel_images/eurowizja.jpg");
+		background-size: 100%;
+		background-position: 0px;
+	}
+
+	&#spacex
+	{
+		background-image: none;
+		background-size: 100%;
+		background-position: 0px;
+	}
+
+	&#tesla
+	{
+		background-image: none;
+		background-size: 100%;
+		background-position: 0px;
+	}
+
+	&#chcepogadac
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://cdn5.vectorstock.com/i/1000x1000/16/34/let-s-talk-neon-sign-on-brick-wall-background-vector-42781634.jpg");
+		background-size: 120%;
+		background-position: -40px;
+	}
+
+	&#youtube
+	{
+		background-size: cover;
+	}
+
+	&#muzyka
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://canimayi.wordpress.com/wp-content/uploads/2014/02/rat-playing-musical-instruments-6.jpg");
+		background-size: cover;
+	}
+
+	&#famemma
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://mma.pl/wp-content/uploads/2019/05/FAME-MMA-Oktagon.jpg");
+		background-size: 120%;
+		background-position: -40px;
+		animation: slow_panning_left 22s ease-in infinite;
+	}
+
+	&#primemma
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("/_img/channel_images/primemma.png");
+		background-size: 120%;
+		background-position: -40px;
+		animation: slow_panning_right 22s ease-in infinite;
+	}
+
+	&#heheszki
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://i.imgur.com/5gZJARQ.png");
+		background-size: 118%;
+		background-position: center;
+	}
+
+	&#hydepark
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(120, 44, 241, 0.2), rgba(16, 78, 100, 0.2), rgba(9, 41, 129, 0.2)), url("https://i.scdn.co/image/ab67616d0000b273faa24ef59539c6a88efa596a");
+		background-size: 120%;
+		background-position: -40px;
+	}
+
+	&#kanalzero
+	{
+		background-image: url("https://www.omediach.info/wp-content/uploads/2024/01/kanalzerologo.png");
+		background-position: center;
+		background-size: 115%;
+	}
+
+	&.class2137
+	{
+		background-image: linear-gradient(-90deg, rgba(8, 5, 192, 0.1), rgba(26, 1, 253, 0.1), rgba(0, 204, 255, 0.2), rgba(0, 4, 255, 0.2)), url("/_img/channel_images/2137.jpg");
+		background-position: center;
+		background-size: cover;
+		animation: slow_panning_bottom 45s linear infinite;
+	}
+
+	&#kosmos
+	{
+		background-image: linear-gradient(-90deg, rgba(8, 5, 192, 0.1), rgba(26, 1, 253, 0.1), rgba(0, 204, 255, 0.2), rgba(0, 4, 255, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/a84d15b74c99088ad39876f82fa26db9a7a8ae7c5c2dcdef33d76511325a1838.png");
+		background-position: center;
+		animation: slow_panning_left 125s linear infinite;
+	}
+
+
+	&#krakow
+	{
+		background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(27, 12, 80, 0.452)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_krakow_1CH7Ux56bHaj6ZKzkmmZ.jpg");
+		background-position: right;
+		animation: sizeBackgroundAnimation 15s ease-in infinite;
+	}
+
+
+	&#mecz
+	{
+		background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(27, 12, 80, 0.452)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_mecz_e1sL8gR7PFrFUIwXgvOi.jpg");
+		background-position: right;
+		animation: sizeBackgroundAnimation 15s ease-in infinite;
+	}
+
+	&#przegryw
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.8), rgba(23, 62, 168, 0.2), rgba(2, 130, 250, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_przegryw_WG9rujBu2g1Q2jYB17FV.jpg");
+		background-position: -70px;
+		background-position: -670px;
+	}
+
+	&#nocnazmiana
+	{
+		background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.2), rgba(13, 13, 36, 0.1), rgba(37, 35, 11, 0.2), rgba(17, 19, 44, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_nocnazmiana_CvLN6lRMUtSYsNSYEokj.jpg");
+		background-size: 250% !important;
+		background-position: center right;
+	}
+
+	&#onet
+	{
+		background-image: url("https://i.imgur.com/gITdfnb.png");
+		background-position: right;
+		background-size: cover;
+		animation: slow_panning_left 125s linear infinite;
+	}
+
+	&#poznan
+	{
+		background-image: linear-gradient(-45deg, rgba(248, 234, 38, 0.2), rgba(243, 120, 4, 0.1), rgba(37, 35, 11, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_poznan_dbJtieBTF7QEUdSqu3r9.jpg");
+		animation: sizeBackgroundAnimation ease-in infinite;
+		animation-duration: 22s;
+		animation-delay: 0.6s;
+		animation-direction: alternate-reverse;
+	}
+
+	&#rmffm
+	{
+		background-image: url("https://i.imgur.com/eYvcfYX.png");
+		background-size: 100%;
+	}
+
+	&#sejm
+	{
+		background-image: linear-gradient(-45deg, rgba(238, 119, 82, 0.2), rgba(231, 60, 126, 0.2), rgba(35, 166, 213, 0.2), rgba(35, 213, 171, 0.2)), url("/_img/channel_images/sejmflix.gif");
+		background-position-x: 28%;
+		background-size: 100%;
+	}
+
+	&#tvrepublika
+	{
+		background-image: url("https://pbs.twimg.com/media/GCgT09BWoAAL3Pd.jpg");
+		background-position: center;
+		background-size: 115%;
+	}
+
+	&#warszawa
+	{
+		background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_warszawa_S8rkMuOiBVwddEZyGDAv.jpg");
+		background-size: 300%;
+		animation: sizeBackgroundAnimation ease-in infinite;
+		animation-duration: 18s;
+		animation-delay: 1.2s
+	}
+
+	&#wojna
+	{
+		background-image: url("https://i.imgur.com/TW33CQ4.png");
+		background-position: left;
+		background-size: 100%;
+		animation: slow_panning_top 15s ease-in infinite;
+	}
+
+	&#wroclaw
+	{
+		background-image: url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_wroclaw_9Sfsl6FLz46Tf4YzVDuB.jpg");
+		background-position: left;
+		animation: sizeBackgroundAnimation ease-in infinite;
+		animation-duration: 13s;
+		animation-delay: 0.6s
+	}
+
+	&#zalesie
+	{
+		background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("https://wykop.pl/cdn/7c4cda5db7d1493f05c7-4b44df189463bab1b45cced887282d0b/tag_background_zalesie_ckLyoQ1Qtw1A9lgwlKZC.jpg");
+		background-size: 300%;
+		background-position: -504px;
+		animation: sizeBackgroundAnimation 32s ease-in infinite;
+	}
+
+	&#zwiazki
+	{
+		background-image: linear-gradient(-45deg, rgba(19, 16, 15, 0.2), rgba(51, 25, 122, 0.2), rgba(7, 4, 27, 0.2), rgba(0, 0, 0, 0.2)), url("/_img/channel_images/zwiazki.png");
+		background-size: 100%;
+	}
+}
+
+
+
+
+
+
+dialog#chooseChannelDialog
+{
+	max-width: 80vw;
+	min-height: 80vh;
+	max-height: 90dvh;
+	border-radius: 8px;
+	border: 1px solid rgb(28 39 59 / 0.8);
+	background-image: linear-gradient(rgb(27 31 35), rgb(8 13 22));
+	/* width: 100%;
+	height: 100%; */
+	/* display: block flex; */
+	position: absolute;
+	padding: 40px 20px;
+	scrollbar-width: none;
+
+	button
+	{
+		cursor: pointer;
+		position: relative;
+	}
+
+	.container
+	{
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 10vh;
+		height: max-content;
+		justify-content: center;
+
+		position: relative;
+
+		header
+		{
+			color: white;
+			/* flex-basis: 10%; */
+			/* margin: auto; */
+			position: absolute;
+			top: -10px;
+			left: -62px;
+			padding: 0px 20px;
+			font-size: 40px;
+			font-family: 'Teko', sans-serif;
+			rotate: -15deg;
+			border: 1px solid rgb(220 220 220 / 0.5);
+			background-color: rgba(20, 22, 24, 0.5);
+			border-radius: 10px;
+
+			box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+		}
+
+
+
+		footer
+		{
+			display: flex;
+			justify-content: center;
+			flex-wrap: wrap;
+			width: 100%;
+			gap: 40px;
+
+
+			button
+			{
+				--_accentColor: rgb(36, 126, 179);
+				min-width: 150px;
+				background-color: color-mix(in srgb, transparent 95%, var(--_accentColor));
+				color: color-mix(in srgb, white 40%, var(--_accentColor));
+				border: 1px solid color-mix(in srgb, black 75%, var(--_accentColor));
+				box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+				border-radius: 3px;
+				height: 40px;
+			}
+
+			button:hover
+			{
+				background-color: color-mix(in srgb, transparent 75%, var(--_accentColor));
+				color: color-mix(in srgb, white 60%, var(--_accentColor));
+				box-shadow: 2px 2px 20px rgb(0 0 0 /0.3);
+				border: 1px solid var(--_accentColor);
+			}
+		}
+
+		.hotChannel::before
+		{
+			content: "";
+			position: absolute;
+			display: block;
+
+			width: 30px;
+			height: 30px;
+			left: -15px;
+			top: -15px;
+
+			/* background-image: url("https://i.imgur.com/HuB0qH9.gif"); */
+			background-image: url("https://i.imgur.com/4zESZjG.gif");
+			background-position: center;
+			background-size: 200%;
+			background-repeat: no-repeat;
+
+
+		}
+
+		main
+		{
+
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: 10vh;
+			height: max-content;
+			justify-content: center;
+
+			position: relative;
+
+			.openChannelButton.hotChannel::before
+			{
+				width: 70px;
+				height: 70px;
+				background-size: 200%;
+				bottom: -20px;
+				left: -43px;
+				z-index: 1;
+			}
+
+			.openChannelButton
+			{
+				span
+				{
+					/* font-family: 'Fira Mono', monospace; */
+					font-family: "Teko", sans-serif;
+					font-size: 36px;
+					position: absolute;
+					bottom: 4px;
+					right: 16px;
+					color: #fff;
+					text-shadow: 4px 4px 3px rgb(0 0 0 / 0.2), 0px 0px 9px rgb(0 0 0 / 0.6), 0px 0px 1px rgba(0, 0, 0, 0.9);
+					position: absolute;
+				}
+
+				&:hover
+				{
+					span
+					{
+						animation: glitch 1s linear infinite;
+					}
+
+					span::before,
+					span::after
+					{
+						content: attr(title);
+						position: absolute;
+						left: 0;
+					}
+
+					span:before
+					{
+						animation: glitchTop 1s linear infinite;
+						clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+						-webkit-clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+					}
+
+					span::after
+					{
+						animation: glitchBotom 1.5s linear infinite;
+						-webkit-clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+						clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+body #showChannelDialogButton
+{
+	display: none;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	z-index: 1;
+}
+
+dialog#chooseChannelDialog #closeChannelDialogButton
+{
+	position: absolute;
+	top: -35px;
+	right: -7px;
+	z-index: 10;
+}
+
+body:not(:has(dialog[open])) #showChannelDialogButton
+{
+	display: block flex;
+}
+
+@media (max-width: 1300px)
+{
+	dialog#chooseChannelDialog
+	{
+		max-width: 96vw;
+		max-height: 96dvh;
+
+		.container
+		{
+			align-self: start;
+		}
+	}
+
+	dialog#chooseChannelDialog #closeChannelDialogButton
+	{
+		position: fixed;
+		top: 30px;
+		right: 30px;
+	}
+}
+
+
+dialog#loginDialog
+{
 	min-width: 300px;
 	width: 50vw;
 	max-width: 800px;
 	min-height: 200px;
+	border-radius: var(--smallBorderRadius);
+	border: 1px solid rgb(81, 158, 209);
 
 	.container
 	{
@@ -13,19 +648,21 @@ dialog#loginDialog
 		display: flex;
 		flex-direction: column;
 		place-content: center;
-		font-size: 1.8em;
+		font-size: 0.8em;
 
 		row-gap: 16px;
 		padding: 32px;
 
-		border: 1px solid rgb(81, 158, 209);
 
 		display: flex;
 
 		input:is([type="text"], [type="password"])
 		{
+			cursor: text;
+			background-color: rgb(0 0 0 / 0.2);
+			border: 1px solid rgb(0 0 0 / 0.6);
 			padding: 8px;
-			background-color: rgba(255, 255, 255, 0.72);
+			/* background-color: rgba(255, 255, 255, 0.72); */
 		}
 
 		.alert
@@ -44,6 +681,29 @@ dialog#loginDialog
 			color: var(--errorColor);
 			border-bottom: 1px solid var(--errorColor);
 		}
+
+		button#closeLoginDialogButton
+		{
+			height: 2.5em;
+			color: rgb(0 0 0 / 0.8);
+			border: 1px solid rgb(0 0 0 / 0.5);
+			border-radius: var(--smallBorderRadius);
+			transition: all 0.2s;
+			width: 30%;
+			min-width: max-content;
+			place-self: center;
+			margin-top: 10px;
+		}
+
+		button#closeLoginDialogButton:hover,
+		button#closeLoginDialogButton:active,
+		button#closeLoginDialogButton:focus
+		{
+			color: black;
+			border: 1px solid rgb(0 0 0 / 0.9);
+			box-shadow: 0px 0px 3px 3px rgb(0 0 0 / 0.1);
+			background-color: rgba(255 255 255 / 0.7);
+		}
 	}
 
 }
@@ -53,10 +713,9 @@ dialog#loginDialog
 
 ::backdrop
 {
-	background-image: linear-gradient(0deg,
-			rgb(17, 17, 17),
-			rgb(48, 48, 48),
-			rgb(56, 66, 77),
-			rgb(36, 126, 179));
-	opacity: 0.75;
+	background-image: linear-gradient(190deg,
+			rgb(17 17 17 / 0.8),
+			rgb(48 48 48 / 0.5),
+			rgb(56 66 77 / 0.5),
+			rgb(36 126 179 / 0.5));
 }

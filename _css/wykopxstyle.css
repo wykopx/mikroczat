@@ -44,20 +44,20 @@
 	--nicknameOrange001: rgba(255, 89, 23, 0.01);
 	--nicknameOrangeBackground: rgba(255, 89, 23, 0.02);
 
-	--nicknameBordeaux1: rgba(153, 0, 0, 1);
-	--nicknameBordeaux09: rgba(153, 0, 0, 0.9);
-	--nicknameBordeaux08: rgba(153, 0, 0, 0.8);
-	--nicknameBordeaux07: rgba(153, 0, 0, 0.7);
-	--nicknameBordeaux06: rgba(153, 0, 0, 0.6);
-	--nicknameBordeaux05: rgba(153, 0, 0, 0.5);
-	--nicknameBordeaux04: rgba(153, 0, 0, 0.4);
-	--nicknameBordeaux03: rgba(153, 0, 0, 0.3);
-	--nicknameBordeaux02: rgba(153, 0, 0, 0.2);
-	--nicknameBordeaux01: rgba(153, 0, 0, 0.1);
-	--nicknameBordeaux005: rgba(153, 0, 0, 0.05);
-	--nicknameBordeaux002: rgba(153, 0, 0, 0.02);
-	--nicknameBordeaux001: rgba(153, 0, 0, 0.01);
-	--nicknameBordeauxBackground: rgba(153, 0, 0, 0.02);
+	--nicknameBurgundy1: rgba(153, 0, 0, 1);
+	--nicknameBurgundy09: rgba(153, 0, 0, 0.9);
+	--nicknameBurgundy08: rgba(153, 0, 0, 0.8);
+	--nicknameBurgundy07: rgba(153, 0, 0, 0.7);
+	--nicknameBurgundy06: rgba(153, 0, 0, 0.6);
+	--nicknameBurgundy05: rgba(153, 0, 0, 0.5);
+	--nicknameBurgundy04: rgba(153, 0, 0, 0.4);
+	--nicknameBurgundy03: rgba(153, 0, 0, 0.3);
+	--nicknameBurgundy02: rgba(153, 0, 0, 0.2);
+	--nicknameBurgundy01: rgba(153, 0, 0, 0.1);
+	--nicknameBurgundy005: rgba(153, 0, 0, 0.05);
+	--nicknameBurgundy002: rgba(153, 0, 0, 0.02);
+	--nicknameBurgundy001: rgba(153, 0, 0, 0.01);
+	--nicknameBurgundyBackground: rgba(153, 0, 0, 0.02);
 
 	--kolorBananowy1: rgba(255, 185, 0, 1);
 	--kolorBananowy09: rgba(255, 185, 0, 0.9);
@@ -126,7 +126,7 @@
 	--niebieskiPasekFilter: grayscale(100%) sepia(100%) hue-rotate(167deg) saturate(215%);
 	--rozowyPasekFilter: grayscale(100%) sepia(100%) brightness(99%) hue-rotate(247deg) saturate(267%);
 
-	--nicknameBordeauxFilter: grayscale(100%) sepia(100%) brightness(50%) hue-rotate(304deg) saturate(700%);
+	--nicknameBurgundyFilter: grayscale(100%) sepia(100%) brightness(50%) hue-rotate(304deg) saturate(700%);
 	--nicknameGreenFilter: grayscale(100%) sepia(100%) brightness(60%) hue-rotate(59deg) saturate(300%);
 	--nicknameOrangeFilter: grayscale(100%) sepia(100%) brightness(70%) hue-rotate(-17deg) saturate(600%);
 
@@ -257,21 +257,21 @@
 	--nicknameGreenBackground: rgba(20, 25, 22, 1);
 	--nicknameOrangeBackground: rgba(30, 22, 20, 1);
 
-	--nicknameBordeaux1: rgba(193, 56, 56, 1);
-	--nicknameBordeaux09: rgba(193, 56, 56, 0.9);
-	--nicknameBordeaux08: rgba(193, 56, 56, 0.8);
-	--nicknameBordeaux07: rgba(193, 56, 56, 0.7);
-	--nicknameBordeaux06: rgba(193, 56, 56, 0.6);
-	--nicknameBordeaux05: rgba(193, 56, 56, 0.5);
-	--nicknameBordeaux04: rgba(193, 56, 56, 0.4);
-	--nicknameBordeaux03: rgba(193, 56, 56, 0.3);
-	--nicknameBordeaux02: rgba(193, 56, 56, 0.2);
-	--nicknameBordeaux01: rgba(193, 56, 56, 0.1);
-	--nicknameBordeaux005: rgba(193, 56, 56, 0.05);
-	--nicknameBordeaux002: rgba(193, 56, 56, 0.02);
-	--nicknameBordeaux001: rgba(193, 56, 56, 0.01);
+	--nicknameBurgundy1: rgba(193, 56, 56, 1);
+	--nicknameBurgundy09: rgba(193, 56, 56, 0.9);
+	--nicknameBurgundy08: rgba(193, 56, 56, 0.8);
+	--nicknameBurgundy07: rgba(193, 56, 56, 0.7);
+	--nicknameBurgundy06: rgba(193, 56, 56, 0.6);
+	--nicknameBurgundy05: rgba(193, 56, 56, 0.5);
+	--nicknameBurgundy04: rgba(193, 56, 56, 0.4);
+	--nicknameBurgundy03: rgba(193, 56, 56, 0.3);
+	--nicknameBurgundy02: rgba(193, 56, 56, 0.2);
+	--nicknameBurgundy01: rgba(193, 56, 56, 0.1);
+	--nicknameBurgundy005: rgba(193, 56, 56, 0.05);
+	--nicknameBurgundy002: rgba(193, 56, 56, 0.02);
+	--nicknameBurgundy001: rgba(193, 56, 56, 0.01);
 
-	--nicknameBordeauxBackground: rgba(27, 20, 22, 1);
+	--nicknameBurgundyBackground: rgba(27, 20, 22, 1);
 
 
 

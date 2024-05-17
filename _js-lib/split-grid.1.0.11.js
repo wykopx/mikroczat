@@ -88,8 +88,9 @@
 
     function getMatchedCSSRules(el)
     {
-        console.log("getMatchedCSSRules -> el: ", el)
-        console.log("el.ownerDocument.styleSheets: ", el.ownerDocument.styleSheets);
+        console.log("getMatchedCSSRules() -> el: ", el)
+        console.log("getMatchedCSSRules() el.ownerDocument: ", el.ownerDocument);
+        console.log("getMatchedCSSRules() el.ownerDocument.styleSheets: ", el.ownerDocument.styleSheets);
 
         var ref;
 
@@ -102,12 +103,12 @@
                     try
                     {
                         rules = Array.from(s.cssRules || []);
-                    } catch (e)
+                    } catch (e)   // Ignore results on security error
                     {
-                        // Ignore results on security error
                     }
 
-                    console.log("rules", rules)
+                    console.log("getMatchedCSSRules() rules", rules)
+
                     return rules
                 })
             )
@@ -117,14 +118,21 @@
                 try
                 {
                     matches = el.matches(r.selectorText);
-                } catch (e)
+                    console.log("getMatchedCSSRules() r", r)
+                    console.log("getMatchedCSSRules() r.selectorText", r.selectorText)
+                    console.log("getMatchedCSSRules() filter(), matches()", matches)
+
+                } catch (e)  // Ignore matching erros
                 {
-                    // Ignore matching erros
                 }
 
                 return matches
             });
     }
+
+
+
+
 
     var gridTemplatePropColumns = 'grid-template-columns';
     var gridTemplatePropRows = 'grid-template-rows';
@@ -243,7 +251,6 @@
     Gutter.prototype.getRawTracks = function getRawTracks()
     {
         console.log("this.gridTemplateProp", this.gridTemplateProp)
-        console.log("[this.grid]", [this.grid])
         console.log("this.grid", this.grid)
 
         var tracks = getStyles(

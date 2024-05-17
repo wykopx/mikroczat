@@ -1,31 +1,47 @@
 :root
 {
-	--chatInnerPadding: 120px 16px 16px 16px;
+	--chatInnerPadding: 220px 16px 16px 16px;
 	--chatBaseFontSize: 16px;
+	--accentColor: rgb(60, 136, 218);
+	--yourAccentColor: rgba(0, 183, 255, 1);
+	--nicknameColorsYoursCustom: var(--yourAccentColor);
 
+	--tagChannelColor: rgba(0, 183, 255, 1);
 
 	--smallBorderRadius: 4px;
 	--mediumBorderRadius: 8px;
 	--largeBorderRadius: 16px;
 
 	--messagesGap: 10px;
+	--messageFontSize: 13px;
+	--newMessageTextareaFontSize: var(--messageFontSize);
 
-	--mainBackground: linear-gradient(225deg, #202020, #222222);
-	--chatBackground: rgb(54, 54, 54);
+
+	--mainBackground: rgb(34, 34, 34);
+	--chatBackground: rgb(28, 28, 28);
 
 	--chatBaseColor: rgb(240, 240, 240);
-	--userListBackground: var(--chatBackground);
+	--userListBackground: rgb(26, 26, 26);
+	--userListFontSize: 12px;
 
+	--channelTabBarHeight: 20px;
+	--channelTabBarFontSize: var(--messageFontSize);
 
 	/* messageArticle */
-	--messageColor: rgb(240, 240, 240);
-	--messageBackgroundColor: var(--chatBackground);
+	--messageColor: rgb(180 180 180);
+
 	--messageBackgroundColor: rgb(44, 44, 44);
+	--messageBackgroundColor: color-mix(in srgb, transparent 100%, var(--chatBackground));
+
+
+	--bucketChannelColor: rgb(218 165 32);
+
+	--blockedColor: rgb(202, 62, 62);
 
 	--messageBackgroundColorHover: rgb(44, 44, 44);
 
 	--messageBorderColor: rgb(0 0 0 / 0.1);
-	--messageOwnBorderColor: rgb(42 119 119 / 0.8);
+	--messageYourBorderColor: var(--yourAccentColor);
 
 	--messageBorderRightWidth: 5px;
 
@@ -39,10 +55,11 @@
 
 	--messageAHrefExternalColor: rgb(147, 187, 231);
 	--messageAHrefExternalBackgroundColor: rgb(38, 42, 46);
+	--messageAHrefExternalHoverBackgroundColor: rgb(22, 27, 32);
 
 
 	--messageBlockquoteColor: rgb(219 219 219);
-	--messageBlockquoteBackgroundColor: rgb(20, 20, 20);
+	--messageBlockquoteBackgroundColor: rgb(50, 50, 50);
 	--messageBlockquoteFontStyle: italic;
 	--messageBlockquoteFontSize: 0.85em;
 	--messageBlockquoteBorderRadius: var(--mediumBorderRadius);
@@ -53,7 +70,9 @@
 	--messageCodeFontSize: 0.85em;
 	--messageCodeBorderRadius: 0;
 
-	--messageAbbrColor: rgb(0 183 255 / 0.7);
+	--messageAbbrColor: var(--messageColor);
+	--messageAbbrMentionsYouColor: var(--yourAccentColor);
+
 
 
 	/* GUTTERS */
@@ -61,6 +80,7 @@
 
 	--successColor: rgb(49, 163, 59);
 	--errorColor: rgb(211, 77, 37);
+
 }
 
 
@@ -80,11 +100,11 @@
 
 
 
-article.messageArticle
+.messageArticle
 {
 	--_genderColor: var(--niebieskiPasek1);
 	--_profileColor: var(--nicknameOrange1);
-	--_fontSize: 16px;
+	--_fontSize: var(--messageFontSize);
 }
 
 .orange-profile
@@ -94,7 +114,7 @@ article.messageArticle
 
 .burgundy-profile
 {
-	--_profileColor: var(--nicknameBordeaux1);
+	--_profileColor: var(--nicknameBurgundy1);
 }
 
 .green-profile
@@ -102,22 +122,33 @@ article.messageArticle
 	--_profileColor: var(--nicknameGreen1);
 }
 
+.black-profile
+{
+	/* TODO */
+	--_profileColor: var(--blackish);
+}
+
 .null-gender
 {
 	--_genderColor: var(--bezplciowyPasek1);
 }
 
-.f-gender
+.f-gender,
+.female
 {
 	--_genderColor: var(--rozowyPasek1);
 }
 
-.m-gender
+.m-gender,
+.male
 {
 	--_genderColor: var(--niebieskiPasek1);
 }
 
-
+.banned
+{
+	--_statusColor: var(--banned)
+}
 
 article.messageArticle.channelOwner
 {

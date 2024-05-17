@@ -3,10 +3,15 @@
 /cgi-bin
 /chat/.vscode
 /chat/node_modules
+/czat/.vscode
+/czat/node_modules
 chat/index.php
+/_ts
+/chat/_ts
 .htaccess
 *.php
 /node_modules
 package-lock.json
 tsconfig.json
 package.json
+/_visits

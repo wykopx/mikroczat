@@ -1,21 +1,20 @@
 {
-  "name": "mikroczat",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "terser _js/index.js --compress drop_console:true --mangle --output _js-dist/index.min.js"
-  },
-  "types": "_ts/split-grid.d.ts",
-  "author": "",
-  "license": "ISC",
+  "author": "WykopX",
   "dependencies": {
     "date-fns": "^3.6.0",
     "localforage": "^1.10.0"
   },
-  "type": "module",
   "devDependencies": {
     "terser": "^5.30.3"
-  }
+  },
+  "license": "No license. Copying is not permitted",
+  "main": "index.js",
+  "name": "mikroczat",
+  "scripts": {
+    "build": "terser _js/index.js --compress drop_console:true --mangle --output _js-dist/index.min.js",
+    "tsc watch": "tsc --watch "
+  },
+  "type": "module",
+  "types": "_ts/split-grid.d.ts",
+  "version": "1.0.0"
 }

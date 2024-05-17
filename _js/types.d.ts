@@ -4,13 +4,14 @@ export type TokensObject = {
     refresh_token?: string;
     username?: string;
 };
-type TokenType = "token" | "userKeep" | "refresh_token";
+type TokenType = "token" | "userKeep" | "refresh_token" | "guest";
 export interface UnknownToken {
     tokenValue: string;
     tokenType?: TokenType;
 }
 interface TagObject {
     name: string;
+    nameUnderscore?: string;
     created_at?: string;
     author?: User;
     personal?: boolean;
@@ -26,6 +27,7 @@ interface TagObject {
 }
 export declare class Tag {
     name: string;
+    nameUnderscore?: string;
     created_at?: string;
     author?: User;
     personal?: boolean;
@@ -41,31 +43,84 @@ export declare class Tag {
     constructor(tag: TagObject | string);
     initFromAPI(): Promise<void>;
 }
+type LoadingStatus = "before" | "preloaded" | "loaded";
 export declare class Channel {
+    loadingStatus?: LoadingStatus;
+    discussionViewEntryId?: number;
     pagination: {
         next: string;
         prev: string;
     };
     tag: Tag;
     name: string;
+    nameUnderscore?: string;
     entries: Map<number, Entry>;
     comments: Map<number, Comment>;
+    unreadMessagesCount: number;
+    unreadMentionsCount: number;
     users: Map<string, User>;
-    element: HTMLElement;
-    messagesContainer: HTMLElement;
+    elements: {
+        channelFeed: HTMLElement;
+        messagesContainer: HTMLElement;
+        usersListContainer: HTMLElement;
+        newMessageTextarea: HTMLElement;
+        newMessageTextareaContainer: HTMLElement;
+    };
     constructor(tag: Tag);
     printChannelDetails(): void;
     addEntryOrCommentToChannelObject(ChannelObject: Channel, EntryObject: Entry | Comment): void;
 }
-export declare class Entry {
-    last_checked_comments_datetime: string;
-    last_checked_comments_count?: number;
-    id: number;
-    entry_id: number;
-    resource: string;
+export interface NewMessageBodyData {
+    content?: string;
+    photo?: string;
+    embed?: string;
+    survey?: string;
+    adult?: boolean;
+    resource?: Resource;
+    entry_id?: number;
+}
+export interface MessageTemplate {
+    resource?: Resource;
+    id?: number;
+    entry_id?: number;
+    parent?: Entry | MessageTemplate;
     channel?: Channel;
-    author: User;
+    author?: User;
     media?: Media;
+    photo?: string;
+    embed?: string;
+    survey?: string;
+    votes?: Votes;
+    comments?: Comments;
+    actions?: EntryActions;
+    adult?: boolean;
+    content?: string;
+    created_at?: string;
+    device?: string;
+    archive?: boolean;
+    deleted?: boolean;
+    deletable?: boolean;
+    editable?: boolean;
+    blacklist?: boolean;
+    favourite?: boolean;
+    slug?: string;
+    status?: string;
+    tags?: string[];
+    voted?: number;
+}
+export type Resource = "entry" | "entry_comment";
+export declare class Entry {
+    last_checked_comments_datetime?: Date;
+    last_checked_comments_count?: number;
+    id?: number;
+    entry_id?: number;
+    resource: Resource;
+    channel?: Channel;
+    author?: User;
+    media?: Media;
+    photo?: string;
+    embed?: string;
+    survey?: string;
     votes?: Votes;
     comments?: Comments;
     actions?: EntryActions;
@@ -74,20 +129,23 @@ export declare class Entry {
     archive?: boolean;
     content?: string;
     created_at?: string;
-    deletable?: boolean;
-    device?: string;
     editable?: boolean;
+    deletable?: boolean;
+    blacklist?: boolean;
+    device?: string;
     favourite?: boolean;
     slug?: string;
     status?: string;
-    tags?: [string];
+    tags?: string[];
     voted?: number;
-    constructor(entryObject: any, channel?: Channel);
+    constructor(entryObject: Entry | NewMessageBodyData | MessageTemplate, channel?: Channel);
+    isMentioningUser(username: string): boolean;
     content_parsed(): string;
     get created_at_Date(): Date;
     get created_at_Timestamp(): number;
     get created_at_FormatDistance(): string;
     get created_at_FormatDistanceSuffix(): string;
+    get created_at_SecondsAgo(): number;
     created_at_Format(formatString: string): string;
     get created_at_Time(): string;
     get created_at_YYYY_MM_DD(): string;
@@ -98,16 +156,16 @@ export declare class Entry {
 }
 export declare class Comment extends Entry {
     parent?: Entry;
-    constructor(commentObject: any, channel?: Channel);
+    constructor(commentObject: Comment | MessageTemplate, channel?: Channel);
 }
 export type Comments = {
-    items: Comments[];
+    items: Comment[];
     count: number;
 };
 export type Votes = {
     up: number;
     down: number;
-    users?: [object];
+    users?: User[];
 };
 export type Media = {
     embed?: MediaEmbed;
@@ -136,39 +194,91 @@ export type MediaSurvey = {
 };
 interface UserObject {
     username: string;
-    gender?: string;
+    about?: string;
+    actions?: UserActions;
     avatar?: string;
-    status?: string;
+    background?: string;
+    blacklist?: boolean;
+    city?: string;
+    color?: UserColor;
+    company?: boolean;
+    follow?: boolean;
+    followers?: number;
+    gender?: string;
+    member_since?: string;
+    name?: string;
     note?: boolean;
     online?: boolean;
-    verified?: boolean;
-    follow?: boolean;
-    color?: UserColor;
+    public_email?: string;
     rank?: UserRank;
-    actions?: UserActions;
+    social_media?: UserSocialMedia;
+    summary?: UserSummary;
+    status?: string;
+    verified?: boolean;
+    website?: string;
 }
 export declare class User {
     username: string;
-    gender?: string;
+    about?: string;
     avatar?: string;
-    status?: string;
+    actions?: UserActions;
+    background?: string;
+    blacklist?: boolean;
+    city?: string;
+    color?: UserColor;
+    company?: boolean;
+    follow?: boolean;
+    followers?: number;
+    gender?: string;
+    member_since?: string;
+    name?: string;
     note?: boolean;
     online?: boolean;
-    verified?: boolean;
-    follow?: boolean;
-    color?: UserColor;
+    public_email?: string;
     rank?: UserRank;
-    actions?: UserActions;
-    constructor(userObject: UserObject);
+    summary?: UserSummary;
+    social_media?: UserSocialMedia;
+    status?: string;
+    verified?: boolean;
+    website?: string;
+    channel?: Channel;
+    constructor(userObject: UserObject | string, channel?: Channel);
+    get numericalOrder(): number;
 }
 export type UserColor = {
     name: string;
     hex?: string;
     hex_dark?: string;
 };
+export type UserSocialMedia = {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+};
 export type UserRank = {
     position: number;
     trend: number;
+};
+export type UserSummary = {
+    actions: number;
+    links: number;
+    links_details: {
+        added: number;
+        commented: number;
+        published: number;
+        related: number;
+        up: number;
+        down: number;
+    };
+    entries: number;
+    entries_details: {
+        added: number;
+        commented: number;
+        voted: number;
+    };
+    followers: number;
+    following_users: number;
+    following_tags: number;
 };
 export type EntryActions = {
     update?: boolean;
@@ -193,5 +303,25 @@ export type TagActions = {
     update: boolean;
     blacklist: boolean;
 };
+export declare class HTTPError extends Error {
+    status: number;
+    constructor(message: string, status: number);
+}
+export interface Sounds {
+    logged_in?: HTMLAudioElement;
+    logged_out?: HTMLAudioElement;
+    incoming_entry?: HTMLAudioElement;
+    incoming_comment?: HTMLAudioElement;
+    incoming_mention?: HTMLAudioElement;
+    outgoing_entry?: HTMLAudioElement;
+    outgoing_comment?: HTMLAudioElement;
+}
+export interface channelSpecial {
+    urlPath: string;
+    selector: string;
+    name?: string;
+    description?: string;
+    tabTitle?: string;
+}
 export {};
 //# sourceMappingURL=types.d.ts.map

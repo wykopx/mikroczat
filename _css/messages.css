@@ -1,11 +1,198 @@
+#chatArea .messageArticle
+{
+
+
+	& div.right:has(.entryImage[src])
+	{
+		margin-left: 120px;
+	}
+
+	& div.right .entryImageContainer
+	{
+		grid-column: imageStart;
+		display: none;
+	}
+
+	& div.right .entryImageContainer:has(.entryImage[src])
+	{
+		display: block flow;
+		position: relative;
+	}
+
+	& div.right .entryImage[src]
+	{
+		display: block flow;
+		position: absolute;
+		top: 0px;
+		right: 20px;
+		width: auto;
+		width: 100px;
+		max-width: 100px;
+		height: 100%;
+		max-height: inherit;
+		object-fit: contain;
+		object-fit: scale-down;
+		object-position: top right;
+	}
+
+
+	/* IKONKI YOUTUBE STREAMABLE TWITTER */
+	& div.right .entryMediaHref
+	{
+		display: none;
+		width: 80px;
+	}
+
+	& div.right .entryMediaHref::before
+	{
+		content: "";
+		width: 16px;
+		height: 16px;
+		background-position: center;
+		background-size: contain;
+		background-repeat: no-repeat;
+		display: block flow;
+	}
+
+
+	& div.right .entryMediaEmbedYouTube::before
+	{
+		background-image: url("https://i.imgur.com/XEKi3v1.png");
+	}
+
+
+
+	& div.right .entryMediaHref:hover
+	{
+		filter: brightness(1.5);
+	}
+
+	& div.right .entryMediaHref[href]
+	{
+		display: block flow;
+		width: 30px;
+		height: fit-content;
+	}
+
+	& div.right .entryMediaHref img
+	{
+		width: inherit
+	}
+
+
+	& div.right span.entryDevice
+	{
+		display: none;
+		width: 16px;
+		height: 16px;
+	}
+
+	&[data-device="Mikroczat"] div.right span.entryDeviceMikroczat,
+	&[data-device="Wykop"] div.right span.entryDeviceWykop,
+	&[data-device="Wypiek"] div.right span.entryDeviceWypiek,
+	&[data-device="Android"] div.right span.entryDeviceAndroid,
+	&[data-device="iOS"] div.right span.entryDeviceiOS
+	{
+		display: inline flex;
+	}
+
+	&[data-device="Wykop"] div.right span.entryDeviceWykop:not(:hover),
+	&[data-device="Wypiek"] div.right span.entryDeviceWypiek:not(:hover),
+	&[data-device="Android"] div.right span.entryDeviceAndroid:not(:hover),
+	&[data-device="iOS"] div.right span.entryDeviceiOS:not(:hover)
+	{
+		filter: grayscale(1);
+		opacity: 0.3;
+	}
+
+	/* LIBCZA KOMENTARZY */
+	& div.right div.entryCommentsCount
+	{
+		grid-column: commentsStart;
+	}
+
+	& div.right div.ratingBoxContainer section.rating-box
+	{
+		grid-column: ratingBoxStart;
+
+		display: block flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		column-gap: 8px;
+		align-items: end;
+		justify-content: end;
+
+		ul
+		{
+			li
+			{
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 18px;
+			}
+
+			li.plus::before
+			{
+				content: var(--votesUp);
+			}
+		}
+	}
+
+	&:not([data-votes-up="0"]) div.right section.rating-box ul li.zero,
+	&[data-votes-up="0"] div.right section.rating-box ul li.plus
+	{
+		display: none;
+	}
+
+
+
+
+	/* LICZBA KOMENTARZY POD WPISEM */
+	&.entry .entryCommentsCount
+	{
+		/* dla jednolitej wysokości wpisów */
+		height: 0px;
+		cursor: help;
+	}
+
+	&.entry .entryCommentsCount::after
+	{
+		content: var(--commentsCount);
+		cursor: help;
+
+		position: relative;
+		top: -12px;
+		left: 10px;
+
+		border-radius: 50%;
+		border: 1px solid rgb(0 0 0 / 56%);
+		background-color: rgb(255 176 7);
+		color: rgb(73 62 56);
+		font-size: 0.6em;
+		font-weight: bolder;
+		display: block flex;
+		justify-content: center;
+		align-items: end;
+		aspect-ratio: 1 / 1;
+		height: 13px;
+		box-shadow: 1px 1px 6px 0px rgb(0 0 0 / 0.5);
+	}
+
+	&.entry[data-comments-count="0"] .entryCommentsCount,
+	&.reply .entryCommentsCount
+	{
+		visibility: hidden;
+	}
+}
+
 .messageArticle
 {
-	background-color: var(--messageBackgroundColor);
-	border: 1px solid var(--messageBorderColor);
-	border-left: 1px solid var(--_genderColor);
-	border-right-width: var(--messageBorderRightWidth);
-	border-radius: 3px;
-	padding: 10px;
+	z-index: 1;
+
+	&:hover
+	{
+		z-index: 2;
+	}
 
 	&:hover,
 	&:focus,
@@ -13,6 +200,42 @@
 	{
 		background-color: var(--messageBackgroundColorHover)
 	}
+
+	scroll-margin: var(--messagesGap);
+	scroll-snap-align: end;
+	scroll-snap-stop: normal;
+
+	position: relative;
+
+	/* GRID */
+	grid-column: startLine / endLine;
+
+	display: grid;
+	height: max-content;
+	/* grid-template-columns: subgrid; */
+
+
+	/* FLEXBOX */
+	/* display: flex;
+		flex-direction: row; */
+	/* align-items: baseline; */
+	align-items: start;
+	column-gap: 10px;
+
+	background-color: var(--messageBackgroundColor);
+	border: 1px solid var(--messageBorderColor);
+
+	border-left: 1px solid var(--_genderColor);
+	border-right-width: var(--messageBorderRightWidth);
+	border-radius: 3px;
+	padding: 10px;
+
+
+	&.null-gender
+	{
+		border-left: 1px solid transparent;
+	}
+
 
 	&.entry
 	{
@@ -26,32 +249,27 @@
 
 	&.own
 	{
-		border-right-color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+		/* border-right-color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor)); */
+		background-color: color-mix(in srgb, var(--messageYourBorderColor) 4%, var(--messageBackgroundColor))
 	}
 
 	/* usuniety wpis lub komentarz */
-	&[data-deleted="1"]
+	&[data-deleted="1"] .messageBlock
 	{
 		opacity: 0.3;
-
-		& div.right section.rating-box div.buttons
-		{
-			display: none;
-		}
 	}
 
-	& .avatar
+	&[data-deleted="1"] div.right section.rating-box div.buttons
 	{
-		& img.avatar_img
-		{
-			width: 14px;
-			height: 14px;
-			border-radius: 50%;
-		}
+		display: none;
 	}
+
 
 	& .messageBlock
 	{
+		--_lineHeight: 20px;
+		line-height: var(--_lineHeight);
+		vertical-align: bottom;
 
 		& .entryUser
 		{
@@ -68,19 +286,43 @@
 			{
 				/* display: contents; */
 				min-width: max-content;
+				user-select: text;
 				/* ikonka banana */
+
+				line-height: var(--_lineHeight);
+				vertical-align: bottom;
 			}
 		}
 
 		& .messageContent
 		{
-			display: inline;
-			line-height: 1.6em;
+			display: inline flow;
+			padding-right: 30px;
+
+			/* line-height: 1.6em; */
 			font-size: var(--_fontSize);
 			text-wrap: pretty;
-
 			color: var(--messageColor);
 
+			line-height: var(--_lineHeight);
+			vertical-align: bottom;
+
+			*
+			{
+				padding-right: 2px;
+				padding-left: 1px;
+				font-size: var(--_fontSize);
+				user-select: text;
+
+				line-height: var(--_lineHeight);
+				vertical-align: bottom;
+
+				/* anty Zalgo text */
+				display: inline flow-root;
+				overflow: hidden;
+
+
+			}
 
 			/* multiple <br> lines */
 			br + br
@@ -101,15 +343,49 @@
 			& a
 			{}
 
+			/* 	! wyłączenie wyświetlania tagów w wiadomościach */
 			& a.href_channel
 			{
-				color: var(--messageAHrefChannelColor);
-				background-color: var(--messageAHrefChannelBackgroundColor);
-				position: relative;
-				text-decoration: none;
-				padding: 4px 10px;
-				border-radius: var(--smallBorderRadius);
+				display: none;
 				white-space: nowrap;
+				text-decoration: none;
+			}
+
+			/* wyłączenie linków promo dodanych przez mikroczat  */
+			.messageArticle[data-device="Mikroczat"] & a.href_external
+			{
+				display: none;
+			}
+
+			/* & a.href_channel.currentChannel:first-child, */
+			& a.href_channel.currentChannel:last-child
+			{
+				display: none;
+			}
+
+			/* wyswietlanie tagów w środku tekstu */
+			& a.href_channel:has(+ :is(span))
+			{
+				display: inline;
+			}
+
+			& a.href_channel.currentChannel
+			{
+				color: var(--messageColor);
+			}
+
+			& a.href_channel:not(.currentChannel)
+			{
+				color: var(--messageAHrefChannelColor);
+				/* background-color: var(--messageAHrefChannelBackgroundColor); */
+				position: relative;
+				padding: 0px 10px;
+				border-radius: var(--smallBorderRadius);
+			}
+
+			& a.href_channel:not(.currentChannel)::before
+			{
+				content: "💭 ";
 			}
 
 			& a.href_channel:hover
@@ -117,24 +393,15 @@
 				filter: brightness(1.4);
 			}
 
-			& a.href_channel::before
-			{
-				content: "💭 ";
-			}
 
-			& a.href_channel.currentChannel:first-child,
-			& a.href_channel.currentChannel:last-child
-			{
-				display: none;
-			}
+
 
 			& a.href_external
 			{
 				color: var(--messageAHrefExternalColor);
 				background-color: var(--messageAHrefExternalBackgroundColor);
-				position: relative;
-				text-decoration: underline;
-				padding: 4px 10px;
+				position: static;
+				padding: 0px 10px;
 				border-radius: var(--smallBorderRadius);
 			}
 
@@ -145,7 +412,9 @@
 
 			& a.href_external:hover
 			{
-				text-decoration: none;
+				text-decoration: underline;
+				background-color: var(--messageAHrefExternalHoverBackgroundColor);
+				/* text-decoration: none; */
 			}
 
 			& a.href_external:hover::before
@@ -162,23 +431,41 @@
 				z-index: 1;
 			}
 
+
 			& abbr
 			{
-				/* <abbr data-mention-user="NadiaFrance">@NadiaFrance</abbr> */
+				/* <abbr data-username="NadiaFrance" class="username">@NadiaFrance</abbr> */
 				display: inline flex;
-				padding: 0px 10px;
-				margin-right: 3px;
-				border: 1px solid var(--messageAbbrColor);
-				border-radius: var(--smallBorderRadius);
-				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
+				width: max-content;
+				color: var(--messageAbbrColor);
+				font-weight: bolder;
+			}
+
+			& abbr.at
+			{
+				padding-right: unset;
+			}
+
+			& abbr.username
+			{
+				padding-left: unset;
 			}
 
 			& abbr.mentions-you
 			{
-				/* <abbr data-mention-user="NadiaFrance" class="mention-you">@NadiaFrance</abbr> */
-				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+				/* <abbr data-username="NadiaFrance" class="username mention-you">@NadiaFrance</abbr> */
+				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
+				color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
+
+				border: 1px solid var(--messageAbbrColor);
+				border-radius: var(--smallBorderRadius);
+				background-color: color-mix(in srgb, transparent 95%, var(--messageAbbrColor));
+
+				padding: 0px 10px;
+				margin-right: 3px;
+
 				animation: heartbeat 3s ease-in-out infinite both;
-				color: var(--nicknameColorsYoursCustom, var(--messageOwnBorderColor));
+
 			}
 
 
@@ -204,6 +491,7 @@
 			blockquote:has(+ br)
 			{
 				display: block flex;
+				flex-direction: column;
 				border-radius: 0;
 			}
 
@@ -274,10 +562,226 @@
 			{
 				margin-bottom: 6px;
 			}
+		}
+	}
+}
 
 
+/* JS SETTINGS */
+#chatArea
+{
+
+	/* scroll snap*/
+	&[data-scroll-snap="true"] .messagesContainer
+	{
+		scroll-snap-type: both mandatory;
+		scroll-padding: 0;
+		overscroll-behavior-y: contain;
+	}
+
+	/* PRZYCISK PLUSOWANIA */
+	&:not([data-plus-button-show="true"]) div.right section.rating-box div.buttons
+	{
+		display: none;
+
+	}
+
+	/* TYLKO WIADOMOŚCI Z MIKROCZATU */
+	&[data-msg-filter-mikroczat="true"] .messagesContainer article:not([data-device="Mikroczat"])
+	{
+		display: none !important;
+	}
+
+	&[data-plus-button-show="true"]
+	{
+		div.right section.rating-box div.buttons
+		{
+			button.plus
+			{
+				height: 20px;
+				width: 20px;
+				padding: unset;
+				margin: unset;
+
+				border: 2px solid var(--colorPlusesCount);
+				border-radius: 4px;
+				color: var(--colorPlusesCount);
+				background-color: transparent;
+			}
+		}
+
+		.messageArticle[data-voted="1"] div.right section.rating-box div.buttons
+		{
+			button.plus
+			{
+				border: 2px solid transparent;
+				background-color: var(--colorPlusesCount);
+				color: white;
+			}
+		}
+
+		.messageArticle.own div.right section.rating-box div.buttons
+		{
+			display: none !important;
 		}
 	}
 
 
+
+}
+
+
+
+#chatArea #mikrochatFeeds .channelFeed .messageArticle
+{
+	animation-duration: .2s;
+	animation-timing-function: ease-in-out;
+	animation-delay: 0s;
+	animation-fill-mode: both;
+}
+
+
+.messageArticle
+{
+	/* border: 1px solid green !important; */
+
+	@media screen and (max-width: 777px)
+	{
+		row-gap: 8px;
+		grid-template-columns: [startLine avatarStart] 20px [avatarEnd usernameStart] auto [usernameEnd divRightStart] 40px [divRightEnd endLine];
+		grid-template-rows: [startRow messageHeaderStart] 20px [messageHeaderEnd messageContentStart] auto [messageContentEnd messageFooterStart] auto [messageFooterEnd endRow];
+
+		padding: 6px 6px 1px 12px;
+
+		& .messageBlock
+		{
+			width: auto;
+			max-width: 97dvw;
+			display: contents;
+		}
+
+		& .messageBlock > .entryUser
+		{
+			display: block flex;
+			grid-column: usernameStart / usernameEnd;
+			grid-row: messageHeaderStart / messageHeaderEnd;
+			/* border: 1px solid red; */
+		}
+
+		& .messageBlock > .messageContent
+		{
+			display: block flex;
+			grid-column: startLine / endLine;
+			grid-row: messageContentStart / messageContentEnd;
+			/* border: 1px solid red; */
+
+			display: flow-root;
+			min-width: 100%;
+			max-width: min-content;
+
+			& > *
+			{
+				display: contents;
+				word-break: break-word;
+				text-wrap: balance;
+				text-wrap: pretty;
+			}
+		}
+
+		& .entryDate
+		{
+			grid-column: divRightStart / divRightEnd;
+			grid-row: 1;
+			justify-self: end;
+			position: relative;
+			top: -10px;
+		}
+
+		div.right
+		{
+			grid-column: divRightStart / divRightEnd;
+			grid-row: 1;
+			justify-self: end;
+			display: block flex;
+			/* width: 100%; */
+			position: relative;
+			top: 8px;
+		}
+
+		div.right > .entryCommentsCount
+		{
+			display: none;
+		}
+
+		div.right section.rating-box li.zero
+		{
+			display: none;
+		}
+	}
+
+	@media screen and (min-width: 777px)
+	{
+		grid-template-columns: [startLine avatarStart] auto [avatarEnd dateStart] auto [dateEnd messageBlockStart] 1fr [messageBlockEnd divRightStart] auto [divRightEnd endLine];
+		grid-template-rows: [startRow] 1fr [endRow];
+
+		& .messageBlock
+		{
+			display: block flow-root;
+			grid-column: messageBlockStart;
+			grid-row: 1 / -1;
+		}
+
+		& .entryDate
+		{
+			grid-column: dateStart / dateEnd;
+			grid-row: 1;
+		}
+
+		& div.right
+		{
+			grid-row: 1;
+			grid-column: divRightStart;
+			display: grid;
+			grid-template-columns: [startLine imageStart] auto [imageEnd commentsStart] 1fr [commentsEnd ratingBoxStart] 63px [ratingBoxEnd endLine];
+
+			position: relative;
+			height: 100%;
+
+			column-gap: 10px;
+		}
+	}
+
+	& .avatar
+	{
+		grid-column: avatarStart;
+		grid-row: 1;
+	}
+
+	& .entryDate
+	{
+		text-wrap: nowrap;
+
+		& a.permalinkHref
+		{
+			text-decoration: none;
+			display: contents;
+		}
+	}
+}
+
+
+
+
+
+/* PLUSY I RATING BOX */
+li.zero
+{
+	color: var(--gullGray);
+	font-weight: bolder;
+}
+
+li.plus
+{
+	color: var(--colorPlusesCount);
+	font-weight: bolder;
 }

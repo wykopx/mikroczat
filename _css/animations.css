@@ -1,0 +1,404 @@
+.scaleInAnimation,
+.scaleOutAnimation
+{
+	animation: 0.2s ease-in-out both;
+}
+
+.scaleOutAnimation
+{
+	visibility: visible !important;
+	animation-name: exitCenterDialogAnimation;
+}
+
+.scaleInAnimation
+{
+	visibility: visible !important;
+	animation-name: entryCenterDialogAnimation;
+}
+
+@keyframes showLogoContainer
+{
+	0%
+	{
+		opacity: 0;
+	}
+
+	100%
+	{
+		opacity: 1;
+	}
+}
+
+@keyframes entryCenterDialogAnimation
+{
+	0%
+	{
+		display: block flex;
+		transform: scale(0.3);
+		opacity: 0;
+	}
+
+	100%
+	{
+		transform: scale(1);
+		opacity: 1;
+	}
+
+
+}
+
+@keyframes exitCenterDialogAnimation
+{
+	0%
+	{
+		transform: scale(1);
+		opacity: 1;
+	}
+
+	99%
+	{
+		transform: scale(0.4);
+		opacity: 0;
+	}
+
+	100%
+	{
+		display: none;
+	}
+
+}
+
+@keyframes gradientBackgroundAnimation
+{
+	0%
+	{
+		background-position: 0% 50%;
+	}
+
+	50%
+	{
+		background-position: 100% 50%;
+	}
+
+	100%
+	{
+		background-position: 0% 50%;
+	}
+}
+
+@keyframes sizeBackgroundAnimation
+{
+	0%
+	{
+		background-size: 300%;
+	}
+
+	50%
+	{
+		background-size: 400%;
+	}
+
+	100%
+	{
+		background-size: 300%;
+	}
+}
+
+@keyframes slow_panning_left
+{
+	0%
+	{
+		background-position: left;
+	}
+
+	50%
+	{
+		background-position: right;
+	}
+
+	100%
+	{
+		background-position: left;
+	}
+}
+
+@keyframes slow_panning_right
+{
+	0%
+	{
+		background-position: right;
+	}
+
+	50%
+	{
+		background-position: left;
+	}
+
+	100%
+	{
+		background-position: right;
+	}
+}
+
+@keyframes slow_panning_bottom
+{
+	0%
+	{
+		background-position: bottom;
+	}
+
+	50%
+	{
+		background-position: top;
+	}
+
+	100%
+	{
+		background-position: bottom;
+	}
+}
+
+@keyframes slow_panning_top
+{
+	0%
+	{
+		background-position: top;
+	}
+
+	50%
+	{
+		background-position: bottom;
+	}
+
+	100%
+	{
+		background-position: top;
+	}
+}
+
+@keyframes slideUpTip
+{
+
+	0%
+	{
+		opacity: 0;
+		transform: translateY(0%);
+	}
+
+	0.01%,
+	10%
+	{
+		opacity: 1;
+		transform: translateY(0%);
+	}
+
+	11%,
+	20%
+	{
+		transform: translateY(-100%);
+	}
+
+	21%,
+	30%
+	{
+		transform: translateY(-200%);
+	}
+
+	31%,
+	40%
+	{
+		transform: translateY(-300%);
+	}
+
+	41%,
+	50%
+	{
+		transform: translateY(-400%);
+	}
+
+	51%,
+	60%
+	{
+		transform: translateY(-500%);
+	}
+
+	61%,
+	70%
+	{
+		transform: translateY(-600%);
+	}
+
+	71%,
+	80%
+	{
+		transform: translateY(-700%);
+	}
+
+	81%,
+	90%
+	{
+		transform: translateY(-800%);
+	}
+
+	91%,
+	99.9%
+	{
+		opacity: 1;
+		transform: translateY(-900%);
+	}
+
+	100%
+	{
+		opacity: 0;
+	}
+}
+
+
+@keyframes heartbeat
+{
+	from
+	{
+		-webkit-transform: scale(1);
+		transform: scale(1);
+		-webkit-transform-origin: center center;
+		transform-origin: center center;
+		-webkit-animation-timing-function: ease-out;
+		animation-timing-function: ease-out;
+	}
+
+	10%
+	{
+		-webkit-transform: scale(0.91);
+		transform: scale(0.91);
+		-webkit-animation-timing-function: ease-in;
+		animation-timing-function: ease-in;
+	}
+
+	17%
+	{
+		-webkit-transform: scale(0.98);
+		transform: scale(0.98);
+		-webkit-animation-timing-function: ease-out;
+		animation-timing-function: ease-out;
+	}
+
+	33%
+	{
+		-webkit-transform: scale(0.87);
+		transform: scale(0.87);
+		-webkit-animation-timing-function: ease-in;
+		animation-timing-function: ease-in;
+	}
+
+	45%
+	{
+		-webkit-transform: scale(1);
+		transform: scale(1);
+		-webkit-animation-timing-function: ease-out;
+		animation-timing-function: ease-out;
+	}
+}
+
+@keyframes opacity03
+{
+	from
+	{
+		opacity: 1;
+	}
+
+	to
+	{
+		opacity: 0.3;
+	}
+}
+
+@keyframes highlightBrightness14
+{
+	from
+	{
+		filter: brightness(1);
+	}
+
+	to
+	{
+		filter: brightness(1.4);
+	}
+}
+
+@keyframes highlightBorderColor
+{
+	from
+	{
+		/* border-color: initial; */
+	}
+
+	to
+	{
+		border-color: goldenrod;
+	}
+}
+
+
+
+@keyframes glitch
+{
+
+	2%,
+	64%
+	{
+		transform: translate(2px, 0) skew(0deg);
+	}
+
+	4%,
+	60%
+	{
+		transform: translate(-2px, 0) skew(0deg);
+	}
+
+	62%
+	{
+		transform: translate(0, 0) skew(5deg);
+	}
+}
+
+@keyframes glitchTop
+{
+
+	2%,
+	64%
+	{
+		transform: translate(2px, -2px);
+	}
+
+	4%,
+	60%
+	{
+		transform: translate(-2px, 2px);
+	}
+
+	62%
+	{
+		transform: translate(13px, -1px) skew(-13deg);
+	}
+}
+
+@keyframes glitchBotom
+{
+
+	2%,
+	64%
+	{
+		transform: translate(-2px, 0);
+	}
+
+	4%,
+	60%
+	{
+		transform: translate(-2px, 0);
+	}
+
+	62%
+	{
+		transform: translate(-22px, 5px) skew(21deg);
+	}
+}

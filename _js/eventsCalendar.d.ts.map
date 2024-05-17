@@ -1,0 +1,1 @@
+{"version":3,"file":"eventsCalendar.d.ts","sourceRoot":"","sources":["../_ts/eventsCalendar.ts"],"names":[],"mappings":"AAAA,eAAO,MAAM,cAAc,EAAE,GAAG,CAAC,MAAM,EAAE,KAAK,CAAa,CAAC;AA+E5D,MAAM,WAAW,KAAK;IAErB,QAAQ,CAAC,EAAE,MAAM,EAAE,CAAC;IACpB,IAAI,CAAC,EAAE,MAAM,GAAG,IAAI,CAAC;IACrB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,OAAO,CAAC,EAAE,MAAM,CAAC;CACjB"}

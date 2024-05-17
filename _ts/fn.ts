@@ -1,16 +1,23 @@
-import { user } from './index.js';
+// import { dev } from './index.js';
+declare let dev: boolean;
+import * as index from './index.js';
+import * as T from './types.js';
+import { settings, setSettings } from './settings.js';
 
-export function markdownNewLineToBr(text: string): string
+import { loggedUser } from './login.js';
+
+
+export function markdownNewLineToBR(text: string, EntryObject: T.Entry): string
 {
 	return text.replace(/\n/g, '<br/>'); // Replace newline characters with <br>
 }
-export function replaceAngleBrackets(text: string): string
+export function replaceAngleBrackets(text: string, EntryObject: T.Entry): string
 {
 	return text.replace(/</g, '&lt;');
-	// return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	// return text.replace(/</g, '&lt;').replace(/>/g, '&gt;'); 
 }
 
-export function markdownTextToSpan(text: string): string
+export function markdownTextToSPAN(text: string, EntryObject: T.Entry): string
 {
 	/*
 		- zamienia każdy fragment tekstu, który nie jest jeszcze w żadnym elemencie na <span>text</span>
@@ -38,7 +45,7 @@ export function markdownTextToSpan(text: string): string
 	return text;
 }
 
-export function markdownAsteriskToStrong(text: string): string
+export function markdownAsteriskToSTRONG(text: string, EntryObject: T.Entry): string
 {
 	/* 
 		- zamienia tekst **przyklad** na <strong>przyklad</strong>
@@ -52,10 +59,10 @@ export function markdownAsteriskToStrong(text: string): string
 
 
 
-export function markdownUnderscoreToItalics(text: string): string
+export function markdownUnderscoreToITALICS(text: string, EntryObject: T.Entry): string
 {
-	// console.log(`markdownUnderscoreToItalics,  text:`)
-	// console.log(text)
+	// if(dev) console.log(`markdownUnderscoreToITALICS,  text:`)
+	// if(dev) console.log(text)
 
 	/*
 		- zamienia tekst __przyklad__ na <i>przyklad</i>
@@ -68,7 +75,7 @@ export function markdownUnderscoreToItalics(text: string): string
 	return text.replace(/(^|\s|>|\*)(_|__)([^_]+)(_|__)(<|\*|,|;|\.|\s|$)/g, '$1<i>$3</i>$5');
 }
 
-export function markdownBacktickToCode(text: string): string 
+export function markdownBacktickToCODE(text: string, EntryObject: T.Entry): string 
 {
 	/*
 		- zamienia tekst ```przyklad``` na <code>przyklad</code>
@@ -82,7 +89,7 @@ export function markdownBacktickToCode(text: string): string
 }
 
 
-export function markdownUsernameToAbbr(text: string): string
+export function markdownUsernameToABBR(text: string, EntryObject: T.Entry): string
 {
 	/*
 	- wykrywa tekst @NadiaFrance rozpoczynający się od @ na początku
@@ -92,19 +99,19 @@ export function markdownUsernameToAbbr(text: string): string
 	*/
 	return text.replace(/(\B)@([\w-_]+):?/g, function (wholeMatch, textInFront, username)
 	{
-		if (username === user.username)
+		if (username === loggedUser.username)
 		{
-			return `${textInFront}<abbr data-mention-user="${username}" class="mentions-you">@${username}</abbr>`;	 // wolaja Ciebie
+			return `${textInFront}<abbr class="at">@</abbr><abbr data-username="${username}" data-channel="${EntryObject.channel.name}" class="username mentions-you">${username}</abbr>`;	 // wolaja Ciebie
 		}
 		else
 		{
-			return `${textInFront}<abbr data-mention-user="${username}">@${username}</abbr>`;	// wołany jest inny użytkownik
+			return `${textInFront}<abbr class="at">@</abbr><abbr data-username="${username}" data-channel="${EntryObject.channel.name}" class="username">${username}</abbr>`;	// wołany jest inny użytkownik
 		}
 	});
 }
 
 
-export function markdownExclamationMarkToSpoiler(text: string): string
+export function markdownExclamationMarkToSPOILER(text: string, EntryObject: T.Entry): string
 {
 	/*
 	- wykrywa tekst spoilera rozpoczynający się od ! na początku
@@ -114,7 +121,7 @@ export function markdownExclamationMarkToSpoiler(text: string): string
 	return text.replace(/^\s*!(.*)$/gm, '<span class="content-spoiler">$1</span>');
 }
 
-export function markdownGtToBlockquote(text: string): string
+export function markdownGtToBLOCKQUOTE(text: string, EntryObject: T.Entry): string
 {
 	/*
 	- wykrywa tekst cytatu rozpoczynający się od > lub wielokrotnosci np.:  >>> cytat
@@ -127,7 +134,7 @@ export function markdownGtToBlockquote(text: string): string
 
 
 
-export function markdownTagsToLink(text: string, currentChannelName: string): string
+export function markdownTagsToANCHOR(text: string, EntryObject: T.Entry): string
 {
 	/*
 		- wykrywa tekst #heheszki i zamienia go w link do nowego kanału czata
@@ -136,18 +143,18 @@ export function markdownTagsToLink(text: string, currentChannelName: string): st
 
 	return text.replace(/(\B)#([a-zA-Z0-9]+)/g, function (wholeMatch, textInFront, tag)
 	{
-		if (tag === currentChannelName)
+		if (tag === EntryObject.channel.name)
 		{
-			return `${textInFront}<a class="href_channel currentChannel" href="/chat/${tag}">#${tag}</a>`;	 // wolaja Ciebie
+			return `${textInFront}<a class="href_channel currentChannel" href="/chat/${tag}" tabindex="-1">#${tag}</a>`;	 // wolaja Ciebie
 		}
 		else
 		{
-			return `${textInFront}<a class="href_channel" href="/chat/${tag}" target="_blank" title='Otwórz kanał "#${tag}" w nowym oknie MikroCzata'>#${tag}</a>`;	// wołany jest inny użytkownik
+			return `${textInFront}<a class="href_channel" href="/chat/${tag}" target="_blank" tabindex="-1" title='Otwórz kanał "#${tag}" w nowym oknie MikroCzata'>#${tag}</a>`;	// wołany jest inny użytkownik
 		}
 	});
 }
 
-export function parseURLToLink(text: string): string
+export function parseURLToANCHOR(text: string, EntryObject: T.Entry): string
 {
 	/*
 		- wykrywa każdy url także bez http albo www np.: google.com
@@ -164,7 +171,7 @@ export function parseURLToLink(text: string): string
 	{
 		if (!parts[i].startsWith('<a'))
 		{
-			parts[i] = parts[i].replace(/((http(s*):\/\/)*[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/g, '<a class="href_external" href="$1" target="mikroczat_opened">$1</a>');
+			parts[i] = parts[i].replace(/((http(s*):\/\/)*[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))/g, '<a class="href_external" href="$1" target="mikroczat_opened">$1</a>');
 		}
 	}
 
@@ -174,7 +181,7 @@ export function parseURLToLink(text: string): string
 
 
 
-export function markdownToLink(text: string): string
+export function markdownToANCHOR(text: string, EntryObject: T.Entry): string
 {
 	/*
 		- zamienia [Opis odnośnika][http://wp.pl] na odnośnik a href
@@ -206,17 +213,21 @@ export function markdownToLink(text: string): string
 }
 
 
-export function show(el: Element | Element[] | string)
+export function show(element: Element | Element[] | string)
 {
-	returnElementsArray(el).forEach((el) =>
+	if (dev) console.log(`show() | el: `, element);
+
+	returnElementsArray(element).forEach((el: Element) =>
 	{
 		el.classList.add("show");
 		el.classList.remove("hidden");
 	});
 }
-export function hide(el: Element | Element[] | string)
+export function hide(element: Element | Element[] | string)
 {
-	returnElementsArray(el).forEach((el) =>
+	if (dev) console.log(`hide() | el: `, element);
+
+	returnElementsArray(element).forEach((el: Element) =>
 	{
 		el.classList.remove("show");
 		el.classList.add("hidden");
@@ -239,6 +250,13 @@ export function innerHTML(el: Element | Element[] | string, html: string)
 	returnElementsArray(el).forEach((el) =>
 	{
 		el.innerHTML = html;
+	});
+}
+export function innerText(el: Element | Element[] | string, text: string)
+{
+	returnElementsArray(el).forEach((el) =>
+	{
+		el.innerText = text;
 	});
 }
 
@@ -289,6 +307,7 @@ function returnElementsArray(elementOrSelector: Element | Element[] | string)
 }
 
 
+
 // -- HELPER FUNCTIONS
 
 // DEV RUN WITH DELAY
@@ -298,4 +317,194 @@ function runWithDelay(time, f)
 	{
 		f();
 	}, time);
+}
+
+
+// PRZEŁĄCZNIKI NOWEJ WIADOMOŚCI
+// from example: -a -b --id=123123 --word --f +g +h /i example -x text -y
+// returns array and string in array: [["a", "b", "id=123123", "word", "f", "g", "h", "i"], "example -x text -y"]
+// CONST.forceNewEntryFlagsArray = ["w", "n", "W", "N"];
+export function getPrefixedFlagsArray(messageContent: string): [string[], string]
+{
+	// This regex matches words after -, --, +, or / at the beginning of the string
+	const regex = /^([\-+\/]\S*\s*)+/;
+	const match = messageContent.match(regex);
+
+	if (!match) return [[], messageContent];
+
+	// Split the matched flags and remove any empty strings
+	const flagsArray = match[0].split(/\s+/).filter(str => str !== "").map(part => part.replace(/^[-+\/]+/, ''));
+
+	// Get the remaining part of the messageContent after removing the matched flags
+	const remainingMessage = messageContent.slice(match[0].length).trim();
+
+	return [flagsArray, remainingMessage];
+}
+
+
+
+// zwraca true, jeśli w tablicy jest chociaż jeden z elementów
+// checkArrayForValues(["a", "b", "w", "s"], ["w", "g"]) => true
+export function areSomeValuesInArray(array: string[], values: string[]): boolean
+{
+	return values.some(value => array.includes(value));
+}
+
+
+
+export function getEmbedVideoIDCodeFromYouTubeURL(url: string): string | boolean
+{
+
+	const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
+	const match = url.match(regExp);
+
+	if (match && match[2].length === 11)
+	{
+		const videoID = match[2];
+		return videoID;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+
+// zwraca unikalny kolor na podstawie id 
+export function messageIDtoHexColor(id: number, lightOrDark: string = "dark", HEXorRGBorRGBA = "hex", alpha: number = 1): string
+{
+	id = id * 2654435761 % Math.pow(2, 32);	// hash by prime
+	let color: string;
+
+	let rgbRed: number = id & 255;
+	let rgbGreen: number = (id >> 8) & 255;
+	let rgbBlue: number = (id >> 16) & 255;
+	const luminance: number = 0.299 * rgbRed + 0.587 * rgbGreen + 0.114 * rgbBlue;
+	if (luminance < 128 && lightOrDark === "light")
+	{
+		rgbRed = 255 - rgbRed;
+		rgbGreen = 255 - rgbGreen;
+		rgbBlue = 255 - rgbBlue;
+	}
+	else if (luminance > 128 && lightOrDark === "dark")
+	{
+		rgbRed = Math.floor(rgbRed / 2);
+		rgbGreen = Math.floor(rgbGreen / 2);
+		rgbBlue = Math.floor(rgbBlue / 2);
+	}
+	if (HEXorRGBorRGBA.toLowerCase() == "hex")
+	{
+		const hexRed: string = rgbRed.toString(16).padStart(2, '0');
+		const hexGreen: string = rgbGreen.toString(16).padStart(2, '0');
+		const hexBlue: string = rgbBlue.toString(16).padStart(2, '0');
+		color = '#' + hexRed + hexGreen + hexBlue;
+	}
+	else if (HEXorRGBorRGBA.toLowerCase().startsWith("rgb"))
+	{
+		color = HEXorRGBorRGBA == "rgba" ? `rgba(${rgbRed} ${rgbGreen} ${rgbBlue} / ${alpha})` : `rgb(${rgbRed} ${rgbGreen} ${rgbBlue})`
+	}
+
+	return color;
+}
+
+
+
+// przełącza wartość object property from 0 to 1 and from "0" to "1" and vice versa
+export function toggle01(property: string | number | undefined): string | number
+{
+	if (property === undefined)
+	{
+		return 1;
+	}
+	else if (typeof property === 'string')
+	{
+		return property === "1" ? "0" : "1";
+	}
+	else if (typeof property === 'number')
+	{
+		return property === 1 ? 0 : 1;
+	}
+}
+
+// isValidDate("2023-01-01 23:44:44") -> true
+// isValidDate("abc") -> false
+export function isValidDate(dateString: string)
+{
+	return !isNaN(Date.parse(dateString));
+}
+
+
+
+// generateImageVariants("https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8.gif");
+/*
+returns:
+variants = {
+	src: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8.gif",
+	300: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w300.gif",
+	400: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w400.gif",
+	800: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w800.gif"
+}
+
+
+*/
+export function generateImageVariantsObject(url: string): Record<string, string>
+{
+	url = url.split('?')[0];
+	const fileExtension = url.split('.').pop(); // file extension (e.g., .gif, .png, .jpg, .webp)
+	const baseUrl = url.replace(`.${fileExtension}`, '');
+	const variants: Record<string, string> =
+	{
+		"src": url,
+		300: `${baseUrl},w300.${fileExtension}`,
+		400: `${baseUrl},w400.${fileExtension}`,
+		800: `${baseUrl},w800.${fileExtension}`,
+	};
+
+	return variants;
+}
+
+
+
+export function removeBlacklistWords(text: string, blacklist: string[]): string
+{
+	if (text)
+	{
+		if (blacklist && blacklist.length > 0)
+		{
+			blacklist.forEach((word) =>
+			{
+				text = text.split(word).join('');
+			});
+		}
+		return text;
+	}
+
+}
+
+
+
+// fn.toggleNightMode()
+// fn.toggleNightMode(1)
+// fn.toggleNightMode("1")
+// fn.toggleNightMode(true)
+// fn.toggleNightMode(0)
+// fn.toggleNightMode("0")
+// fn.toggleNightMode(false)
+export function toggleNightMode(nightModeOn: number | string | boolean = true)
+{
+	if (nightModeOn == "1" || nightModeOn == 1) nightModeOn = true;
+	else if (nightModeOn == "0" || nightModeOn == 0) nightModeOn = false;
+
+	if (nightModeOn == false || index.body.dataset.nightMode == "1")
+	{
+		index.body.dataset.nightMode = "0";
+		settings.nightMode = "0";
+	}
+	else
+	{
+		index.body.dataset.nightMode = "1";
+		settings.nightMode = "1";
+	}
+	localStorage.setItem(`nightMode`, settings.nightMode);
 }

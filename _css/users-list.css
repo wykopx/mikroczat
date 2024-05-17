@@ -1,0 +1,134 @@
+#rightPanelArea
+{
+	overflow-x: hidden;
+	overflow-y: auto;
+	/* border: 1px solid yellow; */
+	height: auto;
+	min-height: 100%;
+
+	border-radius: var(--mediumBorderRadius);
+	min-width: 200px;
+	background: var(--userListBackground);
+
+
+
+	#usersPanel,
+	#roomsPanel
+	{
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	#usersPanel
+	{
+		/* display: none; */
+	}
+
+
+	#roomsPanel
+	{
+		display: none;
+	}
+}
+
+#rightPanelArea #usersPanel .usersList .usersListContainer
+{
+	display: flex;
+	flex-direction: column;
+	background-image: linear-gradient(-90deg, rgb(19 19 19 / 0.5), rgb(13 13 13 / 0.5)), url(/_img/bckg/dark-suede.png);
+	background-attachment: local;
+	border: 1px solid rgb(0 0 0 / 0.4);
+	box-shadow: inset 0px 42px 58px -40px rgb(0 0 0 / 0.6), inset 0px -46px 58px -40px rgb(0 0 0 / 0.6);
+	background-position: left;
+	background-repeat: repeat;
+
+	& .userListItem
+	{
+		display: flex;
+		flex-direction: row;
+		padding: 10px 10px;
+		gap: 8px;
+		font-size: 0.8em;
+		font-weight: 400;
+
+		&:hover
+		{
+			/* background-color: color-mix(in srgb, var(--accentColor) 10%, var(--userListBackground)) */
+			background-color: rgb(255 255 255 / 0.05);
+		}
+
+		&.own
+		{}
+
+		&.channelOwnerLabel
+		{
+			display: none;
+		}
+
+		&.channelOwner .channelOwnerLabel
+		{
+			border: 1px solid darkgoldenrod;
+			border-radius: 0.4em;
+			padding: 0px 4px;
+			display: inline flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 0.7em;
+			color: darkgoldenrod;
+		}
+
+
+		&.channelOwner .channelOwnerLabel::after
+		{
+			content: "OP";
+			font-size: inherit;
+		}
+
+		& .statusIcon
+		{
+			display: none;
+		}
+
+		&.online .statusOnline
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&:not(.online) .statusOffline
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&.f-gender .statusFemale
+		{
+			display: inline flex;
+			scale: 0.5;
+		}
+
+		&.m-gender .statusMale
+		{
+			/* display: inline flex; */
+			scale: 0.5;
+		}
+
+
+
+		& span
+		{
+			white-space: nowrap;
+			align-self: center;
+			font-size: var(--userListFontSize);
+
+			& a.username
+			{
+				font-weight: 600;
+
+				& .username_span
+				{}
+			}
+		}
+	}
+}
