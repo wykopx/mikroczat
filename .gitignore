@@ -14,3 +14,5 @@ package.json
 .hintrc
 package.json
 package.json
+db_visits.txt
+/_visits

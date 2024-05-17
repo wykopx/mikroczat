@@ -2,10 +2,19 @@
 {
 	background-color: var(--messageBackgroundColor);
 	border: 1px solid var(--messageBorderColor);
+
+
 	border-left: 1px solid var(--_genderColor);
 	border-right-width: var(--messageBorderRightWidth);
 	border-radius: 3px;
 	padding: 10px;
+
+	&.null-gender
+	{
+		border-left: 1px solid transparent;
+	}
+
+	border-left: 1px solid var(--_genderColor);
 
 	&:hover,
 	&:focus,
@@ -44,17 +53,24 @@
 	{
 		& img.avatar_img
 		{
-			width: 18px;
-			height: auto;
 			border-radius: 50%;
 			position: relative;
-			top: 5px;
+
+			aspect-ratio: 1 / 1;
+			height: auto;
+			width: 18px;
+
+			top: 3px;
 			left: 2px;
 		}
 	}
 
 	& .messageBlock
 	{
+		display: block flow-root;
+		--_lineHeight: 20px;
+		line-height: var(--_lineHeight);
+		vertical-align: bottom;
 
 		& .entryUser
 		{
@@ -71,19 +87,43 @@
 			{
 				/* display: contents; */
 				min-width: max-content;
+				user-select: text;
 				/* ikonka banana */
+
+				line-height: var(--_lineHeight);
+				vertical-align: bottom;
 			}
 		}
 
 		& .messageContent
 		{
-			display: inline;
-			line-height: 1.6em;
+			display: inline flow;
+
+
+			/* line-height: 1.6em; */
 			font-size: var(--_fontSize);
 			text-wrap: pretty;
-
 			color: var(--messageColor);
 
+			line-height: var(--_lineHeight);
+			vertical-align: bottom;
+
+			*
+			{
+				padding-right: 2px;
+				padding-left: 1px;
+				font-size: var(--_fontSize);
+				user-select: text;
+
+				line-height: var(--_lineHeight);
+				vertical-align: bottom;
+
+				/* anty Zalgo text */
+				display: inline flow-root;
+				overflow: hidden;
+
+
+			}
 
 			/* multiple <br> lines */
 			br + br
@@ -132,9 +172,9 @@
 			& a.href_channel:not(.currentChannel)
 			{
 				color: var(--messageAHrefChannelColor);
-				background-color: var(--messageAHrefChannelBackgroundColor);
+				/* background-color: var(--messageAHrefChannelBackgroundColor); */
 				position: relative;
-				padding: 4px 10px;
+				padding: 0px 10px;
 				border-radius: var(--smallBorderRadius);
 			}
 
@@ -155,9 +195,8 @@
 			{
 				color: var(--messageAHrefExternalColor);
 				background-color: var(--messageAHrefExternalBackgroundColor);
-				position: relative;
-				text-decoration: underline;
-				padding: 4px 10px;
+				position: static;
+				padding: 0px 10px;
 				border-radius: var(--smallBorderRadius);
 			}
 
@@ -168,7 +207,9 @@
 
 			& a.href_external:hover
 			{
-				text-decoration: none;
+				text-decoration: underline;
+				background-color: var(--messageAHrefExternalHoverBackgroundColor);
+				/* text-decoration: none; */
 			}
 
 			& a.href_external:hover::before
@@ -191,18 +232,26 @@
 
 			& abbr
 			{
-				/* <abbr data-mention-user="NadiaFrance">@NadiaFrance</abbr> */
+				/* <abbr data-username="NadiaFrance" class="username">@NadiaFrance</abbr> */
 				display: inline flex;
-				width: max-width;
+				width: max-content;
 				color: var(--messageAbbrColor);
 				font-weight: bolder;
 			}
 
+			& abbr.at
+			{
+				padding-right: unset;
+			}
 
+			& abbr.username
+			{
+				padding-left: unset;
+			}
 
 			& abbr.mentions-you
 			{
-				/* <abbr data-mention-user="NadiaFrance" class="mention-you">@NadiaFrance</abbr> */
+				/* <abbr data-username="NadiaFrance" class="username mention-you">@NadiaFrance</abbr> */
 				--messageAbbrColor: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
 				color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
 

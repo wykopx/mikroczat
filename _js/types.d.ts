@@ -44,6 +44,7 @@ export declare class Tag {
 type LoadingStatus = "before" | "preloaded" | "loaded";
 export declare class Channel {
     loadingStatus?: LoadingStatus;
+    discussionViewEntryId?: number;
     pagination: {
         next: string;
         prev: string;
@@ -52,12 +53,15 @@ export declare class Channel {
     name: string;
     entries: Map<number, Entry>;
     comments: Map<number, Comment>;
+    unreadMessagesCount: number;
+    unreadMentionsCount: number;
     users: Map<string, User>;
     elements: {
         channelFeed: HTMLElement;
         messagesContainer: HTMLElement;
         usersListContainer: HTMLElement;
         newMessageTextarea: HTMLElement;
+        newMessageTextareaContainer: HTMLElement;
     };
     constructor(tag: Tag);
     printChannelDetails(): void;
@@ -72,15 +76,13 @@ export interface NewMessageBodyData {
     resource?: Resource;
     entry_id?: number;
 }
-export type Resource = "entry" | "entry_comment";
-export declare class Entry {
-    last_checked_comments_datetime: string;
-    last_checked_comments_count?: number;
+export interface MessageTemplate {
+    resource?: Resource;
     id?: number;
-    entry_id: number;
-    resource: Resource;
+    entry_id?: number;
+    parent?: Entry | MessageTemplate;
     channel?: Channel;
-    author: User;
+    author?: User;
     media?: Media;
     photo?: string;
     embed?: string;
@@ -101,7 +103,38 @@ export declare class Entry {
     status?: string;
     tags?: [string];
     voted?: number;
-    constructor(entryObject: Entry | NewMessageBodyData, channel?: Channel);
+}
+export type Resource = "entry" | "entry_comment";
+export declare class Entry {
+    last_checked_comments_datetime?: string;
+    last_checked_comments_count?: number;
+    id?: number;
+    entry_id?: number;
+    resource: Resource;
+    channel?: Channel;
+    author?: User;
+    media?: Media;
+    photo?: string;
+    embed?: string;
+    survey?: string;
+    votes?: Votes;
+    comments?: Comments;
+    actions?: EntryActions;
+    deleted?: boolean;
+    adult?: boolean;
+    archive?: boolean;
+    content?: string;
+    created_at?: string;
+    deletable?: boolean;
+    device?: string;
+    editable?: boolean;
+    favourite?: boolean;
+    slug?: string;
+    status?: string;
+    tags?: [string];
+    voted?: number;
+    constructor(entryObject: Entry | NewMessageBodyData | MessageTemplate, channel?: Channel);
+    isMentioningUser(username?: string): boolean;
     content_parsed(): string;
     get created_at_Date(): Date;
     get created_at_Timestamp(): number;
@@ -118,10 +151,10 @@ export declare class Entry {
 }
 export declare class Comment extends Entry {
     parent?: Entry;
-    constructor(commentObject: Comment, channel?: Channel);
+    constructor(commentObject: Comment | MessageTemplate, channel?: Channel);
 }
 export type Comments = {
-    items: Comments[];
+    items: Comment[];
     count: number;
 };
 export type Votes = {
@@ -265,5 +298,9 @@ export type TagActions = {
     update: boolean;
     blacklist: boolean;
 };
+export declare class HTTPError extends Error {
+    status: number;
+    constructor(message: string, status: number);
+}
 export {};
 //# sourceMappingURL=types.d.ts.map

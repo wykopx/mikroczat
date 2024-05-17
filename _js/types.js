@@ -1,5 +1,6 @@
 import * as CONST from './const.js';
-import { settings, tokensObject, checkAndInsertNewCommentsInEntry, updateCSSPropertyOnMessageArticleElement } from './index.js';
+import { user, dev, tokensObject, checkAndInsertNewCommentsInEntry, updateCSSPropertyOnMessageArticleElement } from './index.js';
+import { settings } from './settings.js';
 import { setDefaultOptions } from "../../node_modules/date-fns/setDefaultOptions.mjs";
 import { pl } from "../../node_modules/date-fns/locale.mjs";
 setDefaultOptions({ locale: pl });
@@ -80,7 +81,8 @@ export class Tag {
                 this.media ??= data.data.media;
             if (data.data.actions)
                 this.actions ??= data.data.actions;
-            console.log("Tag constructor().init() -> data from API for tag", this);
+            if (dev)
+                console.log("Tag constructor().init() -> data from API for tag", this);
         }
         catch (error) {
             console.error('Error:', error);
@@ -89,11 +91,14 @@ export class Tag {
 }
 export class Channel {
     loadingStatus;
+    discussionViewEntryId;
     pagination;
     tag;
     name;
     entries;
     comments;
+    unreadMessagesCount;
+    unreadMentionsCount;
     users;
     elements;
     constructor(tag) {
@@ -102,13 +107,16 @@ export class Channel {
         this.name = tag.name;
         this.entries = new Map();
         this.comments = new Map();
+        this.unreadMessagesCount = 0;
+        this.unreadMentionsCount = 0;
         this.users = new Map();
         this.elements =
             {
                 channelFeed: null,
                 messagesContainer: null,
                 usersListContainer: null,
-                newMessageTextarea: null
+                newMessageTextarea: null,
+                newMessageTextareaContainer: null
             };
         this.pagination = {
             next: null,
@@ -117,10 +125,10 @@ export class Channel {
         this.printChannelDetails();
     }
     printChannelDetails() {
-        console.log(`Channel name: ${this.name}`);
+        if (dev)
+            console.log(`Channel name: ${this.name}`);
     }
     addEntryOrCommentToChannelObject(ChannelObject, EntryObject) {
-        console.log(`T.Channel.addEntryOrCommentToChannelObject(EntryObject)`, EntryObject);
         function createProxyHandler(ChannelObject, EntryObject) {
             return {
                 get: function (target, prop) {
@@ -134,20 +142,25 @@ export class Channel {
                 set: function (originalProperty, changedPropertyName, newValue) {
                     if (originalProperty[changedPropertyName] !== newValue) {
                         if (EntryObject.resource === "entry" && changedPropertyName === 'count') {
-                            console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${newValue}`);
-                            console.log("EntryObject", EntryObject);
-                            console.log("ChannelObject", ChannelObject);
+                            if (dev)
+                                console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA komentarzy WE WPISIE: ${newValue}`);
+                            if (dev)
+                                console.log("EntryObject", EntryObject);
+                            if (dev)
+                                console.log("ChannelObject", ChannelObject);
                             originalProperty[changedPropertyName] = newValue;
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
                             checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject);
                         }
                         if (changedPropertyName === 'up') {
-                            console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${newValue}`);
+                            if (dev)
+                                console.log(`🎃 PROXY - ZMIENIŁA SIĘ LICZBA PLUSÓW WE WPISIE/KOMENTARZU: ${newValue}`);
                             originalProperty[changedPropertyName] = newValue;
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
                         }
                         if (changedPropertyName === 'voted') {
-                            console.log(`🎃 PROXY - UŻYTKOWNIK DAŁ PLUSA: ${newValue}`);
+                            if (dev)
+                                console.log(`🎃 PROXY - UŻYTKOWNIK DAŁ PLUSA: ${newValue}`);
                             originalProperty[changedPropertyName] = newValue;
                             updateCSSPropertyOnMessageArticleElement(EntryObject, changedPropertyName, originalProperty);
                         }
@@ -162,13 +175,14 @@ export class Channel {
         }
         if (EntryObject.resource === "entry") {
             this.entries.set(EntryObject.id, EntryObject);
-            if (settings.channelStatistics)
-                document.getElementById(`${ChannelObject.name}_entriesCount`).innerText = String(ChannelObject.entries.size);
+            if (settings.css.main.channelStats != "disabled")
+                fn.innerText(`.${ChannelObject.name}_entriesCount`, String(ChannelObject.entries.size));
         }
-        if (settings.channelStatistics) {
-            document.getElementById(`${ChannelObject.name}_messagesCount`).innerText = String(ChannelObject.entries.size + ChannelObject.comments.size);
-            document.getElementById(`${ChannelObject.name}_plusesCount`).innerText = String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0));
-            document.getElementById(`${ChannelObject.name}_timespan`).innerText = String(Array.from(ChannelObject.entries.values()).reduce((oldest, entry) => new Date(entry.created_at) < new Date(oldest) ? entry.created_at : oldest, new Date()));
+        if (settings.css.main.channelStats != "disabled") {
+            fn.innerText(`.${ChannelObject.name}_messagesCount`, String(ChannelObject.entries.size + ChannelObject.comments.size));
+            fn.innerText(`.${ChannelObject.name}_plusesCount`, String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0)));
+            fn.innerText(`.${ChannelObject.name}_timespan`, String(Array.from(ChannelObject.entries.values())
+                .reduce((oldest, entry) => new Date(entry.created_at) < new Date(oldest) ? entry.created_at : oldest, new Date())));
         }
     }
 }
@@ -202,9 +216,9 @@ export class Entry {
     voted;
     constructor(entryObject, channel) {
         if ('id' in entryObject) {
+            this.resource = entryObject.resource;
             this.id = entryObject.id;
             this.entry_id = entryObject.id;
-            this.resource = entryObject.resource;
             this.channel = channel;
             this.author = new User(entryObject.author);
             this.media = entryObject.media;
@@ -225,17 +239,22 @@ export class Entry {
             this.status = entryObject.status;
             this.tags = entryObject.tags;
             this.voted = entryObject.voted;
-            console.log("Entry constructor() EntryObject: ", this);
+            this.last_checked_comments_datetime = "";
+            this.last_checked_comments_count = 0;
         }
         else {
             this.resource = entryObject.resource;
             this.content = entryObject.content;
             this.adult = entryObject.adult;
+            this.entry_id = entryObject.entry_id;
             this.photo = entryObject.photo;
             this.embed = entryObject.embed;
             this.survey = entryObject.survey;
-            this.entry_id = entryObject.entry_id;
         }
+    }
+    isMentioningUser(username = user.username) {
+        const regex = new RegExp(`@${username}`, 'g');
+        return regex.test(this.content);
     }
     content_parsed() {
         let content_parsed = this.content;
@@ -249,24 +268,25 @@ export class Entry {
         splitters.push("Wpis został dodany za pomocą");
         splitters.push("[Regulamin](https://barylkakrwi.org/regulamin)");
         splitters.push("! #januszowybot <- obserwuj/czarnolistuj");
+        splitters.push("\n[Więcej info](https://wykop.pl/wpis/71002147)");
         for (let splitter of splitters) {
             const parts = content_parsed?.split(splitter);
             if (parts && parts.length > 1) {
                 content_parsed = parts[0];
             }
         }
-        content_parsed = fn.replaceAngleBrackets(content_parsed);
-        content_parsed = fn.markdownBacktickToCode(content_parsed);
-        content_parsed = fn.markdownUnderscoreToItalics(content_parsed);
-        content_parsed = fn.markdownAsteriskToStrong(content_parsed);
-        content_parsed = fn.markdownToLink(content_parsed);
-        content_parsed = fn.parseURLToLink(content_parsed);
-        content_parsed = fn.markdownUsernameToAbbr(content_parsed);
-        content_parsed = fn.markdownGtToBlockquote(content_parsed);
-        content_parsed = fn.markdownExclamationMarkToSpoiler(content_parsed);
-        content_parsed = fn.markdownNewLineToBr(content_parsed);
-        content_parsed = fn.markdownTagsToLink(content_parsed, this.channel.name);
-        content_parsed = fn.markdownTextToSpan(content_parsed);
+        content_parsed = fn.replaceAngleBrackets(content_parsed, this);
+        content_parsed = fn.markdownBacktickToCODE(content_parsed, this);
+        content_parsed = fn.markdownUnderscoreToITALICS(content_parsed, this);
+        content_parsed = fn.markdownAsteriskToSTRONG(content_parsed, this);
+        content_parsed = fn.markdownToANCHOR(content_parsed, this);
+        content_parsed = fn.parseURLToANCHOR(content_parsed, this);
+        content_parsed = fn.markdownUsernameToABBR(content_parsed, this);
+        content_parsed = fn.markdownGtToBLOCKQUOTE(content_parsed, this);
+        content_parsed = fn.markdownExclamationMarkToSPOILER(content_parsed, this);
+        content_parsed = fn.markdownNewLineToBR(content_parsed, this);
+        content_parsed = fn.markdownTagsToANCHOR(content_parsed, this);
+        content_parsed = fn.markdownTextToSPAN(content_parsed, this);
         return content_parsed;
     }
     get created_at_Date() {
@@ -376,10 +396,6 @@ export class User {
         let numerical = 0;
         let usernameFirst5 = this.username.substring(0, 5).toLowerCase().padEnd(5, 'a').replaceAll("_", "z").replaceAll("-", "z");
         numerical = usernameFirst5.charCodeAt(0) * 10000 + usernameFirst5.charCodeAt(1) * 1000 + usernameFirst5.charCodeAt(2) * 100 + usernameFirst5.charCodeAt(3) * 10 + usernameFirst5.charCodeAt(4);
-        console.log(`user.numericalOrder()`);
-        console.log(`username`, this.username);
-        console.log(`usernameFirst5`, usernameFirst5);
-        console.log(`numerical`, numerical);
         return numerical;
     }
 }
@@ -387,5 +403,12 @@ function isUserColor(obj) {
     return 'name' in obj && typeof obj.name === 'string' &&
         (!obj.hex || typeof obj.hex === 'string') &&
         (!obj.hex_dark || typeof obj.hex_dark === 'string');
+}
+export class HTTPError extends Error {
+    status;
+    constructor(message, status) {
+        super(message);
+        this.status = status;
+    }
 }
 //# sourceMappingURL=types.js.map

@@ -2,73 +2,19 @@
 import * as api from './wykop_api.js';
 import * as CONST from './const.js';
 import * as T from './types.js';
+import { settings, setSettings } from './settings.js';
 import * as fn from './fn.js';
+export let dev = false;
+if ($folder == "chat")
+    dev = true;
+const lennyArray = ["ᘳಠ ͟ʖಠᘰ", "¯\\_(ツ)_/¯"];
 const openedChannels = new Map();
 const activeChannels = [null, null];
-export let settings = {
-    highlightQuick: false,
-    highlightLock: true,
-    newMessageSendButton: true,
-    rightClickOnUsernameCopiesToClipboard: true,
-    rightClickOnUsernameInsertsToNewMessage: true,
-    rightClickOnUsernameShowContextMenu: false,
-    promoFooter: {
-        emoji: true,
-        label: true,
-        roomInfo: false,
-        mikroczatLinks: false
-    },
-    editorSendHotkey: {
-        "enter": false,
-        "ctrl_enter": true,
-        "ctrl_s": true
-    },
-    channelStatistics: false,
-    fetch: {
-        numbersOfEntriesToLoadOnChannelOpen: 4,
-        numbersOfEntriesToLoadInChannel: 50,
-        numbersOfCommentsToLoad: 50
-    },
-    usersList: {
-        showOfflineUsers: true,
-        sortAlphabetically: true,
-    },
-    sounds: {
-        incoming_entry: {
-            enabled: false,
-            file: "gg-message-received.mp3",
-        },
-        incoming_comment: {
-            enabled: false,
-            file: "iphone-message-received.mp3"
-        },
-        incoming_mention: {
-            enabled: false,
-            file: "gg-message-received.mp3"
-        },
-        outgoing_entry: {
-            enabled: true,
-            file: "iphone-message-sent.mp3"
-        },
-        outgoing_comment: {
-            enabled: true,
-            file: "iphone-message-sent.mp3"
-        },
-        logged_in: {
-            enabled: true,
-            file: "tiktok.mp3"
-        },
-        logged_out: {
-            enabled: true,
-            file: "mirkoczat.mp3"
-        }
-    },
-    css: {
-        chatArea: {
-            plusButtonShow: true,
-        }
-    }
-};
+let fetchOnHold = 0;
+if (dev) {
+    settings.css.main.channelStats = "show";
+    settings.rightClickOnUsernameCopiesToClipboard = true;
+}
 const sounds = {
     logged_in: new Audio(`/_sounds/${settings.sounds.logged_in.file}`),
     logged_out: new Audio(`/_sounds/${settings.sounds.logged_out.file}`),
@@ -95,6 +41,7 @@ const template_userListItem = document.getElementById("template_userListItem");
 const chatArea = document.getElementById("chatArea");
 const mikrochatFeeds = document.getElementById("mikrochatFeeds");
 const usersPanel = document.getElementById("usersPanel");
+const youtubeIframe = document.getElementById("youtubeIframe");
 export let user = new T.User("Anonim");
 export let tokensObject = api.getTokenFromDatabase();
 if ((tokensObject.token || tokensObject.refresh_token) && !mikroczatLoggedIn)
@@ -112,23 +59,37 @@ if (showLoginDialogButton)
         loginDialog.showModal();
     });
 if (closeLoginDialogButton)
-    closeLoginDialogButton.addEventListener("click", () => {
-        if (processLoginData(loginInput.value))
-            logIn();
-        loginDialog.close();
+    closeLoginDialogButton.addEventListener("click", async () => {
+        if (processLoginData(loginInput.value)) {
+            if (await logIn() != false) {
+                loginDialog.close();
+            }
+        }
     });
 if (loginInput) {
     loginInput.addEventListener("paste", (event) => {
-        console.log(event);
-        processLoginData(event.target.value);
+        if (dev)
+            console.log(event);
+        if (dev)
+            console.log("event: paste | event.target.value:", event.target.value);
+        if (processLoginData(event.target.value))
+            logIn();
     });
     loginInput.addEventListener("change", (event) => {
-        console.log(event);
-        processLoginData(event.target.value);
+        if (dev)
+            console.log(event);
+        if (dev)
+            console.log("event: paste | event.target.value:", event.target.value);
+        if (processLoginData(event.target.value))
+            logIn();
     });
     loginInput.addEventListener("input", (event) => {
-        console.log(event);
-        processLoginData(event.target.value);
+        if (dev)
+            console.log(event);
+        if (dev)
+            console.log("event: paste | event.target.value:", event.target.value);
+        if (processLoginData(event.target.value))
+            logIn();
     });
 }
 function processLoginData(pastedData) {
@@ -144,7 +105,7 @@ function processLoginData(pastedData) {
     let tokensObject = api.saveToken({ tokenValue: pastedData });
     if (tokensObject !== false) {
         fn.hide(loginAlertError);
-        if ('refreshToken' in tokensObject) {
+        if ('refresh_token' in tokensObject) {
             fn.show(loginAlertRefreshTokenSuccess);
             return true;
         }
@@ -161,15 +122,22 @@ function processLoginData(pastedData) {
     }
 }
 async function logIn() {
-    console.log(`logIn()`);
+    if (dev)
+        console.log(`🔑 logIn()`);
     if (tokensObject.refresh_token) {
         let newTokensObject = await api.fetchAPIrefreshTokens();
-        if (newTokensObject !== false) {
+        if (dev)
+            console.log(`🔑 logIn() | newTokensObject: `, newTokensObject);
+        if (newTokensObject !== false && newTokensObject.token) {
             if (typeof newTokensObject === 'object' && 'token' in newTokensObject) {
                 tokensObject.token = newTokensObject.token;
             }
         }
     }
+    if (dev)
+        console.log(`🔑 logIn() | tokensObject.token: `, tokensObject.token);
+    if (dev)
+        console.log(`🔑 logIn() | mikroczatLoggedIn: `, mikroczatLoggedIn);
     if (!tokensObject.token)
         tokensObject = api.getTokenFromDatabase();
     if (!mikroczatLoggedIn)
@@ -182,10 +150,12 @@ async function logIn() {
         },
     })
         .then(async (response) => {
-        console.log("logIn() > response from", response);
+        if (dev)
+            console.log("logIn() > response from", response);
         if (!response.ok) {
             mikroczatLoggedIn = false;
-            console.log(`Problem z logowaniem: ${response.status}`);
+            if (dev)
+                console.log(`Problem z logowaniem: ${response.status}`);
             await api.fetchAPIrefreshTokens();
             return false;
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -193,10 +163,13 @@ async function logIn() {
         return response.json();
     })
         .then((responseJSON) => {
-        console.log("🟢🟢🟢 responseJSON - api/v3/profile/short");
-        console.log(responseJSON);
+        if (dev)
+            console.log("🟢🟢🟢 responseJSON - api/v3/profile/short");
+        if (dev)
+            console.log(responseJSON);
         user = responseJSON.data;
-        console.log(`user: ${user.username}`, user);
+        if (dev)
+            console.log(`user: ${user.username}`, user);
         window.localStorage.setItem("username", user.username);
         confirmLoggedIn();
         return true;
@@ -213,16 +186,20 @@ async function logIn() {
     });
 }
 async function confirmLoggedIn() {
-    console.log(`confirmLoggedIn()`);
-    console.log("user:", user);
+    if (dev)
+        console.log(`confirmLoggedIn()`);
+    if (dev)
+        console.log("user:", user);
     mikroczatLoggedIn = true;
     fn.innerHTML(".loggedInUsername", user.username);
     loginDialog.close();
-    sounds.logged_in.play();
-    document.getElementById("showLoginDialog").classList.add("hidden");
-    document.getElementById("logOutButton").classList.remove("hidden");
+    if (settings.sounds.logged_in && navigator?.userActivation?.hasBeenActive)
+        sounds.logged_in.play();
+    fn.hide("#showLoginDialog");
+    fn.show("#logOutButton");
     document.querySelectorAll("a.loggedInHref").forEach((el) => {
         el.href = 'https://go.wykopx.pl/@${user.username}';
+        el.href = 'https://wykop.pl/ludzie/${user.username}';
         el.classList.add(`${user.status}`, `${user.color}-profile`, `${user.gender}-gender`);
     });
     if (window.opener)
@@ -235,32 +212,29 @@ async function confirmLoggedIn() {
         }
     }
     if (openedChannels.size > 0) {
-        console.log("💜openedChannels: ", openedChannels);
+        if (dev)
+            console.log("💜openedChannels: ", openedChannels);
         for (let [, ChannelObject] of openedChannels) {
-            await openNewChannel(ChannelObject).then(() => {
-                window.activateChannel(ChannelObject);
-            });
-            console.log('⌛ Promise delay: 4 sekundy');
+            openNewChannel(ChannelObject);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            window.activateChannel(ChannelObject);
             await new Promise(resolve => setTimeout(resolve, 4000));
         }
     }
 }
 async function addUserToChannel(ChannelObject, ...userObjectUsernameStringOrUsersArray) {
-    console.log(`addUserToChannel | Channel: ${ChannelObject.name} | user: ${user.username}`, user);
     userObjectUsernameStringOrUsersArray.forEach(async (userObject) => {
         if (typeof userObject === 'string' && !ChannelObject.users.has(userObject)) {
-            console.log(`👤  Adding user ${userObject} to channel ${ChannelObject.name}`);
         }
         if (userObject instanceof T.User && !ChannelObject.users.has(userObject.username)) {
             ChannelObject.users.set(userObject.username, userObject);
-            if (settings.channelStatistics) {
-                document.getElementById(`${ChannelObject.name}_usersCount`).innerText = String(ChannelObject.users.size);
+            if (settings.css.main.channelStats != "disabled") {
+                fn.innerText(`.${ChannelObject.name}_usersCount`, String(ChannelObject.users.size));
             }
             if (userObject.online || settings.usersList.showOfflineUsers) {
-                console.log(`👤 Adding user ${userObject.username} to channel ${ChannelObject.name}`);
                 ChannelObject.elements.usersListContainer.append(await getUserHTMLElement(userObject, ChannelObject));
-                if (settings.channelStatistics) {
-                    document.getElementById(`${ChannelObject.name}_usersOnlineCount`).innerText = String(getNumberOfOnlineUsersOnChannel(ChannelObject));
+                if (settings.css.main.channelStats != "disabled") {
+                    fn.innerText(`.${ChannelObject.name}_usersOnlineCount`, String(getNumberOfOnlineUsersOnChannel(ChannelObject)));
                 }
             }
         }
@@ -270,34 +244,50 @@ function getNumberOfOnlineUsersOnChannel(ChannelObject) {
     return Array.from(ChannelObject.users.values()).filter(user => user.online).length;
 }
 async function openNewChannel(ChannelObject) {
+    if (dev)
+        console.log(`xopenNewChannel: `, ChannelObject.name);
     await ChannelObject.tag.initFromAPI().then(() => {
         openedChannels.set(ChannelObject.name, ChannelObject);
     });
-    console.log(`openNewChannel: `, ChannelObject.name);
     const templateChannelFeed = template_channelFeed.content.cloneNode(true);
     const channelFeedDiv = templateChannelFeed.querySelector('.channelFeed');
+    const newMessageTextareaContainer = templateChannelFeed.querySelector('.newMessageTextareaContainer');
     const newMessageTextarea = templateChannelFeed.querySelector('.newMessageTextarea');
     const newMessageSendButton = templateChannelFeed.querySelector('.newMessageSendButton');
-    const channelStatistics = templateChannelFeed.querySelector('.channelStatistics');
+    const channelStats = templateChannelFeed.querySelector('.channelStats');
     if (channelFeedDiv) {
         channelFeedDiv.dataset.channel = ChannelObject.name;
+        newMessageTextareaContainer.dataset.channel = ChannelObject.name;
+        channelFeedDiv.style.setProperty('--channel', `"${ChannelObject.name}"`);
         channelFeedDiv.id = `channel_${ChannelObject.name}`;
-        newMessageTextarea.dataset.channel = ChannelObject.name;
-        newMessageSendButton.dataset.channel = ChannelObject.name;
-        if (settings.newMessageSendButton == false)
-            newMessageSendButton.classList.add("hidden");
-        if (channelStatistics) {
-            channelStatistics.dataset.channel = ChannelObject.name;
-            channelStatistics.querySelector("#channel_usersCount").id = `${ChannelObject.name}_usersCount`;
-            channelStatistics.querySelector("#channel_usersOnlineCount").id = `${ChannelObject.name}_usersOnlineCount`;
-            channelStatistics.querySelector("#channel_entriesCount").id = `${ChannelObject.name}_entriesCount`;
-            channelStatistics.querySelector("#channel_messagesCount").id = `${ChannelObject.name}_messagesCount`;
-            channelStatistics.querySelector("#channel_plusesCount").id = `${ChannelObject.name}_plusesCount`;
-            channelStatistics.querySelector("#channel_timespan").id = `${ChannelObject.name}_timespan`;
-            if (settings.channelStatistics == false)
-                channelStatistics.classList.add("hidden");
+        if (newMessageSendButton) {
+            newMessageSendButton.dataset.channel = ChannelObject.name;
+            if (settings.newMessageSendButton == false)
+                newMessageSendButton.classList.add("hidden");
+        }
+        if (channelStats) {
+            channelStats.dataset.channel = ChannelObject.name;
+            channelStats.querySelector(".channel_usersCount")?.classList.add(`${ChannelObject.name}_usersCount`);
+            channelStats.querySelector(".channel_usersOnlineCount")?.classList.add(`${ChannelObject.name}_usersOnlineCount`);
+            channelStats.querySelector(".channel_entriesCount")?.classList.add(`${ChannelObject.name}_entriesCount`);
+            channelStats.querySelector(".channel_messagesCount")?.classList.add(`${ChannelObject.name}_messagesCount`);
+            channelStats.querySelector(".channel_plusesCount")?.classList.add(`${ChannelObject.name}_plusesCount`);
+            channelStats.querySelector(".channel_timespan")?.classList.add(`${ChannelObject.name}_timespan`);
         }
         mikrochatFeeds.appendChild(templateChannelFeed);
+    }
+    ChannelObject.elements.channelFeed = document.getElementById(`channel_${ChannelObject.name}`);
+    if (ChannelObject.elements.channelFeed) {
+        ChannelObject.elements.channelFeed.querySelector(".newMessageTextarea").addEventListener('blur', function () {
+            fetchOnHold = 0;
+        });
+        ChannelObject.elements.messagesContainer = ChannelObject.elements.channelFeed.querySelector(".messagesContainer");
+        ChannelObject.elements.newMessageTextareaContainer = ChannelObject.elements.channelFeed.querySelector(".newMessageTextareaContainer");
+        ChannelObject.elements.newMessageTextarea = ChannelObject.elements.channelFeed.querySelector(".newMessageTextarea");
+        openedChannels.get(ChannelObject.name).elements.newMessageTextareaContainer = ChannelObject.elements.channelFeed.querySelector(".newMessageTextareaContainer");
+        openedChannels.get(ChannelObject.name).elements.newMessageTextarea = ChannelObject.elements.channelFeed.querySelector(".newMessageTextarea");
+        openedChannels.get(ChannelObject.name).elements.channelFeed = ChannelObject.elements.channelFeed;
+        openedChannels.get(ChannelObject.name).elements.messagesContainer = ChannelObject.elements.channelFeed.querySelector(".messagesContainer");
     }
     const templateUsersList = template_usersList.content.cloneNode(true);
     const usersListDiv = templateUsersList.querySelector('.usersList');
@@ -305,98 +295,222 @@ async function openNewChannel(ChannelObject) {
         usersListDiv.dataset.channel = ChannelObject.name;
         usersListDiv.id = `channel_users_${ChannelObject.name}`;
     }
-    openedChannels.get(ChannelObject.name).elements.channelFeed = document.getElementById(`channel_${ChannelObject.name}`);
-    if (openedChannels.get(ChannelObject.name).elements.channelFeed) {
-        openedChannels.get(ChannelObject.name).elements.messagesContainer = openedChannels.get(ChannelObject.name).elements.channelFeed.querySelector(".messagesContainer");
-        openedChannels.get(ChannelObject.name).elements.newMessageTextarea = openedChannels.get(ChannelObject.name).elements.channelFeed.querySelector(".newMessageTextarea");
-    }
     usersPanel.appendChild(templateUsersList);
     openedChannels.get(ChannelObject.name).elements.usersListContainer = usersPanel.querySelector(".usersListContainer");
     addUserToChannel(ChannelObject, user);
-    await checkAndInsertNewEntriesInChannel(ChannelObject, settings.fetch.numbersOfEntriesToLoadOnChannelOpen).then(() => {
-        ChannelObject.elements.channelFeed.dataset.active = "true";
+    await checkAndInsertNewEntriesInChannel(ChannelObject, settings.fetch.numberOfEntries1stPreload).then(() => {
         ChannelObject.loadingStatus = "preloaded";
     });
-    console.log("ChannelObject.entries.size", ChannelObject.entries.size);
     if (ChannelObject.entries.size > 0)
         await checkAndInsertNewCommentsInChannel(ChannelObject).then(() => {
-            ChannelObject.elements.channelFeed.dataset.active = "true";
             ChannelObject.loadingStatus = "preloaded";
         });
-    mikrochatFeeds.querySelector(".loadingInfo").classList.add("hidden");
     setupScrollListener(openedChannels.get(ChannelObject.name).elements.messagesContainer);
-    await fetchOpenedChannelsDataFirstPreload(ChannelObject).then(async () => {
-        ChannelObject.elements.channelFeed.dataset.active = "true";
+    await fetchOpenedChannelsDataSecondPreload(ChannelObject).then(async () => {
         ChannelObject.loadingStatus = "preloaded";
         await (fetchOpenedChannelsData(ChannelObject));
     });
     return ChannelObject;
 }
-const FETCH_DELAY_MILLISECONDS = 300;
-async function fetchOpenedChannelsDataFirstPreload(ChannelObject) {
-    ChannelObject.elements.channelFeed.dataset.active = "true";
-    console.log(`🌍 1️⃣ fetchOpenedChannelsDataFirstPreload()`);
-    console.log(`💚 ROZPOCZYNAM PIERWSZE WCZYTYWANIE WPISÓW NA KANALE [${ChannelObject.name}]`);
+async function fetchOpenedChannelsDataSecondPreload(ChannelObject) {
+    if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+        ChannelObject.elements.channelFeed.dataset.loading = "false";
+    if (dev)
+        console.log(`🌍 fetchOpenedChannelsDataSecondPreload()`);
+    if (dev)
+        console.log(`💚 DRUGI PRELOAD FETCHING [${ChannelObject.name}]`);
     let newEntriesInsertedArray = [];
-    if (ChannelObject.entries.size <= settings.fetch.numbersOfEntriesToLoadOnChannelOpen) {
-        newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(ChannelObject, settings.fetch.numbersOfEntriesToLoadInChannel);
+    if (ChannelObject.entries.size <= settings.fetch.numberOfEntries1stPreload) {
+        if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
+        newEntriesInsertedArray = await checkAndInsertNewEntriesInChannel(ChannelObject, settings.fetch.numberOfEntries2ndPreload);
+        if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+            ChannelObject.elements.channelFeed.dataset.loading = "false";
+        ChannelObject.loadingStatus = "preloaded";
+        if (newEntriesInsertedArray.length > 0) {
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
+            newEntriesInsertedArray.sort((a, b) => b.id - a.id);
+            if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+                ChannelObject.elements.channelFeed.dataset.loading = "true";
+            for (let entryObject of newEntriesInsertedArray) {
+                if (fetchOnHold > 0) {
+                    if (dev)
+                        console.log(`⌛ Promise delay: 20 sekund fetchOnHold: ${fetchOnHold}| wczytywanie komentarzy | entryObject.id: ${entryObject.id}`);
+                    await new Promise(resolve => setTimeout(resolve, 20000));
+                }
+                if (entryObject.comments.count > 0) {
+                    await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject, 50);
+                }
+            }
+            if (ChannelObject.elements.channelFeed.dataset.loaded != "true")
+                ChannelObject.elements.channelFeed.dataset.loaded = "true";
+            if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+                ChannelObject.elements.channelFeed.dataset.loading = "false";
+        }
     }
-    if (newEntriesInsertedArray.length > 0) {
-        for (let entryObject of newEntriesInsertedArray) {
-            if (entryObject.comments.count > 0) {
-                await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject);
+    if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+        ChannelObject.elements.channelFeed.dataset.loading = "false";
+    let fetchHoursToLoad = settings.fetch.hoursToLoad;
+    if (newEntriesInsertedArray.length > 0 && newEntriesInsertedArray[newEntriesInsertedArray.length - 1].created_at_Date > new Date(new Date().getTime() - fetchHoursToLoad * 60 * 60 * 1000)) {
+        if (ChannelObject.entries.size + ChannelObject.comments.size > 700)
+            fetchHoursToLoad = 3;
+        else if (ChannelObject.entries.size + ChannelObject.comments.size > 200)
+            fetchHoursToLoad = 7;
+        else if (ChannelObject.entries.size + ChannelObject.comments.size > 100)
+            fetchHoursToLoad = 10;
+        if (dev)
+            console.log(`⌛ ---- Promise delay: za 10s sekund | ROZPOCZYNAM WCZYTYWANIE WPISÓW Z OSTATNICH 24H ----`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
+        newEntriesInsertedArray = await checkAndInsertNewEntriesToDate(ChannelObject, settings.fetch.hoursToLoad, 50);
+        ChannelObject.loadingStatus = "preloaded";
+        if (ChannelObject.elements.channelFeed.dataset.loaded != "true")
+            ChannelObject.elements.channelFeed.dataset.loaded = "true";
+        if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+            ChannelObject.elements.channelFeed.dataset.loading = "false";
+        if (newEntriesInsertedArray.length > 0) {
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
+            newEntriesInsertedArray.sort((a, b) => b.id - a.id);
+            if (dev)
+                console.log(`⌛ ---- Promise delay: za 15 sekund | ROZPOCZYNAM WCZYTYWANIE KOMENTARZY Z OSTATNICH 24H OD NAJNOWSZEGO ----`);
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            const groupEntriesNewest = 30;
+            const groupEntriesOldest = 10;
+            while (newEntriesInsertedArray.length > 0) {
+                if (fetchOnHold > 0) {
+                    if (dev)
+                        console.log(`⌛ Promise delay: 20 sekund fetchOnHold: ${fetchOnHold}| wczytywanie komentarzy`);
+                    await new Promise(resolve => setTimeout(resolve, 20000));
+                }
+                if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+                    ChannelObject.elements.channelFeed.dataset.loading = "true";
+                for (let k = 0; k < groupEntriesNewest && newEntriesInsertedArray.length > 0; k++) {
+                    let entryObject = newEntriesInsertedArray.shift();
+                    if (entryObject.comments.count > 0) {
+                        if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+                            ChannelObject.elements.channelFeed.dataset.loading = "true";
+                        if (entryObject.comments.count >= 30) {
+                            await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject, 5000);
+                            k = groupEntriesNewest;
+                        }
+                        else {
+                            await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject, 10);
+                        }
+                    }
+                }
+                if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+                    ChannelObject.elements.channelFeed.dataset.loading = "false";
+                await new Promise(resolve => setTimeout(resolve, 15000));
+                for (let k = 0; k < groupEntriesOldest && newEntriesInsertedArray.length > 0; k++) {
+                    let entryObject = newEntriesInsertedArray.pop();
+                    if (entryObject.comments.count > 0) {
+                        if (ChannelObject.elements.channelFeed.dataset.loading != "true")
+                            ChannelObject.elements.channelFeed.dataset.loading = "true";
+                        if (entryObject.comments.count >= 30) {
+                            await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject, 5000);
+                            k = groupEntriesOldest;
+                        }
+                        else {
+                            await checkAndInsertNewCommentsInEntry(ChannelObject, entryObject, 10);
+                        }
+                    }
+                }
+                if (ChannelObject.elements.channelFeed.dataset.loading != "false")
+                    ChannelObject.elements.channelFeed.dataset.loading = "false";
+                await new Promise(resolve => setTimeout(resolve, 9000));
             }
         }
     }
 }
 async function fetchOpenedChannelsData(ChannelObject) {
-    console.log(`🌍 fetchOpenedChannelsData()`);
-    console.log(`💚 ROZPOCZYNAM AKTUALIZACJĘ WPISÓW NA KANALE [${ChannelObject.name}]`);
+    if (dev)
+        console.log(`🌍 fetchOpenedChannelsData()`);
+    if (dev)
+        console.log(`💚 ROZPOCZYNAM AKTUALIZACJĘ WPISÓW NA KANALE [${ChannelObject.name}]`);
     ChannelObject.elements.channelFeed.dataset.loaded = "true";
     ChannelObject.loadingStatus = "loaded";
+    const newMessageTextarea = openedChannels.get(ChannelObject.name).elements.newMessageTextarea;
     while (true) {
-        console.log('⌛ Promise delay: 10 sekund');
-        await new Promise(resolve => setTimeout(resolve, 99000));
-        await refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject);
+        if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "false")
+            ChannelObject.elements.channelFeed.dataset.loading = "false";
+        if (dev)
+            console.log("fetchOnHold: ", fetchOnHold);
+        if (dev)
+            console.log(`⌛ Promise delay: ${settings.refreshIntervals.allEntriesAndComments / 1000} sekund`);
+        await new Promise(resolve => setTimeout(resolve, settings.refreshIntervals.allEntriesAndComments));
+        if (fetchOnHold <= 0) {
+            await refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject);
+            if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "false")
+                ChannelObject.elements.channelFeed.dataset.loading = "false";
+            if (newMessageTextarea.innerText != "")
+                fetchOnHold = 2;
+        }
+        else {
+            if (newMessageTextarea) {
+                if (newMessageTextarea.innerText == "") {
+                    fetchOnHold = 0;
+                }
+                else {
+                    fetchOnHold--;
+                }
+            }
+        }
+        if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "false")
+            ChannelObject.elements.channelFeed.dataset.loading = "false";
     }
 }
 async function refreshAllEntriesCommentsCountAndVotesUpInChannel(ChannelObject) {
-    console.log(`refreshAllEntriesCommentsCountAndVotesUpInChannel(Channel: ${ChannelObject.name})`);
-    console.log(`--- aktualizacja liczby plusów i komentarzy we wszystkich otwartych wpisach (${ChannelObject.entries.size} wpisów)`);
-    const refreshedEntriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, ChannelObject.entries.size);
-    if (refreshedEntriesArray.length > 0)
-        analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, refreshedEntriesArray);
+    if (dev)
+        console.log(`refreshAllEntriesCommentsCountAndVotesUpInChannel(Channel: ${ChannelObject.name})`);
+    if (dev)
+        console.log(`--- aktualizacja liczby plusów i komentarzy we wszystkich otwartych wpisach (${ChannelObject.entries.size} wpisów)`);
+    const refreshedEntriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, ChannelObject.entries.size, settings.refreshIntervals.timeoutForEntriesPagesOver50);
+    if (refreshedEntriesArray.length > 0) {
+        await analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, refreshedEntriesArray);
+    }
+    if (ChannelObject.elements.channelFeed)
+        ChannelObject.elements.channelFeed.dataset.loading = "false";
     return true;
 }
-function analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, messagesArray) {
+async function analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, messagesArray) {
     for (const entryObject of messagesArray) {
-        console.log(`entryObject`, entryObject);
-        console.log(`entryObject.id`, entryObject.id);
-        console.log(`ChannelObject.entries.get(entryObject.id)`, ChannelObject.entries.get(entryObject.id));
-        console.log(`ChannelObject.entries`, ChannelObject.entries);
         if (!ChannelObject.entries.has(entryObject.id)) {
+            if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "true")
+                ChannelObject.elements.channelFeed.dataset.loading = "true";
             insertNewItem(ChannelObject, entryObject);
         }
         else {
             if (entryObject.comments?.count && entryObject.comments.count != ChannelObject.entries.get(entryObject.id).comments.count) {
-                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments);
-                console.log(`💭 We wpisie ${entryObject.id} zmieniła się liczba komentarzy z [${ChannelObject.entries.get(entryObject.id).comments.count}] na [${entryObject.comments.count}]`);
-                console.log(entryObject);
-                console.log(entryObject.comments);
+                if (dev)
+                    console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.comments `, entryObject.comments);
+                if (dev)
+                    console.log(`💭 We wpisie ${entryObject.id} zmieniła się liczba komentarzy z [${ChannelObject.entries.get(entryObject.id).comments.count}] na [${entryObject.comments.count}]`);
+                if (dev)
+                    console.log(entryObject);
+                if (dev)
+                    console.log(entryObject.comments);
+                if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "true")
+                    ChannelObject.elements.channelFeed.dataset.loading = "true";
                 ChannelObject.entries.get(entryObject.id).comments.count = entryObject.comments.count;
             }
             if (entryObject.votes?.up && entryObject.votes.up != ChannelObject.entries.get(entryObject.id).votes.up) {
-                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.votes `, entryObject.votes);
-                console.log(`🔼 We wpisie ${entryObject.id} zmieniła się liczba plusów z [${ChannelObject.entries.get(entryObject.id).votes.up}] na [${entryObject.votes.up}]`);
+                if (dev)
+                    console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.votes `, entryObject.votes);
+                if (dev)
+                    console.log(`🔼 We wpisie ${entryObject.id} zmieniła się liczba plusów z [${ChannelObject.entries.get(entryObject.id).votes.up}] na [${entryObject.votes.up}]`);
                 ChannelObject.entries.get(entryObject.id).votes.up = entryObject.votes.up;
-                if (settings.channelStatistics) {
-                    document.getElementById(`${ChannelObject.name}_plusesCount`).innerText = String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0));
+                if (settings.css.main.channelStats != "disabled") {
+                    fn.innerText(`.${ChannelObject.name}_plusesCount`, String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0)));
                 }
             }
             if (entryObject.voted && entryObject.voted != ChannelObject.entries.get(entryObject.id).voted) {
-                console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.voted `, entryObject.voted);
-                console.log(`entryObject`, entryObject);
-                console.log(`➕ Użytkownik zaplusował wpis/komentarz ${entryObject.id} zmiana .voted z: [${ChannelObject.entries.get(entryObject.id).voted}] na [${entryObject.voted}]`);
+                if (dev)
+                    console.log(`updateCommentsCountAndVotesUpFromArrayOfRefreshedEntries - for entryObject.voted `, entryObject.voted);
+                if (dev)
+                    console.log(`entryObject`, entryObject);
+                if (dev)
+                    console.log(`➕ Użytkownik zaplusował wpis/komentarz ${entryObject.id} zmiana .voted z: [${ChannelObject.entries.get(entryObject.id).voted}] na [${entryObject.voted}]`);
                 ChannelObject.entries.get(entryObject.id).voted = entryObject.voted;
             }
         }
@@ -420,6 +534,13 @@ export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject, c
             }
             if (changedPropertyName === "voted") {
                 messageArticle.dataset.voted = changedObject.voted;
+                const plusButton = messageArticle.querySelector("div.buttons > button.plus");
+                if (changedObject.voted) {
+                    if (!plusButton.classList.contains("voted"))
+                        plusButton.classList.add("voted");
+                }
+                else if (plusButton.classList.contains("voted"))
+                    plusButton.classList.remove("voted");
             }
         }
         else if (entryOrCommentObject) {
@@ -429,15 +550,51 @@ export function updateCSSPropertyOnMessageArticleElement(entryOrCommentObject, c
                 messageArticle.style.setProperty('--commentsCount', `"${entryOrCommentObject.comments.count}"`);
             messageArticle.dataset.commentsCount = entryOrCommentObject.comments.count;
             messageArticle.dataset.voted = entryOrCommentObject.voted;
+            const plusButton = messageArticle.querySelector("div.buttons > button.plus");
+            if (changedObject.voted) {
+                if (!plusButton.classList.contains("voted"))
+                    plusButton.classList.add("voted");
+            }
+            else if (plusButton.classList.contains("voted"))
+                plusButton.classList.remove("voted");
         }
     }
 }
-async function checkAndInsertNewEntriesInChannel(ChannelObject, limit = settings.fetch.numbersOfEntriesToLoadInChannel) {
-    console.log(`checkAndInsertNewEntriesInChannel(Channel: ${ChannelObject.name})`);
-    const entriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, limit);
+async function checkAndInsertNewEntriesInChannel(ChannelObject, limit = settings.fetch.numberOfEntries2ndPreload) {
+    if (dev)
+        console.log(`checkAndInsertNewEntriesInChannel(Channel: ${ChannelObject.name})`);
+    const entriesArray = await api.getXNewestEntriesFromChannel(ChannelObject, limit, settings.refreshIntervals.timeoutForEntriesPagesOver50);
     const filteredEntries = entriesArray.filter(entry => !ChannelObject.entries.has(entry.id));
-    if (filteredEntries.length > 0)
+    if (filteredEntries.length > 0) {
+        if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "true")
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
         insertNewItemsFromArray(ChannelObject, filteredEntries);
+    }
+    return filteredEntries;
+}
+async function checkAndInsertNewEntriesToDate(ChannelObject, fetchToDate, delay, FETCH_DELAY_MILLISECONDS = 200) {
+    if (dev)
+        console.log(`checkAndInsertNewEntriesToDate(Channel: ${ChannelObject.name}) | fetchToDate: ${fetchToDate}`);
+    if (!(fetchToDate instanceof Date)) {
+        if (typeof fetchToDate === "number") {
+            fetchToDate = new Date(new Date().getTime() - fetchToDate * 60 * 60 * 1000);
+        }
+        else if (typeof fetchToDate === "string" && fn.isValidDate(fetchToDate)) {
+            fetchToDate = new Date(fetchToDate);
+        }
+    }
+    if (!(fetchToDate instanceof Date)) {
+        return false;
+    }
+    if (dev)
+        console.log(`fetchToDate: ${fetchToDate}`);
+    const entriesArray = await api.getNewestEntriesFromChannelUpToSpecifiedDate(ChannelObject, fetchToDate, 50, FETCH_DELAY_MILLISECONDS);
+    const filteredEntries = entriesArray.filter(entry => !ChannelObject.entries.has(entry.id));
+    if (filteredEntries.length > 0) {
+        if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "true")
+            ChannelObject.elements.channelFeed.dataset.loading = "true";
+        insertNewItemsFromArray(ChannelObject, filteredEntries);
+    }
     return filteredEntries;
 }
 function insertNewItemsFromArray(ChannelObject, messagesObjectsArray) {
@@ -447,33 +604,40 @@ function insertNewItemsFromArray(ChannelObject, messagesObjectsArray) {
 }
 function insertNewItem(ChannelObject, messageObject) {
     if (messageObject.id) {
-        console.log(`insertNewItem() Channel: ${ChannelObject.name}, entry: ${messageObject.id}`, messageObject);
         addUserToChannel(ChannelObject, messageObject.author);
         insertNewMessage(ChannelObject, messageObject);
     }
 }
 async function checkAndInsertNewCommentsInChannel(ChannelObject) {
-    console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: ${ChannelObject.name})`, ChannelObject);
+    if (dev)
+        console.log(`checkAndInsertNewCommentsInChannel(ChannelObject: ${ChannelObject.name})`, ChannelObject);
     for (const [entry_id, entryObject] of ChannelObject.entries) {
         if (entryObject?.comments?.count > 0 && entryObject.comments.count > entryObject.last_checked_comments_count) {
-            const commentsArray = await api.getAllCommentsFromEntry(entryObject, 400);
+            const commentsArray = await api.getAllCommentsFromEntry(entryObject, settings.refreshIntervals.timeoutForCommentsOver50);
             const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
             if (filteredComments.length > 0)
                 insertNewItemsFromArray(ChannelObject, filteredComments);
         }
     }
 }
-export async function checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject) {
-    console.log(`checkAndInsertNewCommentsInEntry(ChannelObject: ${ChannelObject.name} | EntryObject: ${EntryObject.id})`, EntryObject);
+export async function checkAndInsertNewCommentsInEntry(ChannelObject, EntryObject, FETCH_DELAY_MILLISECONDS = settings.refreshIntervals.timeoutForCommentsOver50) {
+    if (dev)
+        console.log(`checkAndInsertNewCommentsInEntry(ChannelObject: ${ChannelObject.name} | EntryObject: ${EntryObject.id})`, EntryObject);
     if (EntryObject.comments.count > 0) {
-        const commentsArray = await api.getAllCommentsFromEntry(EntryObject, 400);
-        const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
-        console.log(`commentsArray for entry ${EntryObject.id}, `, commentsArray);
-        console.log(`filteredComments for entry ${EntryObject.id}, `, filteredComments);
-        if (filteredComments.length > 0) {
-            for (const commentObject of filteredComments) {
-                addUserToChannel(ChannelObject, commentObject.author);
-                insertNewMessage(ChannelObject, commentObject);
+        const commentsArray = await api.getAllCommentsFromEntry(EntryObject, FETCH_DELAY_MILLISECONDS);
+        if (commentsArray && commentsArray.length > 0) {
+            const filteredComments = commentsArray.filter(comment => !ChannelObject.comments.has(comment.id));
+            if (dev)
+                console.log(`commentsArray for entry ${EntryObject.id}, `, commentsArray);
+            if (dev)
+                console.log(`filteredComments for entry ${EntryObject.id}, `, filteredComments);
+            if (filteredComments.length > 0) {
+                if (ChannelObject.elements.channelFeed && ChannelObject.elements.channelFeed.dataset.loading != "true")
+                    ChannelObject.elements.channelFeed.dataset.loading = "true";
+                for (const commentObject of filteredComments) {
+                    addUserToChannel(ChannelObject, commentObject.author);
+                    insertNewMessage(ChannelObject, commentObject);
+                }
             }
         }
     }
@@ -481,8 +645,6 @@ export async function checkAndInsertNewCommentsInEntry(ChannelObject, EntryObjec
 async function setCheckingForNewMessagesInChannel(ChannelObject, msInterval = 36000) {
 }
 async function insertNewMessage(ChannelObject, entryObject) {
-    console.log(`🧡insertNewMessage(ChannelObject: ${ChannelObject.name}, entryObject: ${entryObject.id})`);
-    console.log(`🧡entryObject:`, entryObject);
     const currentChannel = openedChannels.get(ChannelObject.name);
     if (entryObject.resource === "entry" && currentChannel.entries.has(entryObject.id))
         return false;
@@ -511,20 +673,57 @@ async function insertNewMessage(ChannelObject, entryObject) {
         }
     }
     if (document.visibilityState != "visible" && ChannelObject.loadingStatus == "loaded") {
-        window.top.document.title = `*${ChannelObject.name} ${CONST.tabTitleTemplate}`;
+        ChannelObject.unreadMessagesCount++;
+        if (entryObject.isMentioningUser(user.username))
+            ChannelObject.unreadMentionsCount++;
+        if (settings.tabTitle.unreadMessagesBadge.enabled, settings.tabTitle.unreadMentionsBadge.enabled) {
+            window.top.document.title = getTabTitle(ChannelObject);
+        }
     }
+    if (document.visibilityState == "visible") {
+    }
+}
+function getTabTitle(ChannelObject) {
+    let tabTitle = "";
+    if (settings.tabTitle.unreadMentionsBadge.enabled && ChannelObject.unreadMentionsCount > 0) {
+        if (settings.tabTitle.unreadMentionsBadge.showIcon) {
+            tabTitle += `${settings.tabTitle.unreadMentionsBadge.icon} `;
+        }
+        if (settings.tabTitle.unreadMentionsBadge.showCount) {
+            tabTitle += `(`;
+            tabTitle += ChannelObject.unreadMentionsCount;
+            if (settings.tabTitle.unreadMessagesBadge.enabled && settings.tabTitle.unreadMessagesBadge.showCount) {
+                tabTitle += `/${ChannelObject.unreadMessagesCount}`;
+            }
+            tabTitle += `) `;
+        }
+        else if (settings.tabTitle.unreadMessagesBadge.showCount) {
+            tabTitle += `(${ChannelObject.unreadMessagesCount}) `;
+        }
+    }
+    else if (settings.tabTitle.unreadMessagesBadge.enabled && ChannelObject.unreadMessagesCount > 0) {
+        if (settings.tabTitle.unreadMessagesBadge.showIcon) {
+            tabTitle += `${settings.tabTitle.unreadMessagesBadge.icon} `;
+        }
+        if (settings.tabTitle.unreadMessagesBadge.showCount) {
+            tabTitle += `(${ChannelObject.unreadMessagesCount}) `;
+        }
+    }
+    tabTitle += `${ChannelObject.name} ${CONST.tabTitleTemplate}`;
+    return tabTitle;
 }
 document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
         if (activeChannels[0] && activeChannels[0].loadingStatus == "loaded") {
-            window.top.document.title = `${activeChannels[0].name} ${CONST.tabTitleTemplate}`;
+            activeChannels[0].unreadMessagesCount = 0;
+            activeChannels[0].unreadMentionsCount = 0;
+            window.top.document.title = getTabTitle(activeChannels[0]);
         }
     }
     else if (document.visibilityState === 'hidden') {
     }
 });
 async function getMessageHTMLElement(entryObject) {
-    console.log(`getMessageHTMLElement(entryObject), `, entryObject);
     const templateNode = template_messageArticle.content.cloneNode(true);
     const messageArticle = templateNode.querySelector('.messageArticle');
     const permalinkHref = templateNode.querySelector('.permalinkHref');
@@ -544,11 +743,14 @@ async function getMessageHTMLElement(entryObject) {
     messageArticle.dataset.id = String(entryObject.id);
     messageArticle.dataset.entryId = String(entryObject.entry_id);
     messageArticle.dataset.authorUsername = entryObject.author?.username;
+    messageArticle.dataset.channel = entryObject.channel.name;
     messageArticle.style.order = `-${entryObject.created_at_Timestamp}`;
     if (entryObject.author?.username === user.username)
-        messageArticle.classList.add("own");
+        messageArticle?.classList.add("own");
     if (entryObject.author?.username === entryObject.channel?.tag?.author?.username)
-        messageArticle.classList.add("channelOwner");
+        messageArticle?.classList.add("channelOwner");
+    if (entryObject.isMentioningUser(user.username))
+        messageArticle?.classList.add("isMentioningYou");
     entryDate.title = `${entryObject.created_at_Format("eeee BBBB")} | ${entryObject.created_at_FormatDistanceSuffix} \n${entryObject.created_at_Format("yyyy-MM-dd 'o godz.' HH:mm ")}`;
     entryDateYYYMMDD.textContent = entryObject.created_at_Format("yyyy-MM-dd");
     entryDateHHMM.textContent = entryObject.created_at_Format("HH:mm");
@@ -557,12 +759,14 @@ async function getMessageHTMLElement(entryObject) {
     messageArticle.dataset.votesUp = `${entryObject.votes.up}`;
     messageArticle.dataset.voted = `${entryObject.voted}`;
     if (entryObject.resource === "entry") {
+        messageArticle.dataset.resource = "entry";
         messageArticle.classList.add(`entry`);
         permalinkHref.setAttribute("href", `https://go.wykopx.pl/w${entryObject.entry_id}`);
         messageArticle.dataset.commentsCount = `${entryObject.comments.count}`;
         messageArticle.style.setProperty('--commentsCount', `"${entryObject.comments.count}"`);
     }
     else if (entryObject.resource === "entry_comment") {
+        messageArticle.dataset.resource = "entry_comment";
         messageArticle.classList.add(`comment`, `reply`);
         permalinkHref.setAttribute("href", `https://go.wykopx.pl/w${entryObject.entry_id}k${entryObject.id}`);
     }
@@ -571,6 +775,7 @@ async function getMessageHTMLElement(entryObject) {
         userAvatarImg.setAttribute("src", entryObject.author.avatar);
     }
     usernameAHref.setAttribute("href", `https://go.wykopx.pl/@${entryObject.author.username}`);
+    usernameAHref.setAttribute("href", `https://wykop.pl/ludzie/${entryObject.author.username}`);
     usernameAHref.dataset.username = entryObject.author.username;
     usernameAHref.dataset.channel = entryObject.channel.name;
     messageArticle.classList.add(entryObject.author?.status);
@@ -597,24 +802,35 @@ async function getMessageHTMLElement(entryObject) {
         entryImageHref.href = entryObject.media.photo.url;
     }
     if (entryObject.media?.embed?.url && entryObject.media?.embed?.type) {
-        if (entryObject.media?.embed?.type === "youtube")
+        if (entryObject.media?.embed?.type === "youtube") {
             entryMediaEmbedYouTube.href = entryObject.media.embed.url;
-        else if (entryObject.media?.embed?.type === "streamable")
+            let embedVideoId = fn.getEmbedVideoIDCodeFromYouTubeURL(entryObject.media.embed.url);
+            if (embedVideoId && typeof embedVideoId === "string")
+                messageArticle.dataset.youtube = embedVideoId;
+        }
+        else if (entryObject.media?.embed?.type === "streamable") {
             entryMediaEmbedStreamable.href = entryObject.media.embed.url;
-        else if (entryObject.media?.embed?.type === "twitter")
+        }
+        else if (entryObject.media?.embed?.type === "twitter") {
             entryMediaEmbedTwitter.href = entryObject.media.embed.url;
+        }
     }
     if (entryObject.deleted) {
         messageArticle.dataset.deleted = `1`;
         messageContent.innerHTML = "(wiadomość usunięta)";
     }
     else {
+        if (entryObject.content.includes("](https://mikroczat.pl/czat/") || entryObject.content.includes(`${CONST.HANGUL_MIKROCZAT}\n---\n`)) {
+            messageArticle.dataset.device = "Mikroczat";
+        }
+        else if (messageArticle.dataset.device != "") {
+            messageArticle.dataset.device = entryObject.device;
+        }
         messageContent.innerHTML = entryObject.content_parsed();
     }
     return templateNode;
 }
 async function getUserHTMLElement(userObject, channelObject) {
-    console.log(`getUserHTMLElement(userObject), `, userObject);
     const templateNode = template_userListItem.content.cloneNode(true);
     const userListItem = templateNode.querySelector('.userListItem');
     const userAvatarImg = templateNode.querySelector('.avatar_img');
@@ -710,9 +926,12 @@ if (window.opener) {
     window.opener.postMessage('MikroCzatOpened', 'https://wykop.pl');
 }
 window.addEventListener('message', function (event) {
-    console.log("event received", event);
-    console.log("event.origin", event.origin);
-    console.log("event.data", event.data);
+    if (dev)
+        console.log("event received", event);
+    if (dev)
+        console.log("event.origin", event.origin);
+    if (dev)
+        console.log("event.data", event.data);
     if (event.origin !== wykopDomain || !event?.data?.type)
         return;
     switch (event.data.type) {
@@ -740,27 +959,33 @@ window.addEventListener('message', function (event) {
         default:
             return false;
     }
-    console.log(`received '${event.data.type}'  from wykop.pl: `, event.data.value);
-    console.log("window.opener", window.opener);
+    if (dev)
+        console.log(`received '${event.data.type}'  from wykop.pl: `, event.data.value);
+    if (dev)
+        console.log("window.opener", window.opener);
     if (!mikroczatLoggedIn)
         logIn();
 }, false);
+window.addEventListener("offline", (e) => {
+});
+window.addEventListener("online", (e) => {
+});
 window.logout = function () {
     tokensObject = null;
     window.sessionStorage.setItem("mikroczatLoggedOut", "true");
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("userKeep");
-    sounds.logged_out.play();
+    if (settings.sounds.logged_out && navigator?.userActivation?.hasBeenActive)
+        sounds.logged_out.play();
     alert("Wylogowano z MikroCzata");
+    window.close();
     window.location.reload();
 };
 window.youtubeswitch = function () {
-    if (main.dataset.youtubePlayer == "tr")
-        main.dataset.youtubePlayer = "cl";
-    else if (main.dataset.youtubePlayer == "hidden")
-        main.dataset.youtubePlayer = "tr";
-    else
-        main.dataset.youtubePlayer = "hidden";
+    const array = ["tr", "trsmall", "cl", "cc", "horizontalcenter", "horizontalbottom", "hidden"];
+    const currentIndex = array.indexOf(main.dataset.youtubePlayer);
+    const nextIndex = (currentIndex + 1) % array.length;
+    main.dataset.youtubePlayer = array[nextIndex];
 };
 window.spotifyswitch = function () {
     if (main.dataset.spotifyPlayer == "tc" && main.dataset.youtubePlayer != "tr")
@@ -771,7 +996,6 @@ window.spotifyswitch = function () {
         main.dataset.spotifyPlayer = "hidden";
 };
 window.activateChannel = async function (ChannelObject) {
-    alert("activateChannel");
     if (typeof ChannelObject === "string") {
         if (openedChannels.has(ChannelObject))
             ChannelObject = openedChannels.get(ChannelObject);
@@ -779,18 +1003,15 @@ window.activateChannel = async function (ChannelObject) {
             ChannelObject = new T.Channel(new T.Tag(ChannelObject));
         }
     }
-    let newActiveChannelElement = body.querySelector(`.channelFeed[data-channel="channel_${ChannelObject.name}"]`);
+    let newActiveChannelElement = mikrochatFeeds.querySelector(`.channelFeed[data-channel="${ChannelObject.name}"]`);
     if (!newActiveChannelElement) {
         ChannelObject = await openNewChannel(ChannelObject);
         newActiveChannelElement = ChannelObject.elements.channelFeed;
     }
     if (newActiveChannelElement) {
-        activeChannels[0] = ChannelObject;
-        alert(activeChannels[0].name);
-        window.top.document.title = `#${ChannelObject.name} ${CONST.tabTitleTemplate}`;
-        const previousActiveChannel = body.querySelector(`.channelFeed[data-active="true"]`);
-        if (previousActiveChannel && previousActiveChannel.dataset.channel === ChannelObject.name)
-            return;
+        activeChannels[0] = openedChannels.get(ChannelObject.name);
+        window.top.document.title = `${ChannelObject.name} ${CONST.tabTitleTemplate}`;
+        const previousActiveChannel = mikrochatFeeds.querySelector(`.channelFeed[data-active="true"]`);
         if (previousActiveChannel)
             previousActiveChannel.dataset.active = "false";
         newActiveChannelElement.dataset.active = "true";
@@ -802,9 +1023,11 @@ window.activateChannel = async function (ChannelObject) {
             centerHeader.style.backgroundImage = `unset`;
         }
     }
-    history.pushState(null, null, `/chat/${ChannelObject.name}`);
-    console.log("openedChannels", openedChannels);
-    console.log("activeChannels", activeChannels);
+    history.pushState(null, null, `/${$folder}/${ChannelObject.name}`);
+    if (dev)
+        console.log("openedChannels", openedChannels);
+    if (dev)
+        console.log("activeChannels", activeChannels);
 };
 window.onload = function () {
     toggleNightMode(nightMode);
@@ -824,14 +1047,41 @@ function toggleNightMode(nightModeOn = true) {
     }
     localStorage.setItem(`nightMode`, nightMode);
 }
+(function hotChannelsFn() {
+    if (hotChannels && hotChannels.length > 0 && chooseChannelDialog) {
+        hotChannels.forEach(hotChanelName => {
+            chooseChannelDialog.querySelector(`#${hotChanelName}`)?.classList.add("hotChannel");
+        });
+    }
+})();
 document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) => {
-    if (chooseChannelDialog)
+    if (!dev)
+        console.clear();
+    console.log("Witaj Mireczku lub Mirabelko, życzę miłego mirkowania na mikro𝗰𝘇𝗮𝗰𝗶𝗲 ❤ ");
+    console.log("( ͡° ͜ʖ ͡°) ");
+    const mobileInfo = document.querySelector("#mobileInfo");
+    if (mobileInfo) {
+        if (screen.width < 768) {
+            mobileInfo.showModal();
+            return true;
+        }
+        else {
+            mobileInfo.remove();
+        }
+    }
+    if (!mikroczatLoggedIn)
+        loginDialog.showModal();
+    document.querySelector("#showChannelDialogButton").addEventListener("click", function (e) {
         chooseChannelDialog.showModal();
+    });
+    document.querySelector("#closeChannelDialogButton").addEventListener("click", function (e) {
+        chooseChannelDialog.close();
+    });
     document.body.addEventListener(`mouseover`, function (e) {
         if (settings.highlightQuick) {
             let target = e.target;
             let messageArticle = target.closest(`.messageArticle[data-entry-id]`);
-            if (messageArticle && !messageArticle.classList.contains(`highlightLock`) && !messageArticle.classList.contains(`highlightQuick`)) {
+            if (messageArticle && !messageArticle.classList.contains(`discussionView`) && !messageArticle.classList.contains(`highlightQuick`)) {
                 if (messageArticle.classList.contains(`comment`)) {
                     messageArticle.classList.add(`highlightQuick`);
                     highlight(`.messageArticle.entry[data-id="${messageArticle.dataset.entryId}"]`, `highlightQuick`);
@@ -845,57 +1095,110 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) => {
             }
         }
     });
-    document.body.addEventListener("mousedown", function (e) {
-        if ((settings.rightClickOnUsernameCopiesToClipboard || settings.rightClickOnUsernameInsertsToNewMessage) && (e.shiftKey || e.ctrlKey || e.altKey || e.button === 2)) {
-            e.preventDefault();
+    document.body.addEventListener('contextmenu', function (e) {
+        if (!settings.rightClickOnUsernameShowContextMenu) {
             let target = e.target;
-            let usernameAHref = target.closest(`a.username`);
-            e.preventDefault();
+            let usernameAHref = target.closest(`.username`);
             if (usernameAHref && usernameAHref.dataset.username) {
                 e.preventDefault();
+            }
+        }
+    });
+    document.body.addEventListener("mousedown", async (e) => {
+        if ((settings.rightClickOnUsernameCopiesToClipboard
+            || settings.rightClickOnUsernameInsertsToNewMessage
+            || settings.rightClickOnUsernameSetsReplyEntry)
+            && (e.shiftKey || e.ctrlKey || e.altKey || e.button === 2)) {
+            if (settings.rightClickOnUsernameInsertsToNewMessage || settings.rightClickOnUsernameSetsReplyEntry)
+                e.preventDefault();
+            const target = e.target;
+            const usernameAHref = target.closest(`.username`);
+            if (usernameAHref && usernameAHref.dataset.username) {
                 const username = `@${usernameAHref.dataset.username}`;
                 if (settings.rightClickOnUsernameCopiesToClipboard) {
-                    navigator.clipboard.writeText(username)
-                        .then(() => {
-                    })
-                        .catch(err => {
-                        console.error('Failed to copy username: ', err);
+                    navigator.permissions.query({ name: 'clipboard-read' }).then(permissionStatus => {
+                        if (permissionStatus.state == 'granted' || permissionStatus.state == 'prompt') {
+                            navigator.clipboard.readText().then((clipboardText) => {
+                                let newClipboardText = username;
+                                if (clipboardText.startsWith('@')) {
+                                    if (!clipboardText.includes(username))
+                                        newClipboardText = clipboardText + ', ' + username;
+                                }
+                                navigator.permissions.query({ name: 'clipboard-write' }).then(permissionStatus => {
+                                    if (permissionStatus.state == 'granted' || permissionStatus.state == 'prompt') {
+                                        navigator.clipboard.writeText(newClipboardText)
+                                            .then(() => {
+                                        })
+                                            .catch(err => {
+                                            console.error('Failed to copy username: ', err);
+                                        });
+                                    }
+                                    else {
+                                        console.error('Clipboard write permission denied');
+                                    }
+                                });
+                            }).catch(() => {
+                                console.error('Clipboard read permission denied');
+                            });
+                        }
+                        else {
+                            console.error('Clipboard read permission denied');
+                        }
                     });
                 }
-                if (settings.rightClickOnUsernameInsertsToNewMessage) {
-                    const newMessageTextarea = openedChannels.get(usernameAHref.dataset.channel).elements.newMessageTextarea;
-                    if (newMessageTextarea) {
-                        newMessageTextarea.innerText = newMessageTextarea.innerText.trimEnd() + " " + username + " ";
+                fetchOnHold = 2;
+                if (settings.rightClickOnUsernameInsertsToNewMessage || settings.rightClickOnUsernameSetsReplyEntry) {
+                    const ChannelObject = openedChannels.get(usernameAHref.dataset.channel);
+                    if (!ChannelObject)
+                        return;
+                    const channelFeed = ChannelObject.elements.channelFeed;
+                    if (!channelFeed)
+                        return;
+                    const newMessageTextareaContainer = ChannelObject.elements.newMessageTextareaContainer;
+                    const newMessageTextarea = ChannelObject.elements.newMessageTextarea;
+                    if (!newMessageTextarea || !newMessageTextareaContainer)
+                        return false;
+                    const messageArticle = usernameAHref.closest(".messageArticle");
+                    if (!messageArticle)
+                        return false;
+                    const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
+                    const messageEntryId = MessageObject.entry_id;
+                    if (settings.rightClickOnUsernameInsertsToNewMessage) {
+                        let pasteText = "";
+                        if (newMessageTextarea.innerText != "") {
+                            if (newMessageTextarea.innerText.includes(username))
+                                return false;
+                            pasteText = "<span> </span>";
+                        }
+                        pasteText += `<span class="entryUser" contenteditable="false"><abbr class="${usernameAHref.getAttribute('class')}" data-channel="nocnazmiana" data-username="${usernameAHref.dataset.username}"><span class="username_span">@${usernameAHref.dataset.username}</span></abbr></span><span> </span>`;
+                        pasteText = newMessageTextarea.innerHTML.trimEnd() + pasteText;
+                        newMessageTextarea.innerHTML = pasteText;
+                    }
+                    var range = document.createRange();
+                    var sel = window.getSelection();
+                    var lastChild = newMessageTextarea.lastChild;
+                    var textNode = lastChild.firstChild;
+                    range.setStart(textNode, 1);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    if (settings.rightClickOnUsernameSetsReplyEntry && !newMessageTextareaContainer.dataset.entryId) {
+                        setReplyEntryID(ChannelObject, MessageObject);
                     }
                 }
             }
         }
     });
-    document.body.addEventListener('dblclick', function (e) {
-        if (settings.highlightLock) {
-            let target = e.target;
-            let messageArticle = target.closest(".messageArticle[data-entry-id]");
-            if (messageArticle) {
-                if (messageArticle.classList.contains("highlightLock")) {
-                    fn.removeClass(`.messageArticle.highlightedItem`, "highlightedItem");
-                    unhighlight(`.messageArticle[data-entry-id="${messageArticle.dataset.entryId}"]`, "highlightLock");
-                }
-                else {
-                    messageArticle.classList.add("highlightedItem");
-                    highlight(`.messageArticle[data-entry-id="${messageArticle.dataset.entryId}"]`, "highlightLock");
-                }
-            }
-        }
-    });
     document.body.addEventListener("click", async function (e) {
-        const target = e.target;
+        let target = e.target;
         if (target.tagName === 'BUTTON' && target.classList.contains('loadOlderMessagesButton')) {
             const channelName = target.closest(".channelFeed").dataset.channel;
             const ChannelObject = openedChannels.get(channelName);
             const loadOlderMessagesButton = target.closest("button.loadOlderMessagesButton");
-            console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" obecnie na kanale jest: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
+            if (dev)
+                console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" obecnie na kanale jest: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
             if (loadOlderMessagesButton) {
-                let olderEntriesArray = await api.getXNewestEntriesFromChannelFromPageHash(ChannelObject, ChannelObject.pagination.next, settings.fetch.numbersOfEntriesToLoadInChannel);
+                let olderEntriesArray = await api.getXNewestEntriesFromChannelFromPageHash(ChannelObject, ChannelObject.pagination.next, settings.fetch.numberOfEntries2ndPreload);
                 if (olderEntriesArray.length > 0) {
                     analyzeMessagesArrayAddNewItemsOrUpdateDataExistingMessages(ChannelObject, olderEntriesArray);
                     for (let entryObject of olderEntriesArray) {
@@ -906,42 +1209,309 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) => {
                 }
                 return true;
             }
-            console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" po załadowaniu: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
+            if (dev)
+                console.log(`Przycisk "Wczytaj starsze wiadomości na kanale" po załadowaniu: [${ChannelObject.entries.size}] wpisów i [${ChannelObject.comments.size}] komentarzy `);
         }
-        else if (settings.newMessageSendButton && target.tagName === 'BUTTON' && target.classList.contains('newMessageSendButton')) {
+        if (settings.leftClickOnYouTubeLoadsToIframe && target.tagName === "A" && target.classList.contains("entryMediaEmbedYouTube")) {
+            e.preventDefault();
+            let embedVideoId = fn.getEmbedVideoIDCodeFromYouTubeURL(target.href);
+            if (embedVideoId && typeof embedVideoId === "string") {
+                youtubeIframe.src = `https://www.youtube.com/embed/${embedVideoId}?autoplay=1&mute=0&start=0`;
+            }
+            return true;
+        }
+        if (settings.newMessageSendButton && target.tagName === 'BUTTON' && target.classList.contains('newMessageSendButton')) {
             const channelName = target.dataset.channel;
             const ChannelObject = openedChannels.get(channelName);
             const newMessageTextarea = target.previousElementSibling;
-            if (channelName && newMessageTextarea) {
+            if (ChannelObject && newMessageTextarea) {
                 e.preventDefault();
-                let newMessage = await api.postNewMessageToChannel(ChannelObject, prepareNewMessageBody(ChannelObject, { content: newMessageTextarea.innerText }));
-                if (newMessage) {
-                    console.log("newMessage response before insertNewItem ", newMessage);
-                    insertNewItem(ChannelObject, newMessage);
-                    newMessageTextarea.innerText = "";
-                    console.log("💌 newMessage", newMessage);
+                await executePostNewMessageToChannelFromTextarea(ChannelObject);
+                return true;
+            }
+        }
+        if (target.tagName === 'BUTTON' && target.classList.contains("plus")) {
+            const channelName = target.closest(".channelFeed").dataset.channel;
+            const ChannelObject = openedChannels.get(channelName);
+            const messageArticle = target.closest(".messageArticle");
+            const ratingBoxSection = target.closest("section.rating-box");
+            const messageTemplateForVoting = {
+                resource: messageArticle.dataset.resource,
+                id: parseInt(messageArticle.dataset.id),
+                entry_id: parseInt(messageArticle.dataset.entryId)
+            };
+            let objectForVoting;
+            if (messageTemplateForVoting.resource === "entry")
+                objectForVoting = new T.Entry(messageTemplateForVoting);
+            else if (messageTemplateForVoting.resource === "entry_comment") {
+                messageTemplateForVoting.parent = { id: messageTemplateForVoting.entry_id };
+                objectForVoting = new T.Comment(messageTemplateForVoting);
+            }
+            let upODdown = messageArticle.dataset.voted == "1" ? "down" : "up";
+            const votedobj = await api.voteMessage(objectForVoting, upODdown);
+            let newVotesUpCount;
+            if (upODdown == "up") {
+                newVotesUpCount = parseInt(messageArticle.dataset.votesUp) + 1;
+                target.classList.add("voted");
+            }
+            else {
+                newVotesUpCount = parseInt(messageArticle.dataset.votesUp) - 1;
+                target.classList.remove("voted");
+            }
+            messageArticle.dataset.voted = fn.toggle01(messageArticle.dataset.voted);
+            messageArticle.dataset.votesUp = String(newVotesUpCount);
+            messageArticle.style.setProperty('--votesUp', `"${newVotesUpCount}"`);
+            if (messageTemplateForVoting.resource === "entry") {
+                ChannelObject.entries.get(messageTemplateForVoting.id).votes.up = newVotesUpCount;
+            }
+            else {
+                ChannelObject.comments.get(messageTemplateForVoting.id).votes.up = newVotesUpCount;
+            }
+            fn.innerText(`.${ChannelObject.name}_plusesCount`, String([...ChannelObject.entries.values(), ...ChannelObject.comments.values()].reduce((sum, obj) => sum + obj.votes.up, 0)));
+            return true;
+        }
+        if (target.tagName === 'BUTTON' && target.classList.contains("channelStatsHideButton")) {
+            setSettings("settings.css.main.channelStats", "hide");
+            return;
+        }
+        if (target.tagName === 'BUTTON' && target.classList.contains("channelStatsShowButton")) {
+            setSettings("settings.css.main.channelStats", "show");
+            return;
+        }
+        return false;
+    });
+    document.body.addEventListener("keydown", async function (e) {
+        const target = e.target;
+        if (e.ctrlKey && e.key == 's')
+            e.preventDefault();
+    });
+    document.body.addEventListener("keyup", async function (e) {
+        const target = e.target;
+        const newMessageTextareaContainer = target.closest(".newMessageTextareaContainer");
+        const ChannelObject = openedChannels.get(newMessageTextareaContainer.dataset.channel);
+        const newMessageTextarea = ChannelObject.elements.newMessageTextarea;
+        if (newMessageTextarea) {
+            if (newMessageTextarea.innerText === "\n") {
+                newMessageTextarea.innerText = "";
+            }
+            if (!ChannelObject.discussionViewEntryId && (newMessageTextarea.innerText === "" || newMessageTextarea.innerText === " ") && newMessageTextareaContainer.dataset.entryId) {
+                removeReplyEntryID(ChannelObject);
+            }
+            else {
+                setReplyEntryID(ChannelObject);
+            }
+        }
+        if (!e.ctrlKey || (e.key != 'Enter' && e.key != 's'))
+            return false;
+        if (newMessageTextarea && newMessageTextarea.innerText.length > 1) {
+            if ((settings.editorSendHotkey.enter && e.key === 'Enter')
+                || (settings.editorSendHotkey.ctrl_enter && e.ctrlKey && e.key === 'Enter')
+                || (settings.editorSendHotkey.ctrl_s && e.ctrlKey && e.key === 's')) {
+                await executePostNewMessageToChannelFromTextarea(ChannelObject);
+                return true;
+            }
+            fetchOnHold = 2;
+        }
+    });
+    document.body.addEventListener('dblclick', function (e) {
+        if (settings.discussionView) {
+            let target = e.target;
+            let messageArticle = target.closest(".messageArticle[data-entry-id]");
+            if (messageArticle) {
+                const ChannelObject = openedChannels.get(messageArticle.dataset.channel);
+                const channelFeed = ChannelObject.elements.channelFeed;
+                const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
+                if (head.querySelector(`style[data-fn="discussionView"][data-channel="${ChannelObject.name}"]`)) {
+                    fn.removeClass(`.channelFeed[data-channel="${ChannelObject.name}"] .messageArticle[data-entry-id="${MessageObject.entry_id}"].discussionView`, "discussionView");
+                    discussionViewOFF(ChannelObject, MessageObject);
+                }
+                else {
+                    messageArticle.classList.add("discussionView");
+                    discussionViewON(ChannelObject, MessageObject);
                 }
             }
         }
     });
-    document.body.addEventListener("keydown", async function (e) {
-        const target = e.target;
-        if ((settings.editorSendHotkey.enter && e.key === 'Enter')
-            || (settings.editorSendHotkey.ctrl_enter && e.ctrlKey && e.key === 'Enter')
-            || (settings.editorSendHotkey.ctrl_s && e.ctrlKey && e.key === 's')) {
-            const newMessageTextarea = target.closest(".newMessageTextarea");
-            if (newMessageTextarea) {
-                const channelName = newMessageTextarea.dataset.channel;
-                const ChannelObject = openedChannels.get(channelName);
-                e.preventDefault();
-                let newMessage = await api.postNewMessageToChannel(ChannelObject, prepareNewMessageBody(ChannelObject, { content: newMessageTextarea.innerText }));
-                insertNewItem(ChannelObject, newMessage);
-                newMessageTextarea.innerText = "";
-                console.log("💌 newMessage", newMessage);
+});
+function discussionViewON(ChannelObject, EntryObject) {
+    const channelFeed = ChannelObject.elements.channelFeed;
+    ChannelObject.discussionViewEntryId = EntryObject.entry_id;
+    channelFeed.dataset.discussionViewEntryId = `${EntryObject.entry_id}`;
+    setReplyEntryID(ChannelObject, EntryObject);
+    channelFeed.style.setProperty('--_idClr', `${fn.messageIDtoHexColor(EntryObject.entry_id, "light", "rgba", 1)}`);
+    let css = `.channelFeed[data-channel="${ChannelObject.name}"] .messageArticle:not([data-entry-id="${EntryObject.entry_id}"]) { display: none!important; }`;
+    attachDynamicCSS({ fn: "discussionView", entryId: EntryObject.entry_id, channel: ChannelObject.name }, css);
+}
+function discussionViewOFF(ChannelObject, EntryObject) {
+    removeReplyEntryID(ChannelObject);
+    if (ChannelObject.discussionViewEntryId)
+        delete ChannelObject.discussionViewEntryId;
+    const channelFeed = ChannelObject.elements.channelFeed;
+    if (channelFeed.dataset.discussionViewEntryId)
+        delete channelFeed.dataset.discussionViewEntryId;
+    channelFeed.style.removeProperty('--_idClr');
+    detachDynamicCSS({ fn: "discussionView", channel: ChannelObject.name });
+}
+function attachDynamicCSS(options = {}, css) {
+    let dynamicCSS;
+    dynamicCSS = head.querySelector(`style[data-fn="${options.fn}"][data-channel="${options.channel}"][data-entry-id="${options.entryId}"]`);
+    if (!dynamicCSS) {
+        dynamicCSS = document.createElement('style');
+        if (options.fn)
+            dynamicCSS.dataset.fn = options.fn;
+        if (options.entryId)
+            dynamicCSS.dataset.entryId = options.entryId;
+        if (options.channel)
+            dynamicCSS.dataset.channel = options.channel;
+        dynamicCSS.appendChild(document.createTextNode(css));
+        head.appendChild(dynamicCSS);
+    }
+    else {
+        dynamicCSS.textContent = css;
+    }
+}
+function detachDynamicCSS(options = {}) {
+    let selector = "style";
+    if (options.fn)
+        selector += `[data-fn="${options.fn}"]`;
+    if (options.channel)
+        selector += `[data-channel="${options.channel}"]`;
+    if (options.entryId)
+        selector += `[data-fn="${options.entryId}"]`;
+    let dynamicCSS = head.querySelector(selector);
+    if (dynamicCSS) {
+        dynamicCSS.parentNode.removeChild(dynamicCSS);
+    }
+}
+async function setReplyEntryID(ChannelObject, messageObjectOrId) {
+    const channelFeed = ChannelObject.elements.channelFeed;
+    if (!channelFeed)
+        return;
+    const newMessageTextareaContainer = ChannelObject.elements.newMessageTextareaContainer;
+    const newMessageTextarea = ChannelObject.elements.newMessageTextarea;
+    if (!newMessageTextarea || !newMessageTextareaContainer)
+        return false;
+    if (!newMessageTextareaContainer.dataset.entryId) {
+        let replyEntryId;
+        if (ChannelObject.discussionViewEntryId) {
+            replyEntryId = ChannelObject.discussionViewEntryId;
+        }
+        if (messageObjectOrId && !replyEntryId) {
+            if (typeof messageObjectOrId === "number")
+                replyEntryId = messageObjectOrId;
+            else if (typeof messageObjectOrId === "object" && messageObjectOrId.entry_id)
+                replyEntryId = messageObjectOrId.entry_id;
+        }
+        if (!replyEntryId) {
+        }
+        if (replyEntryId) {
+            newMessageTextareaContainer.dataset.entryId = `${replyEntryId}`;
+            channelFeed.style.setProperty('--_idClr', `${fn.messageIDtoHexColor(replyEntryId, "light", "rgba", 1)}`);
+            channelFeed.dataset.replyingEntryId = `${replyEntryId}`;
+            let css = `
+			.channelFeed:not([data-discussion-view-entry-id])
+			{
+				.messageArticle[data-entry-id="${replyEntryId}"]::after 	{ content: "⦿"; color: var(--_idClr); position: absolute; bottom: -9px; left: -9px; }
+				.messageArticle[data-entry-id="${replyEntryId}"] 			{ border-left-color: var(--_idClr)!important; }
+				.messageArticle[data-entry-id="${replyEntryId}"].entry 		{ border-right-color: color-mix(in srgb, var(--_idClr), transparent 10%)!important; }
+				.messageArticle[data-entry-id="${replyEntryId}"].comment 	{ border-right-color: color-mix(in srgb, var(--_idClr), transparent 70%)!important; }
+			}`;
+            attachDynamicCSS({ fn: "replyingToEntry", entryId: replyEntryId, channel: ChannelObject.name }, css);
+            let canReplyToEntry = await checkIfYouCanPostCommentInEntry(replyEntryId);
+            if (!canReplyToEntry) {
+                channelFeed.dataset.replyingBlocked = "true";
             }
         }
-    });
-});
+    }
+    let setResource;
+    if (newMessageTextareaContainer.dataset.entryId) {
+        let splitFlagsArrayAndMessageContent = fn.getPrefixedFlagsArray(newMessageTextarea.innerText);
+        if (splitFlagsArrayAndMessageContent.length == 2) {
+            if (dev)
+                console.log("splitFlagsArrayAndMessageContent: ", splitFlagsArrayAndMessageContent);
+            if (fn.areSomeValuesInArray(splitFlagsArrayAndMessageContent[0], CONST.forceNewEntryFlagsArray)) {
+                setResource = "entry";
+            }
+            else {
+                setResource = "entry_comment";
+            }
+        }
+        else {
+            setResource = "entry_comment";
+        }
+    }
+    else {
+        setResource = "entry";
+    }
+    newMessageTextareaContainer.dataset.resource = setResource;
+}
+function removeReplyEntryID(ChannelObject, MessageObject) {
+    const newMessageTextareaContainer = ChannelObject.elements.newMessageTextareaContainer;
+    const channelFeed = ChannelObject.elements.channelFeed;
+    if (newMessageTextareaContainer.dataset.entryId)
+        delete newMessageTextareaContainer.dataset.entryId;
+    if (newMessageTextareaContainer.dataset.resource)
+        delete newMessageTextareaContainer.dataset.resource;
+    if (channelFeed.dataset.replyingBlocked)
+        delete channelFeed.dataset.replyingBlocked;
+    if (channelFeed.dataset.replyingEntryId)
+        delete channelFeed.dataset.replyingEntryId;
+    if (channelFeed.dataset.discussionViewEntryId)
+        delete channelFeed.dataset.discussionViewEntryId;
+    channelFeed.style.removeProperty('--_idClr');
+    detachDynamicCSS({ fn: "replyingToEntry", channel: ChannelObject.name });
+}
+async function executePostNewMessageToChannelFromTextarea(ChannelObject) {
+    const channelFeed = ChannelObject.elements.channelFeed;
+    const newMessageTextarea = ChannelObject.elements.newMessageTextarea;
+    const newMessageTextareaContainer = ChannelObject.elements.newMessageTextareaContainer;
+    let newMessageBody = prepareNewMessageBody(ChannelObject, { content: newMessageTextarea.innerText });
+    let newMessage = await api.postNewMessageToChannel(ChannelObject, newMessageBody);
+    if (dev)
+        console.log("newMessage response before insertNewItem ", newMessage);
+    if (newMessage) {
+        insertNewItem(ChannelObject, newMessage);
+        newMessageTextarea.innerText = "";
+        if (!ChannelObject.discussionViewEntryId) {
+            delete newMessageTextareaContainer.dataset.entryId;
+            if (channelFeed.dataset.replyingBlocked)
+                delete channelFeed.dataset.replyingBlocked;
+            if (channelFeed.dataset.discussionViewEntryId)
+                delete channelFeed.dataset.discussionViewEntryId;
+        }
+        fetchOnHold = 0;
+        if (dev)
+            console.log("💌 newMessage", newMessage);
+        return newMessage;
+    }
+    else {
+        return false;
+    }
+}
+async function checkIfYouCanPostCommentInEntry(entry_id) {
+    let newMessageBody = {
+        resource: "entry_comment",
+        entry_id: entry_id,
+        content: ""
+    };
+    try {
+        await api.postNewMessageToChannel(null, newMessageBody);
+    }
+    catch (error) {
+        let httpError = error;
+        switch (httpError.status) {
+            case 400:
+                return false;
+                break;
+            case 409:
+                return true;
+                break;
+            case 429:
+                break;
+            default:
+        }
+    }
+}
 function mouseOutAddEventListenerRemoveHighlightQuick(el) {
     el.addEventListener(`mouseout`, function (e) {
         el.classList.remove(`highlightQuick`);
@@ -971,49 +1541,79 @@ function getUsernamesArrayFromText(text, withoutAtPrefix = true) {
     return usernamesArray;
 }
 function prepareNewMessageBody(ChannelObject, messageOptions) {
-    console.log(`prepareNewMessageBody() channel: ${ChannelObject.name} | messageOptions: `, messageOptions);
+    if (dev)
+        console.log(`prepareNewMessageBody() channel: ${ChannelObject.name} | messageOptions: `, messageOptions);
+    let splitFlagsArrayAndMessageContent = fn.getPrefixedFlagsArray(messageOptions.content);
+    if (splitFlagsArrayAndMessageContent.length == 2) {
+        if (dev)
+            console.log("prefixes", splitFlagsArrayAndMessageContent);
+        if (fn.areSomeValuesInArray(splitFlagsArrayAndMessageContent[0], CONST.forceNewEntryFlagsArray)) {
+            messageOptions.resource = "entry";
+            messageOptions.content = splitFlagsArrayAndMessageContent[1];
+        }
+    }
     if (!messageOptions.resource || messageOptions.resource == "entry_comment") {
-        const usersArrayInContent = getUsernamesArrayFromText(messageOptions.content, true);
-        if (usersArrayInContent.length > 0) {
-            console.log("usersArrayInContent", usersArrayInContent);
-            const messageObjectReplyingTo = getNewestMessageOfUser(ChannelObject, usersArrayInContent[0]);
-            if (messageObjectReplyingTo) {
-                console.log("messageObjectReplyingTo", messageObjectReplyingTo);
-                messageOptions.resource = "entry_comment";
-                messageOptions.entry_id = messageObjectReplyingTo.entry_id;
-            }
-            else {
-                messageOptions.resource = "entry";
+        if (ChannelObject.elements.newMessageTextareaContainer.dataset.entryId && ChannelObject.elements.newMessageTextareaContainer.dataset.resource) {
+            messageOptions.resource = ChannelObject.elements.newMessageTextareaContainer.dataset.resource;
+            messageOptions.entry_id = parseInt(ChannelObject.elements.newMessageTextareaContainer.dataset.entryId);
+        }
+        else if (ChannelObject.discussionViewEntryId) {
+            messageOptions.resource = "entry_comment";
+            messageOptions.entry_id = ChannelObject.discussionViewEntryId;
+        }
+        else {
+            const usersArrayInContent = getUsernamesArrayFromText(messageOptions.content, true);
+            if (usersArrayInContent.length > 0) {
+                if (dev)
+                    console.log("usersArrayInContent", usersArrayInContent);
+                const messageObjectReplyingTo = getNewestMessageOfUser(ChannelObject, usersArrayInContent[0]);
+                if (messageObjectReplyingTo) {
+                    if (dev)
+                        console.log("messageObjectReplyingTo", messageObjectReplyingTo);
+                    messageOptions.resource = "entry_comment";
+                    messageOptions.entry_id = messageObjectReplyingTo.entry_id;
+                }
+                else {
+                    messageOptions.resource = "entry";
+                }
             }
         }
     }
     if (!messageOptions.resource)
         messageOptions.resource = "entry";
-    console.log("messageOptions", messageOptions);
+    if (dev)
+        console.log("messageOptions", messageOptions);
     if (messageOptions.resource == "entry" && !messageOptions.content.includes(`#${ChannelObject.name}`))
         messageOptions.content += ` #${ChannelObject.name}`;
     if (user.username === "WykopX") {
-        settings.promoFooter.roomInfo = true;
-        settings.promoFooter.mikroczatLinks = true;
+        settings.promoFooter.roomInfo = false;
+        settings.promoFooter.mikroczatLinks = false;
     }
-    messageOptions.content += `\n\n---\n`;
-    if (settings.promoFooter.roomInfo)
-        messageOptions.content += ` 🟢 ${getNumberOfOnlineUsersOnChannel(ChannelObject)} osób online na kanale [**#${ChannelObject.name}**](https://mikroczat.pl/chat/${ChannelObject.name}) \n`;
+    messageOptions.content += `\n`;
+    if (messageOptions.resource === "entry" && messageOptions.content.length < 47) {
+        messageOptions.content = messageOptions.content.padEnd(60, CONST.HANGUL_CHOSEONG_FILLER);
+    }
+    messageOptions.content += `${CONST.HANGUL_MIKROCZAT}\n---\n`;
+    if (settings.promoFooter.roomInfo) {
+        let numberOfOnlineUsersOnChannel = getNumberOfOnlineUsersOnChannel(ChannelObject);
+        const i = numberOfOnlineUsersOnChannel % 10;
+        if (i === 2 || i % 10 === 3 || i % 10 === 4)
+            numberOfOnlineUsersOnChannel += 3;
+        messageOptions.content += ` 🟢 ${numberOfOnlineUsersOnChannel} osób online na kanale [**#${ChannelObject.name}**](https://mikroczat.pl/czat/${ChannelObject.name}) \n`;
+    }
     if (settings.promoFooter.emoji || settings.promoFooter.label) {
-        messageOptions.content += ` [`;
-        if (settings.promoFooter.emoji)
-            messageOptions.content += `💭`;
+        if (settings.promoFooter.emoji && !settings.promoFooter.label)
+            messageOptions.content += `[💭](https://mikroczat.pl/czat/${ChannelObject.name})`;
+        if (!settings.promoFooter.emoji && settings.promoFooter.label)
+            messageOptions.content += `[Mikroczat](https://mikroczat.pl/czat/${ChannelObject.name})`;
         if (settings.promoFooter.emoji && settings.promoFooter.label)
-            messageOptions.content += ` `;
-        if (settings.promoFooter.label)
-            messageOptions.content += `Mikro**czat**`;
-        messageOptions.content += `](https://mikroczat.pl/czat/${ChannelObject.name})`;
+            messageOptions.content += `💭 [Mikroczat](https://mikroczat.pl/czat/${ChannelObject.name})`;
     }
     if (settings.promoFooter.mikroczatLinks) {
         messageOptions.content += ` | [📘 Instrukcja](https://github.com/wykopx/WykopX/wiki/MikroCzat) `;
-        messageOptions.content += ` | [🧷 Skrypt Mikroczat](https://greasyfork.org/en/scripts/489949-wykop-xs-mikroczat) `;
     }
-    console.log("prepareNewMessageBody() -- przygotowana tresc nowej wiadomosci: messageOptions", messageOptions);
+    if (dev)
+        console.log("prepareNewMessageBody() -- przygotowana tresc nowej wiadomosci: messageOptions", messageOptions);
     return new T.Entry(messageOptions, ChannelObject);
 }
 function highlight(highlightElementSelector, highlightClass) {

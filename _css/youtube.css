@@ -1,0 +1,367 @@
+main#main.grid
+{
+
+	aside#spotifyPlayer iframe
+	{}
+
+
+	aside#youTubePlayer
+	{
+		border-radius: 6px;
+	}
+
+	aside#youTubePlayer iframe
+	{}
+
+
+
+	#player .html5-video-controls .ytp-time-display,
+	#player .html5-video-controls .ytp-progress-bar-container
+	{
+		display: none !important;
+	}
+
+
+
+
+	/* YT po lewej / na srodku+ lista uzytkownikow na pelna wysokosc */
+	&[data-spotify-player="hidden"][data-youtube-player="cl"] #rightPanelArea,
+	&[data-spotify-player="hidden"][data-youtube-player="cc"] #rightPanelArea
+	{
+		grid-row: 1 / -1;
+	}
+
+	&[data-spotify-player="hidden"][data-youtube-player="hidden"] #rightPanelArea
+	{
+		grid-row: 1 / -1;
+	}
+
+
+
+
+
+	/* YOUTUBE PLAYER */
+	& > .gutter-column-1
+	{
+		display: none;
+	}
+
+	&[data-youtube-player="hidden"] > #youTubePlayer
+	{
+		display: none;
+	}
+
+	&[data-youtube-player^="tr"] > #youTubePlayer,
+	& > #youTubePlayer
+	{
+		grid-column: 5;
+		grid-row: 1;
+	}
+
+	&[data-youtube-player="tr"]
+	{
+		grid-template-columns: 100px 16px 1fr 16px 350px;
+		grid-template-rows: 197px 16px 1fr 16px 25px;
+	}
+
+	&[data-youtube-player="trsmall"]
+	{
+		grid-template-columns: 100px 16px 1fr 16px 199px;
+		grid-template-rows: 112px 16px 1fr 16px 25px;
+
+		#centerHeader
+		{
+			grid-column: 1 / 4;
+		}
+	}
+
+
+
+
+
+
+	/* YouTube na srodku center center */
+	&[data-youtube-player="cc"]
+	{
+		grid-template-columns: 30% 16px 1fr 16px 200px;
+
+		> #chatArea
+		{
+			grid-column: 1;
+		}
+
+		> #youTubePlayer
+		{
+			grid-column: 3;
+			grid-row: 3 / -1;
+		}
+
+
+		#mainAppFooter
+		{
+
+			grid-column: 1 / 2;
+			grid-row: 5 / -1;
+
+			.count
+			{
+				display: none;
+			}
+		}
+
+		.gutter-column-1
+		{
+			grid-row: 3;
+		}
+
+		.gutter-row-3
+		{
+			display: none
+		}
+	}
+
+	/* YOUTUBE po lewej stronie */
+	&[data-youtube-player="cl"]
+	{
+
+		grid-template-columns: 50% 16px 1fr 16px 230px;
+		/* 200px - wysokosc logo tagu */
+		grid-template-rows: 200px 16px 1fr 16px 1fr 16px 25px;
+
+
+		#centerHeader
+		{
+			grid-column: 1;
+			grid-row: 1;
+			background-size: cover;
+		}
+
+		> #youTubePlayer
+		{
+			grid-column: 1;
+			grid-row: 3 / -1;
+		}
+
+		> #chatArea
+		{
+			grid-column: 3;
+			grid-row: 1 / -3;
+		}
+
+
+		> .gutter-row-1
+		{
+			grid-column: 1 / 3;
+		}
+
+		> .gutter-row-3
+		{
+			display: none;
+		}
+	}
+
+	&[data-youtube-player="cl"][data-spotify-player="tc"] #centerHeader,
+	&[data-youtube-player="cc"][data-spotify-player="tc"] #centerHeader
+	{
+		grid-column: 1;
+	}
+
+
+	&[data-youtube-player="cc"] #centerHeader
+	{
+		grid-column: 1 / 4;
+	}
+
+	&[data-youtube-player="cl"] > .gutter-column-1,
+	&[data-youtube-player="cc"] > .gutter-column-1
+	{
+		display: block;
+	}
+
+
+
+
+
+
+	/* YouTube player horizontal center chat bottom */
+	&[data-youtube-player="horizontalcenter"]
+	{
+		grid-template-columns: 1fr 0px 1fr 16px 250px;
+		grid-template-rows: 40px 16px 1fr 16px 1fr;
+
+		.gutter-column-3
+		{
+			grid-row: 3 / -1;
+		}
+
+		#centerHeader
+		{
+			grid-column: 1 / -1;
+			/* background: none !important; */
+		}
+
+		> #youTubePlayer
+		{
+			grid-column: 1 / 4;
+			grid-row: 3;
+			border-radius: 0px;
+		}
+
+		> #chatArea
+		{
+			grid-column: 1 / 4;
+			grid-row: 5 / -1;
+		}
+
+		& > #rightPanelArea
+		{
+			grid-column: 5;
+			grid-row: 3 / -1;
+			padding-bottom: 47px;
+		}
+
+		> #mainAppFooter
+		{
+			grid-column: 5;
+			grid-row: 5 / -1;
+			justify-content: center;
+			align-self: end;
+			width: 100%;
+
+			#footerTip,
+			.count
+			{
+				display: none;
+			}
+		}
+	}
+
+	/* YouTube player horizontal bottomm chat above */
+	&[data-youtube-player="horizontalbottom"]
+	{
+		grid-template-rows: 173px 16px 1fr 16px 48px;
+
+		> #youTubePlayer
+		{
+			grid-column: 1 / 4;
+			grid-row: 5 / -1;
+			border-radius: 0px;
+		}
+
+		& > #rightPanelArea
+		{
+			grid-column: 5;
+			grid-row: 1 / -1;
+		}
+
+		#centerHeader
+		{
+			grid-column: 1 / 4;
+		}
+
+		#mainAppFooter
+		{
+			pointer-events: none;
+
+			#footerTip,
+			.count
+			{
+				display: none;
+			}
+
+			.logoContainer
+			{
+				position: absolute;
+				right: 0px;
+				bottom: 4px;
+				opacity: 0;
+				height: 38px;
+
+				transition: all 0.2s;
+				animation-name: showLogoContainer;
+				animation-duration: 0.7s;
+				animation-delay: 1.3s;
+				animation-fill-mode: both;
+				padding-left: 16px;
+				padding-right: 16px;
+				overflow-y: clip;
+				max-height: 100%;
+
+				img
+				{
+					height: 30px;
+					bottom: 3px;
+				}
+			}
+		}
+
+		&:has(> aside#youTubePlayer:hover)
+		{
+			.logoContainer
+			{
+				background-color: black;
+
+				right: 210px;
+				bottom: 0px;
+				padding-left: 50px;
+				padding-right: 50px;
+			}
+		}
+
+		> .gutter-row-1
+		{
+			grid-column: 1 / 4;
+		}
+
+		> .gutter-row-3
+		{
+			grid-column: 1 / 4;
+		}
+	}
+
+
+
+
+	/* SPOTIFY PLAYER HIDDEN */
+	&[data-spotify-player="hidden"] > #spotifyPlayer
+	{
+		display: none;
+	}
+
+	/* SPOTIFY TOP CENTER */
+	&[data-spotify-player="tc"] > #spotifyPlayer
+	{
+		grid-column: 3;
+		grid-row: 1;
+	}
+
+	&[data-spotify-player="tc"][data-youtube-player="cl"] > #spotifyPlayer,
+	&[data-spotify-player="tc"][data-youtube-player="hidden"] > #spotifyPlayer,
+	&[data-spotify-player="tc"]:not([data-youtube-player]) > #spotifyPlayer
+	{
+		grid-column: 3 / -1;
+		grid-row: 1;
+	}
+
+
+	&[data-spotify-player="tr"] > #spotifyPlayer
+	{
+		display: block;
+		grid-column: 5;
+		grid-row: 1;
+	}
+
+}
+
+@keyframes showLogoContainer
+{
+	0%
+	{
+		opacity: 0;
+	}
+
+	100%
+	{
+		opacity: 1;
+	}
+}
