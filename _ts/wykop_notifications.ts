@@ -41,12 +41,12 @@ export class NotificationsStatus
 
 	async refreshAPI()
 	{
-		if (dev) console.log(`🔔 NotificationsStatus.refreshAPI()`)
+		// if (dev) console.log(`🔔 NotificationsStatus.refreshAPI()`)
 
 		return new Promise(async (resolve, reject) =>
 		{
 			let apiURL: string = `https://wykop.pl/api/v3/notifications/status`;
-			if (dev) console.log(`🔔`, apiURL);
+			// if (dev) console.log(`🔔`, apiURL);
 
 			await fetch(apiURL,
 				{
@@ -58,10 +58,11 @@ export class NotificationsStatus
 				})
 				.then((response) =>
 				{
-					if (dev) console.log("response", response)
+					// if (dev) console.log("response", response)
+
 					if (!response.ok)
 					{
-						if (dev) console.log("HTTP error! status: ${response.status}");
+						// if (dev) console.log("HTTP error! status: ${response.status}");
 						throw new Error(`HTTP error! status: ${response.status}`);
 					}
 					return response.json();
@@ -79,7 +80,7 @@ export class NotificationsStatus
 					}
 					*/
 
-					if (dev) console.log("🔔 responseJSON.data", responseJSON.data)
+					// if (dev) console.log("a93 responseJSON.data", responseJSON.data)
 
 					let isNotificationStatusChanged = false;
 					if (responseJSON.data.tag_notification != this.tag_notification)

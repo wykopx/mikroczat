@@ -1,0 +1,243 @@
+header#topNav
+{
+	display: block flex;
+	width: 100dvw;
+	height: var(--topNavHeight);
+	z-index: 1;
+	border-bottom: 1px dotted rgb(128 128 128 / 0.2);
+}
+
+
+
+body .showChannelDialogButton
+{
+	display: block flex;
+	/* position: fixed;
+	top: 0px;
+	left: 0px; */
+	/* z-index: 1; */
+}
+
+body:not(:has(dialog[open])) .showChannelDialogButton
+{
+	display: block flex;
+}
+
+
+.svgButton,
+.imgButton
+{
+	background-color: transparent;
+	cursor: pointer;
+	border: none;
+
+	svg
+	{
+		height: 100%;
+		width: 100%;
+		fill: rgb(255 255 255 / 0.8);
+	}
+
+	&:hover
+	{
+		background-color: rgb(255 255 255 / 0.1);
+
+		svg
+		{
+			fill: rgb(255 255 255 / 0.9);
+		}
+	}
+
+
+}
+
+body #topNav
+{
+
+	.svgButton,
+	.imgButton
+	{
+		height: var(--topNavHeight);
+		padding-top: 7px;
+		padding-bottom: 7px;
+
+		&#showLoginQRCode
+		{
+			padding-top: 9px;
+			padding-bottom: 9px;
+		}
+
+
+		svg
+		{
+			height: 100%;
+			/* fill: white; */
+			/* max-height: 25px; */
+		}
+
+		&:hover svg
+		{
+			fill: white;
+		}
+	}
+
+	.imgButton
+	{
+		padding-left: 7px;
+		padding-right: 7px;
+
+		img
+		{
+			height: 69%;
+		}
+	}
+
+
+}
+
+
+
+
+
+.headerButtonsContainer .topNavButton
+{
+	--_fontSize: 12px;
+	margin: 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	font-weight: 700;
+
+	color: rgba(225 225 225 / 0.6);
+
+	&.textButton
+	{
+		border-bottom: 1px solid transparent;
+		padding: 10px 16px;
+		padding-left: 10px;
+		padding-right: 10px;
+
+
+		&:hover
+		{
+			/* border-bottom: 1px solid rgb(80 80 80); */
+			background-color: rgb(255 255 255 / 0.1);
+		}
+	}
+
+	&:hover
+	{
+		cursor: pointer;
+		color: rgba(225 225 225 / 1);
+	}
+}
+
+.headerButtonsContainer a,
+.headerButtonsContainer span,
+.headerButtonsContainer button
+{
+	display: block flex;
+	background-color: unset;
+	justify-content: center;
+	align-items: center;
+	outline: unset;
+	border: 0;
+}
+
+.headerButtonsContainer .loggedIn
+{
+	display: block flex;
+	align-items: center;
+	font-weight: 700;
+
+	#currentUserProfile
+	{
+		font-weight: 700;
+
+		section.userListItem
+		{
+			display: block flex;
+			height: var(--topNavHeight);
+			font-weight: 700;
+
+			figure.avatar
+			{
+				margin-top: 4px;
+			}
+
+			a.username
+			{
+				font-weight: 700;
+			}
+
+			.statusIcon,
+			.channelOwnerLabel
+			{
+				display: none;
+			}
+		}
+	}
+
+}
+
+
+
+
+
+
+@supports ((app-region: drag) or (-webkit-app-region: drag))
+{
+	.window-drag
+	{
+		-webkit-app-region: drag;
+		app-region: drag;
+		/* z-index: 1; */
+
+		/* width: 100dvw; */
+		/* height: env(titlebar-area-height, 0);
+			left: env(titlebar-area-x, 0);
+			top: env(titlebar-area-y, 0);
+			width: env(titlebar-area-width, 100dvw); */
+
+
+	}
+}
+
+@supports (height: env(titlebar-area-height, 0))
+{
+	:root
+	{
+		--topNavHeight: env(titlebar-area-height, var(--topNavHeightDefault));
+	}
+
+	body .headerButtonsContainer .showChannelDialogButton
+	{
+		.svgButton
+		{
+			height: calc(var(--topNavHeight) - 5px);
+		}
+	}
+
+	header#topNav
+	{
+		position: fixed;
+		top: 0;
+
+		left: env(titlebar-area-x, 0);
+
+		width: env(titlebar-area-width, 100dvw);
+
+		border-bottom: var(--draggableTitleBarBottomBorder);
+		background: var(--draggableTitleBarBackground);
+	}
+
+	main#main
+	{
+		margin-top: var(--topNavHeight);
+	}
+
+	.headerButtonsContainer.right
+	{
+		padding-right: var(--gutterWidth);
+	}
+
+}

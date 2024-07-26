@@ -1,0 +1,33 @@
+@layer generalLayer, defaultPIPLayer;
+
+@import "youtubePlayer.css" layer(generalLayer);
+
+
+@layer defaultPIPLayer
+{
+	body
+	{
+		margin: 0px;
+	}
+
+	#ytPlayer #ytIframe
+	{
+		height: 100dvh;
+	}
+
+	@media (display-mode: picture-in-picture) and (prefers-color-scheme: light)
+	{
+		body
+		{
+			background: antiquewhite;
+		}
+	}
+
+	@media (display-mode: picture-in-picture) and (prefers-color-scheme: dark)
+	{
+		body
+		{
+			background: black;
+		}
+	}
+}

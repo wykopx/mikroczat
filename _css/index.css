@@ -1,301 +1,52 @@
-@import "open-props.css";
-@import "general.css";
-@import "theme-main.css";
-@import "chat-area.css";
-@import "right-panel.css";
-@import "users-list.css";
-@import "users.css";
-@import "dialog.css";
-@import "messages.css";
-@import "youtube.css";
-@import "wykopxstyle.css";
-@import "animations.css";
+@layer index, window, youtubePlayer;
 
+@import "grid-stack.css" layer(index);
+@import "open-props.css" layer(index);
+@import "general.css?11111111" layer(index);
+@import "theme-main.css" layer(index);
+@import "chat-area.css" layer(index);
+@import "right-panel.css" layer(index);
+@import "users-list.css" layer(index);
+@import "users.css" layer(index);
+@import "dialog.css" layer(index);
+@import "messages.css" layer(index);
+@import "wykopxstyle.css" layer(index);
+@import "animations.css" layer(index);
+@import "sidebar.css" layer(index);
+@import "grid.css" layer(index);
+@import "userBanned.css" layer(index);
+@import "blockDetector.css" layer(index);
 
+@import "window.css" layer(window);
+@import "youtubePlayer.css" layer(youtubePlayer);
 
-body
+@layer index
 {
-	background: var(--mainBackground);
-	font-family: sans-serif;
-	display: flex;
-	box-sizing: border-box;
-	height: 100vh;
-	width: 100vw;
-	overflow: hidden;
-}
-
-main#main.grid
-{
-	display: grid;
-
-}
-
-
-
-
-
-main#main.grid
-{
-	grid-template-columns: 100px 16px 1fr 16px 350px;
-	grid-template-rows: 197px 16px 1fr 16px 25px;
-}
-
-main#main.grid:not(:has(#youTubePlayer > iframe#youtubeIframe[src^="http"]))
-{
-	grid-template-rows: 20px 16px 1fr 16px 25px;
-}
-
-@media screen and (min-width: 777px)
-{
-
-
-	main#main.grid
+	body
 	{
-		padding: var(--gutterWidth);
-		/* 
-			spotify-small 308px 80px 	// 16:9 308 x 173
-			spotify-large 225px 152px	// 16:9 225 x 125
-			youtube: 400px 225px
-		*/
-
-		height: 100vh;
-		width: 100vw;
-		overflow: hidden;
-
-
-		& > *
-		{
-			/* border: 1px dashed green; */
-		}
-
-		& > #leftHeader
-		{
-			grid-column: 1;
-			grid-row: 1;
-		}
-
-		& > #centerHeader
-		{
-			grid-column: 3;
-			grid-row: 1;
-		}
-
-
-
-		/* CHAT AREA */
-		& > #chatArea
-		{
-			grid-column: 1 / span 3;
-			grid-row: 3;
-		}
-
-
-		& > #rightPanelArea
-		{
-			grid-column: 5;
-			grid-row: 3 / -1;
-		}
-
-		& > #mainAppFooter
-		{
-			grid-column: 1 / 4;
-			grid-row: 5 / -1;
-		}
-
-		&[data-youtube-player="cl"] > #mainAppFooter
-		{
-			grid-column: 3 / -2;
-			grid-row: 7 / -1;
-		}
-	}
-
-
-	.gutter-column
-	{
-		display: block;
-		width: var(--gutterWidth);
-		grid-row: 1/-1;
-		cursor: col-resize;
-		/* border: 2px solid red !important; */
-	}
-
-	.gutter-column-1
-	{
-		grid-column: 2;
-		grid-row: 1 / -1;
-	}
-
-	.gutter-column-3
-	{
-		grid-column: 4;
-		grid-row: 1 / -1;
-	}
-
-	.gutter-row
-	{
-		height: var(--gutterWidth);
-		grid-column: 1/-1;
-	}
-
-	.gutter-row-1
-	{
-		grid-row: 2;
-	}
-
-	.gutter-row-3
-	{
-		grid-row: 4;
-		grid-column: 1/-2;
-	}
-}
-
-
-
-/* MOBILE */
-@media screen and (max-width: 777px)
-{
-
-	/* .gutter-column,
-	.gutter-row
-	{
-		display: none;
-	} */
-
-	main#main.grid[data-device="mobile"]
-	{
-		/* grid-template-rows: [topLine] 36px [headerEnd chatAreaStart] auto [chatAreaEnd youTubeStart] auto [youTubeEnd virtualKeyboardStart] env(keyboard-inset-height, 0px) [virtualKeyboardEnd bottomLine]; */
-		/* grid-template-rows: [topLine] 36px [headerEnd chatAreaStart] 1fr [chatAreaEnd gutterRow1Start] 16px [gutterRow1End youTubeStart] auto [youTubeEnd bottomLine]; */
-		grid-template-rows: [topLine] 36px [headerEnd youTubeStart] auto [youTubeEnd gutterRow1Start] 16px [gutterRow1End chatAreaStart] 1fr [chatAreaEnd bottomLine];
-
-		&:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus) #youTubePlayer
-		{
-			display: none !important;
-		}
-	}
-
-	/* html[data-device="desktop"] main#main.grid
-	{
-		grid-template-rows: [topLine] 36px [headerEnd youTubeStart] auto [youTubeEnd chatAreaStart] 1fr [chatAreaEnd bottomLine];
-	} */
-
-	main#main.grid
-	{
-
-
-
-
-		--gutterWidth: 5px;
-		padding: var(--gutterWidth);
-
+		background: var(--mainBackground);
+		font-family: sans-serif;
+		box-sizing: border-box;
 		height: 100dvh;
 		width: 100dvw;
-
 		overflow: hidden;
-
-		--video19per9Height: 100px;
-		grid-template-columns: 100dvh;
-
-		& > #leftHeader
-		{
-			display: none;
-		}
-
-		& > #centerHeader
-		{
-			width: 100dvw;
-			grid-column: 1;
-			grid-row: topLine / 1
-		}
-
-		& > #chatArea
-		{
-			grid-column: 1;
-			grid-row: chatAreaStart / bottomLine;
-			height: 100%;
-			width: 99vw;
-
-			resize: both;
-		}
-
-
-		&:has(#youTubePlayer > iframe#youtubeIframe[src^="http"]) > #chatArea
-		{
-			grid-row: chatAreaStart / chatAreaEnd;
-		}
-
-		#youTubePlayer
-		{
-			display: none;
-		}
-
-		& #youTubePlayer:has(iframe#youtubeIframe[src^="http"])
-		{
-			resize: both;
-			display: block flex;
-			grid-column: 1;
-			grid-row: youTubeStart / youTubeEnd;
-
-			& iframe
-			{
-				width: 100dvw;
-				height: auto;
-				min-height: auto;
-				aspect-ratio: 16 / 9;
-			}
-		}
-
-
-
-		& > #rightPanelArea
-		{
-			display: none;
-		}
-
-		& > #mainAppFooter
-		{
-			display: none;
-		}
-
-		&[id] > #spotifyPlayer
-		{
-			display: none;
-		}
-
-		grid-template-rows: [topLine] 36px [headerEnd youTubeStart] auto [youTubeEnd gutterRow1Start] 16px [gutterRow1End chatAreaStart] 1fr [chatAreaEnd bottomLine];
-
-		.gutter-row-1
-		{
-			grid-row: gutterRow1Start / gutterRow1End;
-		}
+		display: block flex;
 	}
-}
+
+	body > section
+	{
+		display: block flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		height: 100dvh;
+		width: 100dvw;
+		overflow: hidden;
+	}
 
 
-:root
-{
-	--gutterWidth: 5px;
-	--gutterWidth: 16px;
-}
-
-.gutter-column,
-.gutter-row
-{
-	background: var(--gutterBackground);
-	/* important to fix DarkReader extension styling error */
-	background-repeat: no-repeat !important;
-	background-position: center !important;
-	z-index: 9999;
-}
-
-.gutter-row
-{
-	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-	cursor: row-resize;
-}
-
-
-.gutter-column
-{
-	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
-	cursor: col-resize;
+	div#mainContent
+	{
+		height: calc(100dvh - var(--topNavHeight));
+		width: 100dvw;
+	}
 }

@@ -1,0 +1,322 @@
+body aside#sidebar
+{
+	position: fixed;
+	z-index: 200;
+
+
+	top: calc(var(--topNavHeight) * 1.5);
+	height: calc(100dvh - 2 * var(--topNavHeight));
+	min-height: calc(100dvh - 2 * var(--topNavHeight));
+	max-height: calc(100dvh - 2 * var(--topNavHeight));
+
+
+	max-width: 100dvw;
+
+
+	border-radius: 0 var(--mediumBorderRadius) var(--mediumBorderRadius) 0;
+	border: 1px solid color-mix(in srgb, transparent 87%, var(--sidebarBorderColor));
+
+	background-color: color-mix(in srgb, transparent 10%, var(--sidebarBackgroundColor));
+	backdrop-filter: blur(7px);
+
+
+	transition-property: left opacity scrollbar-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+	transition-delay: 0.4s;
+
+
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: transparent transparent;
+}
+
+
+
+body aside#sidebar.mini
+{
+	--_sidebarWidth: var(--sidebarMiniWidth);
+}
+
+body aside#sidebar.wide,
+body aside#sidebar.wide:hover
+{
+	--_sidebarWidth: var(--sidebarOpenWidth);
+}
+
+
+body aside#sidebar.hiding
+{
+	left: calc(-1 * var(--_sidebarWidth) + var(--gutterWidth));
+	width: var(--_sidebarWidth);
+	min-width: var(--_sidebarWidth);
+	opacity: 0.3;
+}
+
+body aside#sidebar.hiding:hover,
+body aside#sidebar.hiding.hover
+{
+	left: var(--gutterWidth);
+	left: -2px;
+	opacity: 1;
+	box-shadow: 2px 2px 34px 1px var(--sidebarBackgroundColor),
+		-2px 2px 2px 1px var(--sidebarBackgroundColor),
+		2px -2px 22px 2px color-mix(in srgb, transparent 95%, var(--sidebarBorderColor));
+	transition-delay: 0s;
+	scrollbar-color: color-mix(in srgb, transparent 87%, var(--sidebarAccentColor)) color-mix(in srgb, transparent 98%, rgb(0 0 0));
+}
+
+
+
+/* MOBILE < 777 px    and (pointer: coarse)*/
+@media screen and (max-width: 777px)
+{
+
+	/* MOBILE < 777 px  */
+	body aside#sidebar.hiding
+	{
+		top: 35dvh;
+		height: 20dvh;
+		min-height: 20dvh;
+		max-height: 20dvh;
+
+		transition-delay: 0s;
+	}
+
+	body aside#sidebar.hiding:hover,
+	body aside#sidebar.hiding.hover
+	{
+		left: unset;
+		right: -2px;
+		top: 0px;
+		height: calc(100dvh);
+		min-height: calc(100dvh);
+		max-height: calc(100dvh);
+	}
+
+	body > section
+	{
+		perspective: 1000px;
+		perspective-origin: 50% 50%;
+	}
+
+	body > section > main#main
+	{
+		transition-property: transform;
+		transition-duration: 0.2s;
+		transition-timing-function: ease-in-out;
+	}
+
+	body > section:has(#sidebar.hiding:hover) > main#main,
+	body > section:has(#sidebar.hiding.hover) > main#main
+	{
+		transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(0deg) rotateY(32deg) rotateZ(0deg) translateX(-44px) translateY(0px) translateZ(0px) skewX(0deg) skewY(0deg);
+		transform: scaleX(0.8) scaleY(0.9) scaleZ(0.8) rotateX(0deg) rotateY(45deg) rotateZ(0deg) translateX(-54px) translateY(0px) translateZ(-74px) skewX(0deg) skewY(0deg);
+	}
+
+	body aside#sidebar.hiding
+	{
+		left: unset;
+		right: calc(-1 * var(--_sidebarWidth) + 15px);
+		opacity: 0.6;
+	}
+}
+
+
+
+
+
+
+
+
+body aside#sidebar
+{
+	display: block flex;
+	flex-direction: column;
+	gap: 40px;
+	padding: 60px 14px 60px 20px;
+
+	hr
+	{
+		border: none;
+		border-top: 1px solid color-mix(in srgb, transparent 60%, var(--sidebarBackgroundActiveColor));
+	}
+
+	& > section
+	{
+		display: block flex;
+		flex-direction: column;
+		gap: 13px;
+
+		header
+		{
+			font-size: 14px;
+			font-weight: 600;
+		}
+	}
+
+
+	button
+	{
+		justify-content: center;
+	}
+
+	div.sidebarButtonRow
+	{
+		display: block flex;
+
+		width: auto;
+		justify-content: space-between;
+	}
+
+	div.sidebarButtonChannel
+	{
+		justify-content: space-between;
+		border-radius: var(--smallBorderRadius);
+	}
+
+	.fullButton
+	{
+		padding: 8px 16px;
+		border: 1px solid var(--sidebarBackgroundActiveColor);
+		border-radius: var(--smallBorderRadius);
+
+		&:hover
+		{
+			border: 1px solid var(--sidebarTextActiveColor);
+			color: var(--sidebarTextActiveColor);
+		}
+	}
+
+	.rightButton
+	{
+		width: 20px;
+		height: 100%;
+		min-height: 100%;
+		max-height: 100%;
+		display: block flex;
+
+		align-items: center;
+		justify-content: center;
+
+		&:last-child
+		{
+			margin-right: 8px;
+		}
+	}
+
+	button.removeFromRecentList
+	{
+		scale: 0.8;
+	}
+
+	a.openInNewTab
+	{
+		padding-top: 2px;
+	}
+
+	a.openInNewTab,
+	button.removeFromRecentList
+	{
+		transition: 0.15s linear;
+		transition-property: filter opacity;
+
+		&:not(:hover)
+		{
+			filter: grayscale(1);
+			opacity: 0.7;
+		}
+	}
+
+	div.sidebarButtonChannel,
+	button.fullButton
+	{
+		display: flex;
+		width: 100%;
+		cursor: pointer;
+		font-size: 13px;
+		font-weight: 600;
+		align-items: center;
+
+		transition-property: color background-color;
+		transition-duration: 0.32s;
+		transition-timing-function: ease-in-out;
+		color: var(--sidebarTextColor);
+
+		a.openInNewTab,
+		button.removeFromRecentList
+		{
+			visibility: hidden;
+		}
+
+		a
+		{
+			color: inherit;
+			overflow: hidden;
+			text-wrap: nowrap;
+			border-radius: var(--smallBorderRadius);
+
+			&.fullWidth
+			{
+				padding: 8px 16px;
+				width: 100%;
+			}
+
+			&:hover
+			{
+				color: var(--sidebarTextActiveColor);
+			}
+		}
+
+
+
+
+		&:hover
+		{
+
+			a.openInNewTab,
+			button.removeFromRecentList
+			{
+				visibility: visible;
+			}
+		}
+
+	}
+
+	div.sidebarButtonRow.active,
+	div.sidebarButtonRow:hover
+	{
+
+		div.sidebarButtonChannel,
+		button.fullButton
+		{
+			background-color: var(--sidebarBackgroundActiveColor);
+			transition-duration: 0s;
+		}
+
+		a.openInCurrentTab
+		{
+			background-color: var(--sidebarBackgroundActiveColor);
+			transition-duration: 0s;
+			color: var(--sidebarTextActiveColor);
+		}
+	}
+
+	div.sidebarButtonRow:hover
+	{
+		button.removeFromRecentList
+		{
+			visibility: visible;
+		}
+	}
+
+	div.sidebarButtonRow.active
+	{
+		order: 0 !important;
+
+		button.removeFromRecentList
+		{
+			visibility: hidden;
+		}
+	}
+}

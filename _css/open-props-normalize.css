@@ -277,7 +277,7 @@
 
 :where(textarea)
 {
-	resize: block
+	/* resize: block */
 }
 
 :where(input[type=checkbox], input[type=radio])
@@ -495,7 +495,7 @@
 	background: var(--surface-2);
 	border: 1px solid var(--surface-2);
 	border-radius: var(--radius-3);
-	width: fit-content
+	width: fit-content;
 }
 
 :where(table[\:not-has\(tfoot\)] tr:last-child td:first-child)

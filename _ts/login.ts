@@ -352,9 +352,9 @@ if (window.opener)
 // MESSAGES FROM WYKOP.PL
 window.addEventListener('message', function (event)
 {
-	if (dev) console.log("event received", event);
-	if (dev) console.log("event.origin", event.origin);
-	if (dev) console.log("event.data", event.data);
+	// if (dev) console.log("event received", event);
+	// if (dev) console.log("event.origin", event.origin);
+	// if (dev) console.log("event.data", event.data);
 
 	if (event.origin !== wykopDomain || !event?.data?.type) return;
 

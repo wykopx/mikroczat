@@ -1114,16 +1114,27 @@ export async function getMessageHTMLElement(entryObject: T.Entry): Promise<Eleme
 
 
 	/* YOUTUBE | STREAMABLE | TWITTER */
+	if (entryObject.media?.embed?.type != "youtube" && entryObject.youtube_embeds?.length > 0)
+	{
+		let embedVideoId = entryObject.youtube_embeds[0]
+		entryMediaEmbedYouTube.href = `https://youtu.be/${embedVideoId}`;
+		if (embedVideoId && typeof embedVideoId === "string") messageArticle.dataset.youtube = embedVideoId;
+	}
+
 	if (entryObject.media?.embed?.url && entryObject.media?.embed?.type)
 	{
 		if (entryObject.media?.embed?.type === "youtube")
 		{
-			entryMediaEmbedYouTube.href = entryObject.media.embed.url;
 			let embedVideoId = fn.getEmbedVideoIDCodeFromYouTubeURL(entryObject.media.embed.url);
-			if (embedVideoId && typeof embedVideoId === "string") messageArticle.dataset.youtube = embedVideoId;
-			// "thumbnail": "https://wykop.pl/cdn/c3201142/66bef4e5a7997858f030f4c39ae3ad590b7ae59b62d3121c95ba944c0c6a9d82.jpg",
-			//  "age_category": "all",
-			// "video_metadata": null
+			if (embedVideoId)
+			{
+				entryMediaEmbedYouTube.href = `https://youtu.be/${embedVideoId}`;
+				if (embedVideoId && typeof embedVideoId === "string") messageArticle.dataset.youtube = embedVideoId;
+				// "thumbnail": "https://wykop.pl/cdn/c3201142/66bef4e5a7997858f030f4c39ae3ad590b7ae59b62d3121c95ba944c0c6a9d82.jpg",
+				//  "age_category": "all",
+				// "video_metadata": null
+			}
+
 		}
 		else if (entryObject.media?.embed?.type === "streamable")
 		{
@@ -1152,7 +1163,8 @@ export async function getMessageHTMLElement(entryObject: T.Entry): Promise<Eleme
 		{
 			messageArticle.dataset.device = entryObject.device;
 		}
-		messageContent.innerHTML = entryObject.content_parsed();
+
+		messageContent.innerHTML = entryObject.content_parsed;
 	}
 
 	return templateNode;
@@ -1280,8 +1292,11 @@ export async function getUserHTMLElement(userObject: T.User, channelObject?: T.C
 
 export async function discussionViewON(ChannelObject: T.Channel, EntryObject: T.Entry)
 {
-	console.log(`discussionViewON: entry: `, EntryObject);
-	console.log(`discussionViewON: ChannelObject.entries.get(EntryObject.id): `, ChannelObject.entries.get(EntryObject.id));
+	if (dev && EntryObject)
+	{
+		console.log(`discussionViewON: entry: `, EntryObject);
+		console.log(`discussionViewON: ChannelObject.entries.get(EntryObject.id): `, ChannelObject.entries.get(EntryObject.id));
+	}
 
 	const channelFeed = ChannelObject.elements.channelFeed;
 	ChannelObject.discussionViewEntryId = EntryObject.entry_id;
@@ -1298,8 +1313,14 @@ export async function discussionViewON(ChannelObject: T.Channel, EntryObject: T.
 
 
 
-export function discussionViewOFF(ChannelObject: T.Channel, EntryObject: T.Entry)
+export function discussionViewOFF(ChannelObject: T.Channel, EntryObject?: T.Entry)
 {
+	// if (dev && EntryObject)
+	// {
+	// 	console.log(`discussionViewOFF: entry: `, EntryObject);
+	// 	console.log(`discussionViewOFF: ChannelObject.entries.get(EntryObject.id): `, ChannelObject.entries.get(EntryObject.id));
+	// }
+
 	removeReplyEntryID(ChannelObject);
 
 	if (ChannelObject.discussionViewEntryId) delete ChannelObject.discussionViewEntryId;
@@ -1366,10 +1387,12 @@ export async function setReplyEntryID(ChannelObject: T.Channel, messageObjectOrI
 	const newMessageTextarea = ChannelObject.elements.newMessageTextarea as HTMLElement;
 	if (!newMessageTextarea || !newMessageTextareaContainer) return false;
 
+
+	let replyEntryId: number;
+
 	// NIE USTAWIONA WIADOMOSC NA KTORA ODPOWIADAMY
 	if (!newMessageTextareaContainer.dataset.entryId)
 	{
-		let replyEntryId: number;
 
 		// jestesmy w trybie dyskusji więc ustawiamy id dyskusji
 		if (ChannelObject.discussionViewEntryId)
@@ -1420,10 +1443,30 @@ export async function setReplyEntryID(ChannelObject: T.Channel, messageObjectOrI
 				// TODO dodać blokującego uzytkownika do listy blokujących
 				channelFeed.dataset.replyingBlocked = "true";							// <div class="channelFeed " data-replying-blocked="true"
 			}
+
+
+			const state = {
+				action: "setReplyEntryID",
+				channelName: ChannelObject.name,
+				replyEntryId: replyEntryId,
+			};
+
+			let url = window.location.href;
+			if (url)
+			{
+				if (url.includes('/#')) url = url.substring(0, url.indexOf('/#'));
+				else if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
+				else if (url.endsWith('/')) url = url.substring(0, url.lastIndexOf('/'));
+
+				url += '/#' + replyEntryId;
+				// window.location.hash
+				history.pushState({ detail: state }, "", url);
+				// window.dispatchEvent(new Event('popstate'));
+				let popstateevent = new CustomEvent('popstate', { detail: state });
+				window.dispatchEvent(popstateevent);
+			}
 		}
 	}
-
-
 	// USTALENIE data-resource="" DLA TWORZONEJ WIADOMOSCI
 	let setResource: string;
 	if (newMessageTextareaContainer.dataset.entryId)
@@ -1453,12 +1496,13 @@ export async function setReplyEntryID(ChannelObject: T.Channel, messageObjectOrI
 	{
 		setResource = "entry";
 	}
-
 	newMessageTextareaContainer.dataset.resource = setResource;
 }
 
 export function removeReplyEntryID(ChannelObject: T.Channel, MessageObject?: T.Entry)
 {
+	if (dev) console.log("removeReplyEntryID: ", ChannelObject.name);
+
 	const newMessageTextareaContainer: HTMLElement = ChannelObject.elements.newMessageTextareaContainer;
 	const channelFeed: HTMLElement = ChannelObject.elements.channelFeed;
 
@@ -1470,9 +1514,22 @@ export function removeReplyEntryID(ChannelObject: T.Channel, MessageObject?: T.E
 	if (channelFeed.dataset.discussionViewEntryId) delete channelFeed.dataset.discussionViewEntryId;
 
 	channelFeed.style.removeProperty('--_idClr');
-
 	detachDynamicCSS({ fn: "replyingToEntry", channel: ChannelObject.name });
 
+	const state = {
+		action: "removeReplyEntryID",
+		channelName: ChannelObject.name,
+		replyEntryId: null,
+	};
+
+	let url = window.location.href;
+	if (url && url.includes('/#')) url = url.substring(0, url.indexOf('/#')) + "/";
+	else if (url && url.includes('#')) url = url.substring(0, url.indexOf('#')) + "/";
+	history.pushState({ detail: state }, "", url);
+	// window.dispatchEvent(new Event('popstate'));
+	// window.dispatchEvent(new Event('popstate'));
+	let popstateevent = new CustomEvent('popstate', { detail: state });
+	window.dispatchEvent(popstateevent);
 }
 
 
@@ -1692,13 +1749,49 @@ export function prepareNewMessageBody(ChannelObject: T.Channel, messageOptions: 
 
 	if (dev) console.log("messageOptions", messageOptions)
 
-	/* TREŚĆ WPISU / KOMENTARZA */
 
 
-	// dodajemy automatycznie #tag otwartego kanału na końcu wpisu jeśli nie był podany w treści i o ile nie jest to kanał specjalny
-	if (messageOptions.resource == "entry" && !messageOptions.content.includes(`#${ChannelObject.name}`) && !CONST.ChannelsSpecialMap.has(ChannelObject.name))
+
+
+
+	/* TAGOWANIE WPISU */
+
+	// dodajemy #tag otwartego kanału na końcu wpisu jeśli nie był podany w treści 
+	if (messageOptions.resource == "entry")
 	{
-		messageOptions.content += ` #${ChannelObject.name}`;
+		// jeśli kanał specjalny /x_plus, /x_minus /x
+		if (CONST.ChannelsSpecialMap.has(ChannelObject.name))
+		{
+			if (ChannelObject.name === "x")
+			{
+				// usuwamy tagowanie z MikroczatX
+				// messageOptions.content = messageOptions.content.replaceAll("#", '＃'); // ﹟ ＃ 
+				// zamienia kazdy #tag na link do mikroczata
+				messageOptions.content = messageOptions.content.replace(/(^|\s)(#)([A-Za-z0-9]{2,})(?=$|\s|\W|_)/g, '$1[$2$3](https://mikroczat.pl/$3)');
+			}
+			else if (ChannelObject.name === "x_minus")
+			{
+				// nie podano zadnego tagu na kanale mikroczat-, wiec dodajemy tag #mikroczat
+				if (/(^|\s)(#\w+)/g.test(messageOptions.content) === false)
+				{
+					messageOptions.content += ` #mikroczat`;
+				}
+			}
+			// na x_plus zostawiamy treść taką jaka jest
+		}
+		else if (!messageOptions.content.includes(`#${ChannelObject.name}`))
+		{
+			const currentHour = new Date().getHours();
+			if (ChannelObject.name == "nocnazmiana" && currentHour < 6)
+			{
+				// na nocnej nie tagujemy
+			}
+			// dodajemy #nazwekanalu
+			else
+			{
+				messageOptions.content += ` #${ChannelObject.name}`;
+			}
+		}
 	}
 
 
@@ -1706,12 +1799,20 @@ export function prepareNewMessageBody(ChannelObject: T.Channel, messageOptions: 
 
 
 
-	// DETECT MIKROCZAT MESSAGE
+
+
+	// MIKROCZAT FOOTER
+
+	// pusty tekst z linkiem do mikroczata, widoczny tylko w aplikacji Wykop
 	if (settings.promoFooter.enable == false)
 	{
-		messageOptions.content += ` [${CONST.HANGUL_MIKROCZAT}](https://mikroczat.pl/czat/${ChannelObject.name})`;
+		messageOptions.content += ` [${CONST.HANGUL_MIKROCZAT}](https://mikroczat.pl/${ChannelObject.name})`;
 	}
 
+	//
+	//---
+	// 🟢 99 osób na kanale #heheszki
+	// 💭 Mikroczat
 	else if (settings.promoFooter.emoji || settings.promoFooter.label || settings.promoFooter.mikroczatLinks || settings.promoFooter.roomInfo)
 	{
 		messageOptions.content += `\n`;
@@ -1725,15 +1826,18 @@ export function prepareNewMessageBody(ChannelObject: T.Channel, messageOptions: 
 			const i = numberOfOnlineUsersOnChannel % 10;
 			if (i === 2 || i % 10 === 3 || i % 10 === 4) numberOfOnlineUsersOnChannel += 3;
 
-			messageOptions.content += ` 🟢 ${numberOfOnlineUsersOnChannel} osób online na kanale [**#${ChannelObject.name}**](https://mikroczat.pl/czat/${ChannelObject.name}) \n`; // TODO: odmiana słowa "osoby"
+			messageOptions.content += ` 🟢 ${numberOfOnlineUsersOnChannel} osób online na kanale [**#`;
+			messageOptions.content += CONST.ChannelsSpecialMap.has(ChannelObject.name) ? CONST.ChannelsSpecialMap.get(ChannelObject.name).tabTitle : ChannelObject.name;
+			messageOptions.content += `**](https://mikroczat.pl/${ChannelObject.name}) \n`; // TODO: odmiana słowa "osoby"`;
+
 		}
 
 		if (settings.promoFooter.emoji || settings.promoFooter.label)
 		{
 			// DETECT MIKROCZAT MESSAGE
-			if (settings.promoFooter.emoji && !settings.promoFooter.label) messageOptions.content += `[💭](https://mikroczat.pl/czat/${ChannelObject.name})`;
-			if (!settings.promoFooter.emoji && settings.promoFooter.label) messageOptions.content += `[Mikroczat](https://mikroczat.pl/czat/${ChannelObject.name})`;
-			if (settings.promoFooter.emoji && settings.promoFooter.label) messageOptions.content += `💭 [Mikroczat](https://mikroczat.pl/czat/${ChannelObject.name})`;
+			if (settings.promoFooter.emoji && !settings.promoFooter.label) messageOptions.content += `[💭](https://mikroczat.pl/${ChannelObject.name})`;
+			if (!settings.promoFooter.emoji && settings.promoFooter.label) messageOptions.content += `[Mikroczat](https://mikroczat.pl/${ChannelObject.name})`;
+			if (settings.promoFooter.emoji && settings.promoFooter.label) messageOptions.content += `💭 [Mikroczat](https://mikroczat.pl/${ChannelObject.name})`;
 		}
 
 		if (settings.promoFooter.mikroczatLinks) 
@@ -1752,9 +1856,8 @@ export function prepareNewMessageBody(ChannelObject: T.Channel, messageOptions: 
 	}
 
 
-	// DETECT MIKROCZAT MESSAGE - dodajemy na koniec wiadomosci
+	// DETECT MIKROCZAT MESSAGE - dodajemy na koniec wiadomosci zawsze 2x HANGUL
 	messageOptions.content += CONST.HANGUL_DETECT_MIKROCZAT_ENDING;
-
 
 
 	if (dev) console.log("prepareNewMessageBody() -- przygotowana tresc nowej wiadomosci: messageOptions", messageOptions)

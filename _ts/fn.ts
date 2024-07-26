@@ -154,7 +154,88 @@ export function markdownTagsToANCHOR(text: string, EntryObject: T.Entry): string
 	});
 }
 
-export function parseURLToANCHOR(text: string, EntryObject: T.Entry): string
+
+export function return_HTTPS_URL_Array(content: string)
+{
+	/*
+		- wykrywa każdy string z http lub https
+		- zwraca URL aż do wp.pl" wp.pl) wp.pl] lub whitespace
+	*/
+	const regex = /(http\S+)(?=(["|'|\)|\]|\s|\$]|$|\b))/g;
+	const matches = content.matchAll(regex);
+	return Array.from(matches, url => url[1]);
+}
+
+export function return_only_youtube_URLS_Array(urlsArray: string[])
+{
+	const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
+	return urlsArray.filter(url => regExp.test(url));
+}
+
+export function return_only_youtube_EMBEDS_Array(urlsArray: string[]): (string)[]
+{
+	return urlsArray.map(url => getEmbedVideoIDCodeFromYouTubeURL(url)).filter(Boolean) as string[];
+}
+
+export function getEmbedVideoIDCodeFromYouTubeURL(url: string): string
+{
+	const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=|shorts\/)([^#\&\?]*).*/;
+	const match = url.match(regExp);
+
+	if (match && match[2].length === 11)
+	{
+		const videoID = match[2];
+		return videoID;
+	}
+	else
+	{
+		return null;
+	}
+}
+
+export function parse_HTTP_URLS_to_ANCHOR(content: string, EntryObject: T.Entry): string
+{
+	let modifiedContent = content;
+	/*
+		- wykrywa każdy string z http lub https
+		- musi być poprzedzony spacją lub poczatkiem wiersza
+		- musi kończyć się spacją lub końcem wiersza
+		- zamienia go w klikalny link <a href=""
+		- nie przetwarza juz istniejących adresów <a href="" w treści
+		- nie przetwarza urli markdown [test](http://test.pl)
+	*/
+	modifiedContent = modifiedContent.replace(/(?:\s|^)(https?\S+)(?=\s|$)/g, (word) =>
+	{
+		return `<a class="href_external" href="${word}" target="mikroczat_opened">${word}</a>`;
+	});
+
+	return modifiedContent;
+}
+
+export function adds_HTTPS_to_all_non_HTTPS_URLS(content: string): string
+{
+	/*
+		- zamienia w treści wszystkie URL bez http i https na posiadające https://
+		- [\w] zaczyna się od litery lub cyfry w domenie
+		- [\w\.-] posiada litery, cyfry lub - i . w subdomenach
+		- \.[a-zA-Z][a-zA-Z0-9]{1,23}) - domena np. .pl zaczyna sie od litery, minimum 2 znaki maks, 24 znaki
+		- (\/[^\s]*)? --> URL path do pierwszej spacji
+	*/
+	return content.replace(/\S+(?!\b\1\b)/g, (word) =>
+	{
+		if (/^([\w][\w\.-]*\.[a-zA-Z][a-zA-Z0-9]{1,23})(\/[^\s]*)?$/.test(word))
+		{
+			return "https://" + word;
+		}
+		return word;
+	});
+}
+
+
+
+
+
+export function xxx__old__parseURLToANCHOR(text: string, EntryObject: T.Entry): string
 {
 	/*
 		- wykrywa każdy url także bez http albo www np.: google.com
@@ -352,24 +433,6 @@ export function areSomeValuesInArray(array: string[], values: string[]): boolean
 
 
 
-export function getEmbedVideoIDCodeFromYouTubeURL(url: string): string | boolean
-{
-
-	const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
-	const match = url.match(regExp);
-
-	if (match && match[2].length === 11)
-	{
-		const videoID = match[2];
-		return videoID;
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
 
 // zwraca unikalny kolor na podstawie id 
 export function messageIDtoHexColor(id: number, lightOrDark: string = "dark", HEXorRGBorRGBA = "hex", alpha: number = 1): string
@@ -507,4 +570,293 @@ export function toggleNightMode(nightModeOn: number | string | boolean = true)
 		settings.nightMode = "1";
 	}
 	localStorage.setItem(`nightMode`, settings.nightMode);
+}idDate("2023-01-01 23:44:44") -> true
+// isValidDate("abc") -> false
+export function isValidDate(dateString: string)
+{
+	return !isNaN(Date.parse(dateString));
+}
+
+
+
+// generateImageVariants("https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8.gif");
+/*
+returns:
+variants = {
+	src: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8.gif",
+	300: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w300.gif",
+	400: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w400.gif",
+	800: "https://wykop.pl/cdn/c3201142/05ce90b751be02497ab64f2fa8dd6b715a1d0df9114ad93e878ed3449c4505b8,w800.gif"
+}
+
+
+*/
+export function generateImageVariantsObject(url: string): Record<string, string>
+{
+	url = url.split('?')[0];
+	const fileExtension = url.split('.').pop(); // file extension (e.g., .gif, .png, .jpg, .webp)
+	const baseUrl = url.replace(`.${fileExtension}`, '');
+	const variants: Record<string, string> =
+	{
+		"src": url,
+		300: `${baseUrl},w300.${fileExtension}`,
+		400: `${baseUrl},w400.${fileExtension}`,
+		800: `${baseUrl},w800.${fileExtension}`,
+	};
+
+	return variants;
+}
+
+
+
+// usuwa początkową ikonkę z linkiem do pokoju mikroczatu w wiadomosciach prywatnych
+// zwraca true gdy wykryto tekst, zwraca false jesli nie było tekstu
+export function parseRoomInfoFromPMbeginning(textContent: string): T.RoomInfoFromPM
+{
+	const regexPattern = `\\[${CONST.mikroczatEmoji}\\]\\(https:\\/\\/mikroczat\\.pl\\/(room|pm)\\/(.*?)\\)`;
+	const regex = new RegExp(regexPattern);
+	const match = textContent.match(regex);
+
+	const pmIsFromMikroczat = match !== null;
+	const contentWithRemovedRoomInfo = pmIsFromMikroczat ? textContent.replace(regex, '') : textContent;
+
+	const urlRoomInfo: T.RoomInfoFromPM =
+	{
+		parsedContent: contentWithRemovedRoomInfo,
+		pmIsFromMikroczat: pmIsFromMikroczat,
+		roomID: null,
+		userId: null,
+		usernamesArray: [],
+	};
+
+	if (pmIsFromMikroczat)
+	{
+		// https://mikroczat.pl/room/23jkrhk23jhrk-base64ID
+		if (match[1] === 'room')
+		{
+			urlRoomInfo.roomID = match[2];
+			urlRoomInfo.usernamesArray = decodeUsernamesFromBase64roomID(urlRoomInfo.roomID);
+		}
+		// https://mikroczat.pl/pm/@NadiaFrance
+		else if (match[1] === 'pm')
+		{
+			urlRoomInfo.userId = match[2].replace("@", "");
+			urlRoomInfo.usernamesArray = [urlRoomInfo.userId];
+		}
+	}
+	return urlRoomInfo;
+}
+
+/*
+	let roomID = encodeUsernamesToBase64roomID(Channel);
+	let roomID = encodeUsernamesToBase64roomID(Channel.usernamesArray);
+	let roomID = encodeUsernamesToBase64roomID(Channel.users); // Map
+	let roomID = encodeUsernamesToBase64roomID(["username1", "username2", "username3"]);
+	let roomID = encodeUsernamesToBase64roomID(Set(["username1", "username2", "username3"]));
+	
+	returns: "ahihihqihdaw9ur281ql2ejlqk2jrlqi93";
+*/
+export function encodeUsernamesToBase64roomID(usernames: T.Channel | string[] | Set<string>): string
+{
+	let usernamesArray: string[];
+
+	if (Array.isArray(usernames))
+	{
+		usernamesArray = usernames;
+	}
+	else if (usernames instanceof Set)
+	{
+		usernamesArray = Array.from(usernames.values());
+	}
+	else if (usernames instanceof Map)
+	{
+		usernamesArray = Array.from(usernames.keys());
+	}
+	else if (typeof usernames === "object" && usernames.hasOwnProperty("users") && usernames instanceof T.Channel)
+	{
+		usernamesArray = usernames.usernamesArray;
+	}
+
+	return "==" + btoa(usernamesArray.sort().join('/')); // zwraca base64 z == na początku
+}
+
+// returns sorted usernames array ["username1", "username2", "username3"];
+export function decodeUsernamesFromBase64roomID(uncodedUsernames: string): string[]
+{
+	if (uncodedUsernames.startsWith('=='))
+	{
+		uncodedUsernames = uncodedUsernames.replace(/^==/, ''); // usuwa == na początku 
+	}
+
+	return atob(uncodedUsernames).split('/');
+}
+
+/* PHP 
+Returns sorted usernames array ["username1", "username2", "username3"]
+
+function decodeUsernamesFromBase64roomID($uncodedUsernames) {
+	return explode('/', base64_decode($uncodedUsernames));
+}	
+*/
+
+
+
+
+
+export function removeBlacklistWords(text: string, blacklist: string[]): string
+{
+	if (text)
+	{
+		if (blacklist && blacklist.length > 0)
+		{
+			blacklist.forEach((word) =>
+			{
+				text = text.split(word).join('');
+			});
+		}
+		return text;
+	}
+
+}
+
+
+
+// fn.toggleNightMode()
+// fn.toggleNightMode(1)
+// fn.toggleNightMode("1")
+// fn.toggleNightMode(true)
+// fn.toggleNightMode(0)
+// fn.toggleNightMode("0")
+// fn.toggleNightMode(false)
+export function toggleNightMode(nightModeOn: number | string | boolean = true)
+{
+	if (nightModeOn == "1" || nightModeOn == 1) nightModeOn = true;
+	else if (nightModeOn == "0" || nightModeOn == 0) nightModeOn = false;
+
+	if (nightModeOn == false || index.body.dataset.nightMode == "1")
+	{
+		index.body.dataset.nightMode = "0";
+		settings.nightMode = "0";
+	}
+	else
+	{
+		index.body.dataset.nightMode = "1";
+		settings.nightMode = "1";
+	}
+	localStorage.setItem(`nightMode`, settings.nightMode);
+}
+
+
+
+
+export function openPMWindowWithUser(userObject: T.User): void
+{
+	console.log("userObject", userObject);
+
+
+	if (!userObject) return;
+
+
+	if (userObject.username == loggedUser.username) return; // nie otwieramy  wiadomości dla samego siebie
+
+	if (userObject.status == "removed")
+	{
+		getRandomInt(1, 2) == 1 ? alert(`\n𝕄𝕚𝕜𝕣𝕠𝕔𝕫𝕒𝕥 \n\nTen użytkownik zrobił #𝙪𝙨𝙪𝙣𝙠𝙤𝙣𝙩𝙤 (⌐ ͡■ ͜ʖ ͡■)`) : alert(`\n𝕄𝕚𝕜𝕣𝕠𝕔𝕫𝕒𝕥 \n\nTen Mirek już z nami nie mirkuje (╯︵╰,)`);
+		return;
+	}
+	if (userObject.status == "suspended")
+	{
+		alert(`\n𝕄𝕚𝕜𝕣𝕠𝕔𝕫𝕒𝕥 \n\nTen użytkownik robi właśnie #𝙪𝙨𝙪𝙣𝙠𝙤𝙣𝙩𝙤,\nwięc możliwe, że nie odczyta wiadomości, które do niego wyślesz\n(╯︵╰,)`);
+	}
+
+
+	if (userObject.status == "banned")
+	{
+		alert(`\n𝕄𝕚𝕜𝕣𝕠𝕔𝕫𝕒𝕥 \n\nTen użytkownik ma bana.\nMożesz wysyłać do niego wiadomości, ale nie będzie mógł na nie odpisać.`);
+	}
+
+	openURLInNewWindow({ src: `https://mikroczat.pl/pm/@${userObject.username}`, target: `pm_${userObject.username}`, width: 550, height: 1000 });
+}
+
+
+export function openURLInNewWindow(args: any)
+{
+	if (!args.src) return;
+
+	let windowFeatures = "popup";	// https://developer.mozilla.org/en-US/docs/Web/API/Window/open#popup
+
+	const imageHeight: number = parseInt(args.height) || 600;
+	const screenHeight: number = window.screen.height;
+
+	const screenWidth: number = window.screen.width;
+	const imageWidth: number = parseInt(args.width) || 800;
+
+	const windowHeight: number = imageHeight < screenHeight ? imageHeight : screenHeight;
+	const windowWidth: number = imageHeight < screenHeight ? imageWidth : imageWidth + 20;
+
+
+	const topPosition: number = imageHeight < screenHeight ? (screenHeight - windowHeight) / 2 : 0;
+	const leftPosition: number = (screenWidth - windowWidth) / 2;
+
+	windowFeatures += `,width=${windowWidth},height=${windowHeight},left=${leftPosition},top=${topPosition}`;
+
+	const targetWindowName = args.target || "image";
+
+	//windowFeatures += 'resizable=yes,scrollbars=yes,menubar=no';
+
+	const imageWindow = window.open(args.src, targetWindowName, windowFeatures);
+
+	if (!imageWindow)
+	{
+		// The window wasn't allowed to open
+		// This is likely caused by built-in popup blockers.
+		return null;
+	}
+
+	// crossorigin policy return imageWindow;
+}
+
+
+
+export function highlight(highlightElementSelector: string, highlightClass: string)
+{
+	addClass(highlightElementSelector, highlightClass);
+}
+export function unhighlight(highlightElementSelector: string, highlightClass: string)
+{
+	removeClass(highlightElementSelector, highlightClass);
+}
+
+
+
+// Dodaje event listenera: jesli przesunieto okno z wiadomosciami wyzej, nie scrolluje w dol przy nowej wiadomosci
+export function setupScrollListener(ChannelObject: T.Channel)
+{
+	if (ChannelObject.elements.messagesContainer)
+	{
+		// if (dev) console.log(`setupScrollListener(messageContainer)`, messagesContainer);
+
+		ChannelObject.elements.messagesContainer.addEventListener('scroll', function ()
+		{
+			// jeśli przeglądamy dyskusję, nie sprawdzamy scrollowania
+			if (ChannelObject.type == "tag" && (ChannelObject as T.ChannelTag).discussionViewEntryId)
+			{
+				ChannelObject.elements.messagesContainer.dataset.scrollToNew = "0";
+				return;
+			}
+			// if (dev) console.log(`🔖 SCROLL EVENT: scrollTop: [${messagesContainer.scrollTop}] clientHeight: [${messagesContainer.clientHeight}] | data-scroll-to-new="${messagesContainer.dataset.scrollToNew}"`);
+			// if (dev) console.log(`🔖 Math.abs(messagesContainer.scrollTop): `, Math.abs(messagesContainer.scrollTop));
+			// if (dev) console.log(`🔖 Math.abs(messagesContainer.scrollTop) < messagesContainer.clientHeight: `, Math.abs(messagesContainer.scrollTop) < messagesContainer.clientHeight);
+
+			// messagesContainer.scrollTop = od -1500 do 0 (bottom). scroll-snap-type: both mandatory; makes it goes to ca. -6px
+			if (Math.abs(ChannelObject.elements.messagesContainer.scrollTop) < ChannelObject.elements.messagesContainer.clientHeight)				// jesli dol kanalu jest widoczny, scrollujemy przy nowej wiadomosci
+			{
+				if (ChannelObject.elements.messagesContainer.dataset.scrollToNew === "0") ChannelObject.elements.messagesContainer.dataset.scrollToNew = "1";
+			}
+			else 	// przesunieto okno wiadomosci wyzej i nie widac najnowszych wiadomosci - wyłączamy automatyczne scrollowanie przy nowej wiadomosci
+			{
+				if (ChannelObject.elements.messagesContainer.dataset.scrollToNew === "1") ChannelObject.elements.messagesContainer.dataset.scrollToNew = "0";
+			}
+		}, false);
+	}
 }

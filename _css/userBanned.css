@@ -1,0 +1,30 @@
+.showWhenBanned
+{
+	display: none;
+}
+
+.hideWhenBanned
+{
+	display: block flex;
+}
+
+body[data-user-banned="true"]
+{
+	.showWhenBanned
+	{
+		display: block flex;
+	}
+
+	.hideWhenBanned
+	{
+		display: none;
+	}
+
+	#chatArea
+	{
+		div.right section.rating-box div.buttons
+		{
+			display: none;
+		}
+	}
+}

@@ -55,15 +55,31 @@ settings.editorSendHotkey.ctrl_s = false;
 
 
 settings.fetch = {};
-settings.fetch.numberOfEntries1stPreload = 5; // max 50
+
+settings.fetch.preloadUserEntriesCount = 3;
+settings.fetch.preloadUserEntriesHours = 24;
+
+
+settings.fetch.numberOfEntries1stPreload = 20; // max 50
+settings.fetch.preloadEntriesActiveCount = 1; // max 50
+settings.fetch.preloadEntriesHot1Count = 1; // max 50
+settings.fetch.preloadEntriesHot2Count = 1; // max 50
+settings.fetch.preloadEntriesHot3Count = 1; // max 50
+settings.fetch.preloadEntriesHot6Count = 1; // max 50
+settings.fetch.preloadEntriesHot12Count = 1; // max 50
+settings.fetch.preloadEntriesHot24Count = 1; // max 50
+
+
 settings.fetch.numberOfEntries2ndPreload = 35; // max 50
 settings.fetch.numbersOfCommentsToLoad = 50 // max 50
 settings.fetch.hoursToLoad = 6 // wpisy z ostatnich 13 godzin
-
+settings.fetch.preloadPMsCountr = 20; // domyslnie pobiera 20 wiadomosci w konwersacji z uzytkownikiem
 
 settings.refreshIntervals = {};
 
-settings.refreshIntervals.allEntriesAndComments = 15000;				// 20 sekund
+settings.refreshIntervals.continousCheckingEntriesAndComments = 15000;	// 15 sekund
+settings.refreshIntervals.continousCheckingPMS = 3000;					// 3 sekundy PM
+
 settings.refreshIntervals.timeoutForEntriesPagesOver50 = 500; 			// 200 milisekund pomiedzy pobieraniem kolejny stron wpisów jesli gdy jest ich ponad 50
 settings.refreshIntervals.timeoutForCommentsOver50 = 500;
 settings.refreshIntervals.notificationsCheck = 10000;					// 10 sekund
@@ -125,7 +141,9 @@ settings.sounds.logged_out =
 };
 
 settings.css = { main: {}, chatArea: {} };
-settings.css.main.channelStats = "fetching"; // "disabled" | "show" | "hide" | "fetching"	// <main data-channel-stats="fetching"
+
+settings.css.main.channelStats = "disabled"; // "disabled" | "show" | "hide" | "fetching"	// <main data-channel-stats="fetching"
+
 settings.css.chatArea.plusButtonShow = true;
 settings.css.chatArea.scrollSnap = false;
 settings.css.chatArea.msgFilterMikroczat = false;
@@ -161,10 +179,29 @@ interface PromoFooter
 
 interface Fetch
 {
-	numberOfEntries1stPreload?: number;
-	numberOfEntries2ndPreload?: number;
-	numbersOfCommentsToLoad?: number;
+	// Entries
 	hoursToLoad?: number;
+
+	preloadUserEntriesCount?: number;
+	preloadUserEntriesHours?: number;
+
+	numberOfEntries1stPreload?: number;
+
+	preloadEntriesActiveCount?: number;
+	preloadEntriesHot1Count?: number;
+	preloadEntriesHot2Count?: number;
+	preloadEntriesHot3Count?: number;
+	preloadEntriesHot6Count?: number;
+	preloadEntriesHot12Count?: number;
+	preloadEntriesHot24Count?: number;
+
+	numberOfEntries2ndPreload?: number;
+
+	// Comments
+	numbersOfCommentsToLoad?: number;
+
+	// PM
+	preloadPMsCountr?: number;
 }
 
 interface UsersList
@@ -185,9 +222,11 @@ interface Sounds
 	incoming_comment?: Sound;
 	incoming_mention?: Sound;
 	incoming_pm?: Sound;
+
 	outgoing_entry?: Sound;
 	outgoing_comment?: Sound;
 	outgoing_pm?: Sound;
+
 	logged_in?: Sound;
 	logged_out?: Sound;
 }
@@ -208,10 +247,13 @@ interface TabTitle
 
 interface RefreshIntervals
 {
-	allEntriesAndComments?: number;
+	continousCheckingEntriesAndComments?: number;
+	continousCheckingPMS?: number;
 	timeoutForEntriesPagesOver50?: number;
 	timeoutForCommentsOver50?: number;
 	notificationsCheck?: number;
+
+
 }
 
 interface Main

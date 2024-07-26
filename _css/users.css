@@ -6,8 +6,6 @@ figure.avatar
 	{
 		display: block flex;
 	}
-
-
 }
 
 .messageArticle:has(figure.avatar:hover),
@@ -60,44 +58,140 @@ figure.avatar .avatar_popover img.avatar_img
 
 
 
-.messageArticle
+
+figure.avatar
 {
+	& > img.avatar_img
+	{
+		border-radius: 50%;
+		position: relative;
 
+		aspect-ratio: 1 / 1;
+		height: auto;
+		width: 18px;
+	}
+}
 
-	& .avatar
+.userListItem
+{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	column-gap: 8px;
+
+	& figure.avatar
 	{
 		& > img.avatar_img
 		{
-			border-radius: 50%;
-			position: relative;
-
+			width: 20px;
 			aspect-ratio: 1 / 1;
-			height: auto;
-			width: 18px;
-
-			top: 3px;
-			left: 2px;
+			max-width: 20px;
+			border-radius: 50%;
+			border: 1px solid rgb(120, 120, 120);
+			box-shadow: 0px 0px 7px 2px rgb(0 0 0 / 0.2);
 		}
+	}
+
+
+	& .statusIcon
+	{
+		display: none;
+	}
+
+	&.online .statusOnline
+	{
+		display: inline flex;
+		scale: 0.5;
+	}
+
+	&:not(.online) .statusOffline
+	{
+		display: inline flex;
+		scale: 0.5;
+	}
+
+	&.f-gender .statusFemale
+	{
+		display: inline flex;
+		scale: 0.5;
+	}
+
+	&.m-gender .statusMale
+	{
+		/* display: inline flex; */
+		scale: 0.5;
+	}
+
+	& span
+	{
+		white-space: nowrap;
 	}
 }
 
 
-#rightPanelArea #usersPanel .usersList .usersListContainer
+
+
+#rightPanelArea #usersPanel .usersList .usersListContainer .userListItem
 {
-	& .userListItem
+	padding: 10px 10px;
+	gap: 8px;
+	font-size: 0.8em;
+	font-weight: 400;
+
+	&:hover
 	{
-		& figure.avatar
+		/* background-color: color-mix(in srgb, var(--accentColor) 10%, var(--userListBackground)) */
+		background-color: rgb(255 255 255 / 0.05);
+	}
+
+	&.own
+	{}
+
+	&.channelOwnerLabel
+	{
+		display: none;
+	}
+
+	&.channelOwner .channelOwnerLabel
+	{
+		border: 1px solid darkgoldenrod;
+		border-radius: 0.4em;
+		padding: 0px 4px;
+		display: inline flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 0.7em;
+		color: darkgoldenrod;
+	}
+
+	&.channelOwner .channelOwnerLabel::after
+	{
+		content: "OP";
+		font-size: inherit;
+	}
+
+	& figure.avatar
+	{
+		& > img.avatar_img
 		{
-			& > img.avatar_img
-			{
-				width: 20px;
-				aspect-ratio: 1 / 1;
-				max-width: 20px;
-				border-radius: 50%;
-				border: 1px solid rgb(120, 120, 120);
-				box-shadow: 0px 0px 7px 2px rgb(0 0 0 / 0.2);
-			}
+			top: 3px;
+			left: 2px;
 		}
 	}
+
+
+	& span
+	{
+		font-size: var(--userListFontSize);
+
+		& a.username
+		{
+			font-weight: 600;
+
+			& .username_span
+			{}
+		}
+	}
+
 
 }

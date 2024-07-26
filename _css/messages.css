@@ -1,7 +1,5 @@
 #chatArea .messageArticle
 {
-
-
 	& div.right:has(.entryImage[src])
 	{
 		margin-left: 120px;
@@ -57,7 +55,7 @@
 
 	& div.right .entryMediaEmbedYouTube::before
 	{
-		background-image: url("https://i.imgur.com/XEKi3v1.png");
+		background-image: url("/_img/ico_youtube.png");
 	}
 
 
@@ -105,10 +103,17 @@
 		opacity: 0.3;
 	}
 
-	/* LIBCZA KOMENTARZY */
+	/* LICZBA KOMENTARZY */
 	& div.right div.entryCommentsCount
 	{
 		grid-column: commentsStart;
+	}
+
+
+
+	&:not(.entry) div.right div.ratingBoxContainer
+	{
+		display: none;
 	}
 
 	& div.right div.ratingBoxContainer section.rating-box
@@ -148,14 +153,14 @@
 
 
 	/* LICZBA KOMENTARZY POD WPISEM */
-	&.entry .entryCommentsCount
+	&.entryMain .entryCommentsCount
 	{
 		/* dla jednolitej wysokości wpisów */
 		height: 0px;
 		cursor: help;
 	}
 
-	&.entry .entryCommentsCount::after
+	&.entryMain .entryCommentsCount::after
 	{
 		content: var(--commentsCount);
 		cursor: help;
@@ -178,8 +183,8 @@
 		box-shadow: 1px 1px 6px 0px rgb(0 0 0 / 0.5);
 	}
 
-	&.entry[data-comments-count="0"] .entryCommentsCount,
-	&.reply .entryCommentsCount
+	&:not(.entryMain) .entryCommentsCount,
+	&.entryMain[data-comments-count="0"] .entryCommentsCount
 	{
 		visibility: hidden;
 	}
@@ -223,33 +228,46 @@
 	column-gap: 10px;
 
 	background-color: var(--messageBackgroundColor);
-	border: 1px solid var(--messageBorderColor);
 
-	border-left: 1px solid var(--_genderColor);
+
 	border-right-width: var(--messageBorderRightWidth);
 	border-radius: 3px;
 	padding: 10px;
 
 
+	border: 1px solid var(--messageBorderColor);
+	/* border-left: 1px solid var(--_genderColor); */
+	border-right: 1px solid transparent;
+
+	&.f-gender
+	{
+		border-right-color: var(--_genderColor);
+	}
+
+	&.m-gender
+	{
+		/* border-right-color: var(--_genderColor); */
+	}
+
 	&.null-gender
 	{
-		border-left: 1px solid transparent;
+		/* border-right-color: var(--_genderColor); */
 	}
 
 
-	&.entry
+	&.entryMain
 	{
-		border-right-color: var(--messageEntryBorderRightColor);
+		border-left-color: var(--messageEntryBorderColor);
 	}
 
 	&.comment
 	{
-		border-right-color: var(--messageCommentBorderRightColor);
+		border-left-color: var(--messageCommentBorderColor);
 	}
 
 	&.own
 	{
-		/* border-right-color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor)); */
+		border-right-color: var(--nicknameColorsYoursCustom, var(--messageYourBorderColor));
 		background-color: color-mix(in srgb, var(--messageYourBorderColor) 4%, var(--messageBackgroundColor))
 	}
 
@@ -318,9 +336,12 @@
 				vertical-align: bottom;
 
 				/* anty Zalgo text */
-				display: inline flow-root;
+				display: inline flow;
 				overflow: hidden;
+			}
 
+			br
+			{
 
 			}
 
@@ -346,15 +367,21 @@
 			/* 	! wyłączenie wyświetlania tagów w wiadomościach */
 			& a.href_channel
 			{
-				display: none;
+				/* display: none; */
 				white-space: nowrap;
 				text-decoration: none;
+			}
+
+			/* ! wyłączenie wyświetlania tagów, które mają po sobi enastępne tagi  */
+			& a.href_channel:has(+a.href_channel)
+			{
+				display: none;
 			}
 
 			/* wyłączenie linków promo dodanych przez mikroczat  */
 			.messageArticle[data-device="Mikroczat"] & a.href_external
 			{
-				display: none;
+				/* display: none; */
 			}
 
 			/* & a.href_channel.currentChannel:first-child, */
@@ -385,16 +412,14 @@
 
 			& a.href_channel:not(.currentChannel)::before
 			{
-				content: "💭 ";
+				/* content: "💭 "; */
+				content: "🗯 ";
 			}
 
 			& a.href_channel:hover
 			{
 				filter: brightness(1.4);
 			}
-
-
-
 
 			& a.href_external
 			{
@@ -423,12 +448,13 @@
 				text-decoration: none;
 				position: absolute;
 				right: -21px;
-				top: -39px;
+				top: -33px;
 				background-color: black;
 				padding: 5px 20px;
 				box-shadow: 0px 0px 10px 5px rgb(0 0 0 / 0.3);
-
 				z-index: 1;
+				width: max-content;
+				max-width: 70dvw;
 			}
 
 
@@ -465,7 +491,6 @@
 				margin-right: 3px;
 
 				animation: heartbeat 3s ease-in-out infinite both;
-
 			}
 
 
@@ -494,8 +519,6 @@
 				flex-direction: column;
 				border-radius: 0;
 			}
-
-
 
 			*:not(blockquote) + blockquote:has(+ blockquote),
 			blockquote:first-child:has(+ blockquote)
@@ -766,6 +789,8 @@
 			text-decoration: none;
 			display: contents;
 		}
+
+
 	}
 }
 

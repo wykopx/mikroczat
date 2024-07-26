@@ -33,9 +33,12 @@ export const body = document.body;
 export const main = document.getElementById("main");
 
 export const centerHeader = document.getElementById("centerHeader");
-export const youtubeIframe = document.getElementById("youtubeIframe") as HTMLIFrameElement;
 export const chooseChannelDialog = document.querySelector("#chooseChannelDialog") as HTMLDialogElement;
-
+export const ytDefaultButton = document.getElementById("ytDefaultButton") as HTMLButtonElement;
+export const ytToggleButton = document.getElementById("ytToggleButton") as HTMLButtonElement;
+export const youtubeIframe = document.getElementById("youtubeIframe") as HTMLIFrameElement;
+export const imagePopover = document.getElementById("imagePopover") as HTMLElement;
+export const imagePopoverImg = document.getElementById("imagePopoverImg") as HTMLImageElement;
 
 declare var openChannelsFromURLArray: string[];
 declare var $folder: string;
@@ -48,6 +51,10 @@ declare var hotChannels: string[];
 
 if (dev)
 {
+	// settings.fetch.numberOfEntries1stPreload = 3; // max 50
+	// settings.fetch.numberOfEntries2ndPreload = 0; // max 50
+	// settings.fetch.numbersOfCommentsToLoad = 1 // max 50
+
 	// dev settings
 	// settings.css.main.channelStats = "show";
 	// settings.rightClickOnUsernameCopiesToClipboard = true;
@@ -118,6 +125,7 @@ export const sounds: T.Sounds =
 
 
 declare var Split: any;
+
 declare global 
 {
 	interface Window
@@ -219,9 +227,7 @@ document.addEventListener('visibilitychange', function ()
 
 
 
-// split gutters
 Split({
-
 	columnGutters: [{
 		track: 1,
 		element: document.querySelector('.gutter-column-1'),
@@ -237,23 +243,6 @@ Split({
 		element: document.querySelector('.gutter-row-3'),
 	}]
 });
-// rowMinSize: 80,
-// rowMaxSize: 80,
-// columnMinSize: 303,
-// columnMaxSize: 303,
-
-// columnMinSizes: [{
-// 	[1]: 300,
-// }],
-// columnMaxSizes: [{
-// 	[1]: 400,
-// }],
-// rowMinSizes: [{
-// 	[1]: 300,
-// }],
-// rowMaxSizes: [{
-// 	[1]: 400,
-// }],
 
 
 
@@ -280,6 +269,10 @@ window.youtubeswitch = function ()
 	const nextIndex = (currentIndex + 1) % array.length;
 	main.dataset.youtubePlayer = array[nextIndex];
 }
+
+
+
+
 
 
 window.spotifyswitch = function ()
@@ -328,8 +321,6 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 
 
 
-
-
 	// OKNO DIALOGOWE WYBORU KANAŁÓW
 	(document.querySelector("#showChannelDialogButton") as HTMLButtonElement).addEventListener("click", function (e: MouseEvent)
 	{
@@ -353,13 +344,11 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 	{
 		let target = e.target as HTMLElement;
 
-		// if (popoverSupported && target.matches("img.avatar_img"))
-		// {
-		//  const popover = target.closest("div.avatar_popover") as HTMLElement;
-		// 	const popover = target.nextElementSibling as HTMLElement;
-		// 	popover.showPopover();
-		// }
 
+
+
+
+		// HIGLIGHT QUICK
 		if (settings.highlightQuick && target.closest("article.messageArticle[data-entry-id]"))
 		{
 			const messageArticle = target.closest(`.messageArticle[data-entry-id]`) as HTMLElement;
@@ -381,6 +370,8 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 					ch.mouseOutAddEventListenerRemoveHighlightQuick(messageArticle);
 				}
 			}
+
+			return true;
 		}
 	});
 
@@ -589,19 +580,87 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 
 
 
-	/* click - KLIKNIĘCIE  NA STRONIE */
-	document.body.addEventListener("click", async function (e: MouseEvent): Promise<boolean>
+
+
+
+
+
+
+
+	/* CLIK + DOUBLECLICK - KLIKNIĘCIA */
+
+
+	let clickDoubleClickTimer = null;
+
+
+	// dbclick - DOUBLE CLICK - HIGHLIGHT - pokazuje wybraną DYSKUSJĘ po kliknięciu na wpis lub komentarz
+	document.body.addEventListener('dblclick', function (e: MouseEvent)
 	{
 		let target = e.target as HTMLElement;
 
 		// OBRAZEK WE WPISIE/KOMENTARZU
 		if (target.tagName === 'IMG' && target.classList.contains('entryImage'))
 		{
-			const entryImage = target;
 			e.preventDefault();
-			openImageURLInNewWindow({ src: entryImage.dataset.full, width: entryImage.dataset.width, height: entryImage.dataset.height });
-			return true;
+
+			// DOUBLECLICK DEBOUNCE
+			if (clickDoubleClickTimer !== null)
+			{
+				clearTimeout(clickDoubleClickTimer);
+				clickDoubleClickTimer = null;
+				openImageURLInNewWindow({ src: target.dataset.full, width: target.dataset.width, height: target.dataset.height });
+			}
 		}
+
+		else if (settings.discussionView) 
+		{
+			let messageArticle = target.closest(".messageArticle[data-entry-id]") as HTMLElement;
+			if (messageArticle)
+			{
+				const ChannelObject = openedChannels.get(messageArticle.dataset.channel);
+				const channelFeed = ChannelObject.elements.channelFeed;
+				const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
+
+				// USUWAMY DISCUSSION VIEW
+				if (head.querySelector(`style[data-fn="discussionView"][data-channel="${ChannelObject.name}"]`))
+				{
+					fn.removeClass(`.channelFeed[data-channel="${ChannelObject.name}"] .messageArticle[data-entry-id="${MessageObject.entry_id}"].discussionView`, "discussionView");
+					ch.discussionViewOFF(ChannelObject, MessageObject);
+				}
+				// DODAJEMY DISCUSSION VIEW
+				else
+				{
+					messageArticle.classList.add("discussionView");
+					ch.discussionViewON(ChannelObject, MessageObject);
+				}
+			}
+		}
+	});
+
+	/* click - KLIKNIĘCIE  NA STRONIE */
+	document.body.addEventListener("click", async function (e: MouseEvent): Promise<boolean>
+	{
+		let target = e.target as HTMLElement;
+
+		// OBRAZEK WE WPISIE/KOMENTARZU
+		if (popoverSupported && target.matches("article.messageArticle a.entryImageContainer img.entryImage"))
+		{
+			e.preventDefault();
+			const entryImage = target;
+			imagePopoverImg.src = entryImage.dataset.full;
+			imagePopover.style.setProperty('--_imagePopoverWidth', `"${entryImage.dataset.width}px"`);		// var(--_imagePopoverWidth) = "12px"
+			imagePopover.style.setProperty('--_imagePopoverHeight', `"${entryImage.dataset.height}px"`);	// var(--_imagePopoverHeight) = "12px"
+
+			// DOUBLECLICK DEBOUNCE
+			if (clickDoubleClickTimer !== null) return;
+			clickDoubleClickTimer = setTimeout(function ()
+			{
+				imagePopover.showPopover();
+				clickDoubleClickTimer = null;
+				return true;
+			}, 600);
+		}
+
 
 
 
@@ -641,15 +700,11 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 		}
 
 
-		/* PRZYCISK YOUTUBE */
+		/* PRZYCISK YOUTUBE W WIADOMOŚCI*/
 		if (settings.leftClickOnYouTubeLoadsToIframe && target.tagName === "A" && target.classList.contains("entryMediaEmbedYouTube"))
 		{
 			e.preventDefault();
-			let embedVideoId = fn.getEmbedVideoIDCodeFromYouTubeURL((target as HTMLAnchorElement).href)
-			if (embedVideoId && typeof embedVideoId === "string")
-			{
-				youtubeIframe.src = `https://www.youtube.com/embed/${embedVideoId}?autoplay=1&mute=0&start=0`;
-			}
+			playYouTube(fn.getEmbedVideoIDCodeFromYouTubeURL((target as HTMLAnchorElement).href))
 			return true;
 		}
 
@@ -796,13 +851,80 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 			// }
 		}
 	}
+
+
+	let input = document.getElementById("test") as HTMLInputElement;
+
+	// back button pressed on mobile (1.st event)
+	window.addEventListener('popstate', function (e: CustomEvent)
+	{
+		// back button pressed on mobile while in discussion view - discussion view OFF
+		if (e.isTrusted === true && !e.detail) // e.isTrusted == true dla domyslnego popstate / false dla invoked by script
+		{
+			const activeChannel = activeChannels[0];
+			if (activeChannel && activeChannel.discussionViewEntryId)
+			{
+				ch.discussionViewOFF(activeChannel);
+				activeChannel.elements?.newMessageTextarea?.blur();
+			}
+		}
+	});
+
+	// back button pressed on mobile (2nd event sometimes)
+	// event dispatched only on real user hashchange
+	//window.addEventListener('ffffhashchange', function (e: HashChangeEvent)
+	//{
+
+	// let oldURL = new URL(e.oldURL);
+	// let newURL = new URL(e.newURL);
+
+	// // back button pressed on mobile while in discussion view 
+	// if (oldURL.hash && !newURL.hash)
+	// {
+	// }
+	//});
+
+	if ("virtualKeyboard" in navigator)
+	{
+		// https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API
+		(navigator.virtualKeyboard as any).overlaysContent = true;
+		(navigator.virtualKeyboard as any).addEventListener("geometrychange", (e) =>
+		{
+			const { x, y, width, height, bottom, top } = (e.target as any).boundingRect;
+			if (input) input.value = `x: ${x}, y: ${y}, width: ${width}, height: ${height}, bottom: ${bottom}, top: ${top}`;
+			if (height > 0)
+			{
+				root.dataset.virtualKeyboard = "1"; 								// <html data-virtual-keyboard="1">
+				body.style.setProperty("--virtualKeyboardHeight", `${height}px`); 	// var(--virtualKeyboardHeight) = 400px
+			}
+			else
+			{
+				activeChannels[0]?.elements?.newMessageTextarea?.blur();
+				delete root.dataset.virtualKeyboard;
+				body.style.setProperty("--virtualKeyboardHeight", "0px");
+			}
+
+		});
+	}
+
+
+
 	document.body.addEventListener('input', function (e: InputEvent)
 	{
-		if ((e.target as HTMLElement).classList.contains("newMessageTextarea") && e.inputType == "deleteContentBackward")
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
 		{
-			ifCursorIsAfterUsernameRemoveUsernameElement();
-			// e.inputType // deleteContentBackward https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/inputType
+			// if(input) input.value = `input | inputType: ${e.inputType}`;
+			// e.inputType == "deleteByCut" // wycinanie
+			// e.inputType == "insertText" // wpisywanie
+			// e.inputType == "insertParagraph" // "ENTER"
+			// e.inputType == "insertFromPaste" // wklejanie
+			if (e.inputType == "deleteContentBackward")
+			{
+				ifCursorIsAfterUsernameRemoveUsernameElement();
+				// e.inputType // deleteContentBackward https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/inputType
+			}
 		}
+
 	});
 
 	document.body.addEventListener('compositionstart', function (e: CompositionEvent)
@@ -819,17 +941,24 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 			// alert(`compositionupdate | length: ${(e.target as HTMLElement).textContent.length} | e.inputType: ${e.data}`);
 		}
 	});
-	document.body.addEventListener('keydown', function (e: InputEvent)
+
+	document.body.addEventListener('keydown', function (e: KeyboardEvent)
 	{
+		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
 		{
-			// alert(`keydown | code: ${e.code} | isComposing: ${e.isComposing} | e.key: ${e.key} `);
+			// if(input) input.value = `keydown | code: ${e.code} | key: ${e.key}`;
 		}
+
+	});
+	document.body.addEventListener('keypress', function (e: KeyboardEvent)
+	{
+		// if(input) input.value = `keypress | code: ${e.code} | key: ${e.key}`;
 	});
 	document.body.addEventListener('keyup', function (e: KeyboardEvent)
 	{
 		if ((e.target as HTMLElement).classList.contains("newMessageTextarea"))
 		{
-			// alert(`keyup | code: ${e.code} | isComposing: ${e.isComposing} | e.key: ${e.key} `);
+			// if(input) input.value = `keyup | charCode: ${e.charCode} | code: ${e.code} | key: ${e.key} | isComp: ${e.isComposing}`;
 		}
 	});
 
@@ -864,7 +993,7 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 					ch.removeReplyEntryID(ChannelObject);
 				}
 				// NIE USUNIĘTO TREŚCI, SPRAWDZAMY FLAGI
-				else
+				else if (newMessageTextarea.innerText != "" && newMessageTextarea.innerText != " ")
 				{
 					ch.setReplyEntryID(ChannelObject);
 				}
@@ -893,34 +1022,6 @@ document.addEventListener('DOMContentLoaded', (DOMContentLoadedEvent) =>
 
 
 
-	// dbclick - DOUBLE CLICK - HIGHLIGHT - pokazuje wybraną DYSKUSJĘ po kliknięciu na wpis lub komentarz
-	document.body.addEventListener('dblclick', function (e: MouseEvent)
-	{
-		if (settings.discussionView)
-		{
-			let target = e.target as HTMLElement;
-			let messageArticle = target.closest(".messageArticle[data-entry-id]") as HTMLElement;
-			if (messageArticle)
-			{
-				const ChannelObject = openedChannels.get(messageArticle.dataset.channel);
-				const channelFeed = ChannelObject.elements.channelFeed;
-				const MessageObject = messageArticle.dataset.resource === "entry" ? ChannelObject.entries.get(parseInt(messageArticle.dataset.id)) : ChannelObject.comments.get(parseInt(messageArticle.dataset.id));
-
-				// USUWAMY DISCUSSION VIEW
-				if (head.querySelector(`style[data-fn="discussionView"][data-channel="${ChannelObject.name}"]`))
-				{
-					fn.removeClass(`.channelFeed[data-channel="${ChannelObject.name}"] .messageArticle[data-entry-id="${MessageObject.entry_id}"].discussionView`, "discussionView");
-					ch.discussionViewOFF(ChannelObject, MessageObject);
-				}
-				// DODAJEMY DISCUSSION VIEW
-				else
-				{
-					messageArticle.classList.add("discussionView");
-					ch.discussionViewON(ChannelObject, MessageObject);
-				}
-			}
-		}
-	});
 
 });
 
@@ -981,6 +1082,11 @@ showLoginQRCodeButton.addEventListener("click", async function (e: MouseEvent)
 
 
 
+
+
+
+
+
 function drawQR(qrObject: any, scale: number, padding: number, lightColor: string, darkColor: string, canvas: HTMLCanvasElement)
 {
 	if (scale <= 0 || padding < 0)
@@ -1019,5 +1125,36 @@ function drawQR(qrObject: any, scale: number, padding: number, lightColor: strin
 		}
 	}
 })();
+
+
+
+
+
+/* YOUTUBE */
+
+
+function playYouTube(youTubeEmbedIDCode: string): void
+{
+	if (!youTubeEmbedIDCode || typeof youTubeEmbedIDCode != "string") return;
+
+	youtubeIframe.src = `https://www.youtube.com/embed/${youTubeEmbedIDCode}?autoplay=1&mute=0&start=0`;
+	document.body.dataset.youtube = "visible";
+	ytDefaultButton.dataset.state = "playing";
+	ytToggleButton.dataset.visibility = "visible";
+}
+
+document.body.addEventListener("click", function (e: MouseEvent): void
+{
+	const target = e.target as HTMLElement;
+	if (target.matches(".ytPlayEmbedButton"))
+	{
+		const youTubeEmbedIDCode = target.dataset.video;
+		if (youTubeEmbedIDCode)
+		{
+			playYouTube(youTubeEmbedIDCode);
+		}
+	}
+
+});
 
 

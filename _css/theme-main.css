@@ -1,5 +1,22 @@
 :root
 {
+	/* MANIFEST.WEBMANIFEST COLORS */
+	--manifest_background_color: #1A1E23;
+	--manifest_theme_color: #2B2F31;
+
+	/* WINDOW ELEMENTS */
+	/* --draggableTitleBarBackground: color-mix(in srgb, transparent 90%, var(--accentColor)); */
+	--draggableTitleBarBackground: var(--manifest_theme_color);
+	--draggableTitleBarBottomBorder: 1px transparent;
+
+
+	/* TOP NAV */
+	--topNavHeightDefault: 37px;
+	--topNavHeight: var(--topNavHeightDefault);
+
+
+
+
 	--chatInnerPadding: 220px 16px 16px 16px;
 	--chatBaseFontSize: 16px;
 	--accentColor: rgb(60, 136, 218);
@@ -28,7 +45,7 @@
 	--channelTabBarFontSize: var(--messageFontSize);
 
 	/* messageArticle */
-	--messageColor: rgb(180 180 180);
+	--messageColor: rgb(218, 218, 218);
 
 	--messageBackgroundColor: rgb(44, 44, 44);
 	--messageBackgroundColor: color-mix(in srgb, transparent 100%, var(--chatBackground));
@@ -45,10 +62,10 @@
 
 	--messageBorderRightWidth: 5px;
 
-	--messageEntryBorderRightColor: goldenrod;
-	--messageCommentBorderRightColor: var(--messageBorderColor);
+	--messageEntryBorderColor: rgb(117, 117, 117);
+	--messageCommentBorderColor: var(--messageBorderColor);
 	--messageBorderRadius: var(--mediumBorderRadius);
-
+	--messageHighlightQuickColor: goldenrod;
 
 	--messageAHrefChannelColor: rgb(60, 136, 218);
 	--messageAHrefChannelBackgroundColor: rgb(38, 42, 46);
@@ -77,11 +94,33 @@
 
 	/* GUTTERS */
 	--gutterBackground: transparent;
-
 	--successColor: rgb(49, 163, 59);
 	--errorColor: rgb(211, 77, 37);
 
+
+	/* YOUTUBE */
+	--youtubeColor: rgb(185 1 1 / 1);
+	--youtubeTextColor: rgb(255 255 255 / 1);
+	--youtubeCompletedColor: rgb(10 10 10 /1);
+	--youtubeScheduledColor: rgba(94, 94, 94, 0.1);
+
+
+	/* SIDEBAR */
+	--sidebarBorderColor: rgb(180 180 180);
+	--sidebarAccentColor: rgb(28 140 231);
+	--sidebarBackgroundColor: rgb(15 19 24);
+	--sidebarBackgroundActiveColor: rgb(30 35 45);
+	--sidebarTextColor: rgb(88 102 121);
+	--sidebarTextActiveColor: rgb(255 255 255);
+
+	--sidebarHoverWidth: 250px;
+	--sidebarOpenWidth: 280px;
+	--sidebarMiniWidth: 50px;
+
 }
+
+
+
 
 
 :root [data-night-mode="0"]

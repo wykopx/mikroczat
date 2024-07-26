@@ -4,7 +4,7 @@
 	flex-direction: column; */
 	display: grid;
 	/* grid-template-rows: auto auto auto auto; */
-	grid-template-rows: auto auto max-content;
+	grid-template-rows: auto 1fr;
 
 	gap: 0;
 	overflow-x: hidden;
@@ -186,6 +186,28 @@
 
 #chatArea #mikrochatFeeds .channelFeed
 {
+	& & *
+	{
+		display: block flow;
+	}
+
+	& *::spelling-error
+	{
+		background-color: red;
+		color: white;
+	}
+
+	& > div
+	{
+		/* display: contents; */
+
+		& > span
+		{
+			/* display: contents; */
+		}
+	}
+
+
 	.newMessageTextareaContainer
 	{
 		grid-row: 3;
@@ -198,7 +220,8 @@
 
 		@media screen and (max-width: 777px)
 		{
-			margin-bottom: 7px;
+			margin: var(--gutterWidth);
+			margin-top: 0px;
 		}
 
 		/* border-top: 1px solid rgb(0, 0, 0); */
@@ -229,151 +252,7 @@
 		}
 
 
-		/* OKNO PISANIA NOWEJ WIADOMOŚCI */
-		& .newMessageTextarea
-		{
-			grid-row: 2;
-			display: block flow;
-			width: 100%;
 
-			min-height: var(--_newMessageHeight);
-			height: max-content;
-
-
-			max-height: 40dvh;
-			margin-top: 0px;
-			padding: 10px;
-
-			@media screen and (min-width: 777px)
-			{
-				max-height: 400px;
-				padding-right: 127px;
-			}
-
-
-
-			overflow-y: scroll;
-			user-select: text;
-			cursor: text;
-
-			border-radius: var(--smallBorderRadius) 0px 0px var(--smallBorderRadius);
-
-			direction: ltr;
-			font: small / 1.5 Arial,
-			Helvetica,
-			sans-serif;
-			letter-spacing: normal;
-			scrollbar-width: none;
-
-			white-space: pre-wrap;
-			word-break: break-word;
-
-			background-color: rgb(44, 44, 44);
-			color: rgb(153, 153, 153);
-			font-size: var(--newMessageTextareaFontSize);
-
-			&:hover,
-			&:focus,
-			&:active
-			{
-				background-color: rgba(65, 66, 68, 0.8);
-				color: rgb(201, 209, 224);
-				border: none;
-				outline: none;
-			}
-
-
-
-
-			&::after
-			{
-				content: "#" var(--channel);
-
-				position: absolute;
-
-				display: block flex;
-				flex-direction: row;
-				align-items: center;
-				justify-content: center;
-
-				width: max-content;
-				height: max-content;
-				max-height: 23px;
-				margin: 0px;
-				padding: 0px 10px;
-
-				cursor: default;
-				color: rgb(255 255 255 / 0.1);
-				border-radius: var(--smallBorderRadius);
-				border: 1px solid rgb(255 255 255 / 0.1);
-				transition: all 0.2s linear;
-
-				right: 9px;
-				bottom: 9px;
-			}
-
-
-			&:empty::after
-			{
-				opacity: 1;
-
-				color: var(--tagChannelColor);
-				border: 1px solid var(--tagChannelColor);
-				background-color: color-mix(in srgb, var(--whitish) 80%, var(--tagChannelColor) 20%);
-			}
-
-			@media screen and (min-width: 777px)
-			{
-				&::after
-				{
-					opacity: 1;
-				}
-
-				&:empty::after
-				{
-					color: rgb(255 255 255 / 0.1);
-					border: 1px solid rgb(255 255 255 / 0.1);
-					background-color: transparent;
-				}
-
-				&:not(:empty):focus::after
-				{
-					opacity: 1;
-					color: var(--tagChannelColor);
-					border: 1px solid var(--tagChannelColor);
-					background-color: color-mix(in srgb, var(--whitish) 80%, var(--tagChannelColor) 20%);
-				}
-			}
-
-
-
-
-			.newMessageTextareaContainer[data-channel^="x"] &::after
-			{
-				display: none;
-			}
-
-			& & *
-			{
-				display: block flow;
-			}
-
-			& *::spelling-error
-			{
-				background-color: red;
-				color: white;
-			}
-
-			& > div
-			{
-				/* display: contents; */
-
-				& > span
-				{
-					/* display: contents; */
-				}
-			}
-		}
 
 
 
@@ -481,6 +360,143 @@
 			color: var(--blockedColor);
 		}
 	}
+}
+
+
+/* OKNO PISANIA NOWEJ WIADOMOŚCI */
+#chatArea #mikrochatFeeds .channelFeed
+{
+	.newMessageTextarea
+	{
+		display: block flow;
+		width: 100%;
+
+		min-height: var(--_newMessageHeight);
+		height: max-content;
+
+
+		max-height: 40dvh;
+		margin-top: 0px;
+		padding: 10px;
+
+		@media screen and (min-width: 777px)
+		{
+			max-height: 400px;
+			padding-right: 127px;
+		}
+
+
+
+		overflow-y: scroll;
+		user-select: text;
+		cursor: text;
+
+		border-radius: var(--smallBorderRadius) 0px 0px var(--smallBorderRadius);
+
+		direction: ltr;
+		font: small / 1.5 Arial,
+		Helvetica,
+		sans-serif;
+		letter-spacing: normal;
+		scrollbar-width: none;
+
+		white-space: pre-wrap;
+		word-break: break-word;
+
+		background-color: rgb(44, 44, 44);
+		color: rgb(153, 153, 153);
+		font-size: var(--newMessageTextareaFontSize);
+	}
+
+	.newMessageTextarea:hover,
+	.newMessageTextarea:focus,
+	.newMessageTextarea:active
+	{
+		background-color: rgba(65, 66, 68, 0.8);
+		color: rgb(201, 209, 224);
+		border: none;
+		outline: none;
+	}
+
+
+	&[data-type="tag"] .newMessageTextarea::after
+	{
+		content: "#" var(--channel);
+
+		position: absolute;
+
+		display: block flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+
+		width: max-content;
+		height: max-content;
+		max-height: 23px;
+		margin: 0px;
+		padding: 0px 10px;
+
+		cursor: default;
+		color: rgb(255 255 255 / 0.1);
+		border-radius: var(--smallBorderRadius);
+		border: 1px solid rgb(255 255 255 / 0.1);
+		transition: all 0.2s linear;
+
+		right: 9px;
+		bottom: 9px;
+	}
+
+	&[data-type="tag"]:is([data-channel="x"],
+		[data-channel="observed"],
+		[data-channel="x_plus"],
+		[data-channel="x_minus"],
+		[data-channel="observed_users"],
+		[data-channel="observed_tags"]) .newMessageTextarea::after
+	{
+		content: none;
+	}
+
+	&[data-type="tag"] .newMessageTextarea:empty::after
+	{
+		opacity: 1;
+
+		color: var(--tagChannelColor);
+		border: 1px solid var(--tagChannelColor);
+		background-color: color-mix(in srgb, var(--whitish) 80%, var(--tagChannelColor) 20%);
+	}
+
+	@media screen and (min-width: 777px)
+	{
+		&[data-type="tag"] .newMessageTextarea::after
+		{
+			opacity: 1;
+		}
+
+		&[data-type="tag"] .newMessageTextarea:empty::after
+		{
+			color: rgb(255 255 255 / 0.1);
+			border: 1px solid rgb(255 255 255 / 0.1);
+			background-color: transparent;
+		}
+
+		&[data-type="tag"] .newMessageTextarea:not(:empty):focus::after
+		{
+			opacity: 1;
+			color: var(--tagChannelColor);
+			border: 1px solid var(--tagChannelColor);
+			background-color: color-mix(in srgb, var(--whitish) 80%, var(--tagChannelColor) 20%);
+		}
+	}
+
+
+
+
+	&[data-type="tag"] .newMessageTextareaContainer[data-channel^="x"] &::after,
+	&[data-type="tag"] .newMessageTextareaContainer[data-channel^="observed"] &::after
+	{
+		display: none;
+	}
+
 
 }
 
@@ -568,7 +584,7 @@ main#main
 		background-color: rgb(45 47 49);
 		width: 22px;
 		height: 22px;
-		pointer-events: all;
+		pointer-events: auto;
 		border: 1px solid #292929;
 		border-radius: 50%;
 		justify-content: center;
@@ -659,13 +675,26 @@ main#main
 		justify-content: center;
 		position: absolute;
 
-
 		pointer-events: none;
 
-		--_transition-property: scale, opacity, top, right;
-		--_transition-duration: 0.4s, 0.9s, 0.1s, 0.1s;
+		& img
+		{
+			pointer-events: none;
+		}
+
+		--_transition-property: scale,
+		opacity,
+		top,
+		right;
+		--_transition-duration: 0.4s,
+		0.9s,
+		0.1s,
+		0.1s;
 		--_transition: linear;
-		--_transition-delay: 0.1s, 0.6s, 0, 0;
+		--_transition-delay: 0.1s,
+		0.6s,
+		0,
+		0;
 		transition: var(--_transition);
 		transition-duration: var(--_transition-duration);
 		transition-delay: var(--transition-delay);
@@ -687,7 +716,7 @@ main#main
 		opacity: 1;
 		scale: 0.65;
 		--_transition-delay: 0s, 0.6s, 0.1s, 0.1s;
-		pointer-events: visible;
+		pointer-events: all;
 	}
 
 	&[data-channel-stats="fetching"] #chatArea:has(.channelFeed[data-loading="true"]) #mikrochatFeeds .channelFeed .loadingData,
@@ -698,7 +727,7 @@ main#main
 		scale: 1;
 		--_transition-duration: 0.2s, 0.9s, 0.2s, 0.2s;
 		--_transition-delay: 0.2s, 0s, 0s, 0s;
-		pointer-events: visible;
+		pointer-events: all;
 
 		top: 27px;
 		right: 27px;
@@ -714,7 +743,7 @@ main#main
 		visibility: visible;
 		opacity: 1;
 		scale: 1;
-		pointer-events: visible;
+		pointer-events: all;
 	}
 
 
@@ -736,7 +765,13 @@ main#main
 	color: rgb(255 255 255 / 1);
 }
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .loadOlderMessagesButton
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .loadOlderMessagesButton
+{
+	display: none;
+}
+
+/* tymczasowo wyłączamy na priv roomach */
+#chatArea #mikrochatFeeds .channelFeed[data-type="pm"] .loadOlderMessagesButton
 {
 	display: none;
 }
@@ -774,43 +809,53 @@ main#main
 	background-color: rgb(128, 128, 128, 0.2);
 }
 
+
+
 #chatArea #mikrochatFeeds .channelFeed .messageArticle.highlightQuick
 {
-	background-color: color-mix(in srgb, transparent 95%, var(--messageEntryBorderRightColor));
-	border-bottom: 1px solid var(--messageEntryBorderRightColor);
+	background-color: color-mix(in srgb, transparent 95%, var(--messageHighlightQuickColor));
+	border-right: 1px solid var(--messageHighlightQuickColor);
+	border-left: 1px solid var(--messageHighlightQuickColor);
 }
 
+#chatArea #mikrochatFeeds .channelFeed .messageArticle.highlightQuick.entryMain
+{
+	border-top: 1px solid var(--messageHighlightQuickColor);
+}
 
-
+#chatArea #mikrochatFeeds .channelFeed .messageArticle.highlightQuick.comment
+{}
 
 /* DISCUSSION VIEW */
 #chatArea #mikrochatFeeds .channelFeed .channelFeedInfo.discussionViewInfo
 {
 	display: none;
 	order: 10000000000;
-	border: 1px solid rgb(105 143 223);
+	border: 1px solid var(--_idClr);
 }
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messagesContainer
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messagesContainer
 {}
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messageArticle
+
+
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messageArticle
 {
 	background-color: color-mix(in srgb, var(--messageBackgroundColor), var(--_idClr) 4%);
-	border-right-color: color-mix(in srgb, transparent, var(--_idClr) 12%);
+	border-left-color: color-mix(in srgb, transparent, var(--_idClr) 12%);
 }
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messageArticle.entry
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messageArticle.entryMain
 {
-	border-right-color: color-mix(in srgb, transparent, var(--_idClr) 62%);
+	border-left-color: color-mix(in srgb, transparent, var(--_idClr) 62%);
 }
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messageArticle.comment
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messageArticle.comment
 {
-	border-right-color: color-mix(in srgb, transparent, var(--_idClr) 12%);
+	border-left-color: color-mix(in srgb, transparent, var(--_idClr) 12%);
 }
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .channelFeedInfo.discussionViewInfo
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .channelFeedInfo.discussionViewInfo
 {
 	display: block flex;
 	text-align: center;
@@ -819,14 +864,14 @@ main#main
 
 
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messageArticle.discussionView
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messageArticle.discussionView
 {
 	animation: highlightBrightness14 1s linear;
 }
 
 
 
-#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionView) .messageArticle.discussionView.entry
+#chatArea #mikrochatFeeds .channelFeed:has(.messageArticle.discussionViewFocus) .messageArticle.discussionView.entryMain
 {
 	animation: highlightBorderColor 1s linear;
 }

@@ -1,0 +1,296 @@
+:root
+{
+	--gutterWidth: 5px;
+	--gutterWidth: 16px;
+}
+
+/* 
+	spotify-small 308px 80px 	// 16:9 308 x 173
+	spotify-large 225px 152px	// 16:9 225 x 125
+	youtube: 400px 225px
+*/
+
+main#main
+{
+	display: grid;
+	height: 100dvh;
+	width: 100dvw;
+	overflow: hidden;
+
+	row-gap: var(--gutterWidth);
+	column-gap: var(--gutterWidth);
+
+	padding-top: min(9px, var(--gutterWidth));
+	padding-right: var(--gutterWidth);
+	padding-bottom: var(--gutterWidth);
+	padding-left: var(--gutterWidth);
+}
+
+
+main#main > #spotifyPlayer,
+main#main > #leftHeader
+{
+	display: none;
+}
+
+main#main > #centerHeader
+{
+	grid-column: header-col;
+	grid-row: header-row;
+}
+
+main#main > #chatArea
+{
+	grid-column: chat-col;
+	grid-row: chat-row;
+}
+
+main#main > #rightPanelArea
+{
+	grid-column: right-col;
+	grid-row: right-row;
+	/* display: none !important; */
+}
+
+main#main > #mainAppFooter
+{
+	grid-column: footer-col;
+	grid-row: footer-row;
+	display: flex;
+	width: auto;
+
+
+	& #footerTipWrapper
+	{
+		min-width: -moz-fit-content;
+		min-width: -webkit-fill-available;
+		min-width: fit-content;
+		width: 1px;
+	}
+}
+
+
+
+
+
+
+body main#main > #ytPlayer
+{
+	display: none;
+}
+
+body[data-youtube-visibility="visible"] main#main > #ytPlayer
+{
+	display: block flex;
+}
+
+main#main > #ytPlayer
+{
+	grid-column: youtube-col;
+	grid-row: youtube-row;
+}
+
+
+
+
+
+
+body main#main
+{
+	--grid-col-right: 350px;
+	--grid-row-top: 230px;
+}
+
+
+/* 	
+	- YouTube: brak / PiP 
+	- Tag Cover: jest
+*/
+body[data-youtube-visibility="hidden"] main#main,
+body[data-youtube-visibility="pip"] main#main
+{
+	grid-template-columns: [header-col-start chat-col-start footer-col-start] 1fr [chat-col-end header-col-end footer-col-end right-col-start] var(--grid-col-right) [right-col-end];
+	grid-template-rows: [topLine header-row-start right-row-start] var(--grid-row-top) [header-row-end chat-row-start] 1fr [chat-row-end footer-row-start] 25px [right-row-end footer-row-end bottomLine];
+}
+
+body[data-youtube-visibility="hidden"] main#main > #ytPlayer,
+body[data-youtube-visibility="pip"] main#main > #ytPlayer
+{
+	display: none;
+}
+
+
+
+/* 	
+	- YouTube: brak / PiP 
+	- Tag Cover: brak
+*/
+body[data-youtube-visibility="hidden"] main#main:has(header#centerHeader[style="background-image: unset;"]),
+body[data-youtube-visibility="pip"] main#main:has(header#centerHeader[style="background-image: unset;"])
+{
+	grid-template-rows: [topLine chat-row-start right-row-start] 1fr [chat-row-end footer-row-start] 25px [right-row-end footer-row-end bottomLine];
+
+	& > #centerHeader
+	{
+		display: none;
+	}
+}
+
+
+/* 	- PC
+	- YouTube: jest 
+	- Tag Cover: jest
+*/
+
+
+body[data-youtube-visibility="visible"] main#main
+{
+	grid-template-columns: [header-col-start chat-col-start footer-col-start] 1fr [chat-col-end header-col-end footer-col-end youtube-col-start right-col-start] var(--grid-col-right) [youtube-col-end right-col-end];
+	grid-template-rows: [topLine header-row-start youtube-row-start] var(--grid-row-top) [youtube-row-end header-row-end chat-row-start right-row-start] 1fr [chat-row-end footer-row-start] 25px [right-row-end footer-row-end bottomLine];
+}
+
+/* 	- PC
+	- YouTube: jest 
+	- Tag Cover: brak
+*/
+body[data-youtube-visibility="visible"] main#main:has(header#centerHeader[style="background-image: unset;"])
+{
+	grid-template-rows: [topLine chat-row-start youtube-row-start] var(--grid-row-top) [youtube-row-end right-row-start] 1fr [chat-row-end footer-row-start] 25px [right-row-end footer-row-end bottomLine];
+
+	& > #centerHeader
+	{
+		display: none;
+	}
+}
+
+/* < 777 px hideonsmall */
+@media screen and (max-width: 777px)
+{
+	main#main
+	{
+		padding-top: 0px;
+		padding-right: 0px;
+		padding-bottom: 0px;
+		padding-left: 0px;
+		--gutterWidth: 5px;
+	}
+
+	main#main > #mainAppFooter,
+	main#main > #rightPanelArea,
+	main#main > #spotifyPlayer,
+	main#main > #leftHeader
+	{
+		display: none;
+	}
+
+	main#main > #chatArea,
+	main#main > #centerHeader,
+	main#main > #ytPlayer
+	{
+		width: 100dvw;
+	}
+
+	/* 	
+		- YouTube: brak / PiP 
+		- Tag Cover: jest
+	*/
+	body[data-youtube-visibility="hidden"] main#main,
+	body[data-youtube-visibility="pip"] main#main
+	{
+		grid-template-columns: [header-col-start chat-col-start footer-col-start] 1fr [header-col-end chat-col-end footer-col-end];
+		grid-template-rows: [topLine header-row-start] 36px [header-row-end chat-row-start] 1fr [chat-row-end bottomLine];
+	}
+
+
+	/* 	
+		- YouTube: brak / PiP 
+		- Tag Cover: brak
+	*/
+	body[data-youtube-visibility="hidden"] main#main:has(header#centerHeader[style="background-image: unset;"]),
+	body[data-youtube-visibility="pip"] main#main:has(header#centerHeader[style="background-image: unset;"])
+	{
+		grid-template-rows: [topLine chat-row-start] 1fr [chat-row-end bottomLine];
+	}
+
+
+	/* 	- PC small < 777
+		- YouTube: jest
+		- Tag Cover: brak
+	*/
+	body[data-youtube-visibility="visible"] main#main > #ytPlayer iframe
+	{
+		width: 100dvw;
+	}
+
+	body[data-youtube-visibility="visible"] main#main:has(header#centerHeader[style="background-image: unset;"])
+	{
+		grid-template-rows: [topLine youtube-row-start] auto [youtube-row-end chat-row-start] 1fr [chat-row-end bottomLine];
+	}
+
+
+	/* 	
+		- YouTube: jest
+		- Tag Cover: jest
+	*/
+	body[data-youtube-visibility="visible"] main#main
+	{
+		grid-template-rows: [topLine youtube-row-start] auto [youtube-row-end chat-row-start] 1fr [chat-row-end header-row-start] 36px [header-row-end bottomLine];
+		grid-template-columns: [header-col-start youtube-col-start chat-col-start footer-col-start right-col-start] 1fr [chat-col-end header-col-end footer-col-end youtube-col-end right-col-end];
+	}
+
+
+}
+
+/* MOBILE < 777 px hideonmobile */
+@media screen and (max-width: 777px) and (pointer: coarse)
+{
+	:root
+	{
+		--gutterWidth: 3px;
+	}
+
+	/* 	
+		- YouTube: jest
+		- Tag Cover: jest
+	*/
+	body[data-youtube-visibility="visible"] main#main
+	{
+		grid-template-rows: [topLine header-row-start] 36px [header-row-end chat-row-start] 1fr [chat-row-end youtube-row-start] auto [youtube-row-end bottomLine]
+	}
+
+	/* 	- mobile < 777
+		- YouTube: jest
+		- Tag Cover: brak
+	*/
+	body[data-youtube-visibility="visible"] main#main:has(header#centerHeader[style="background-image: unset;"])
+	{
+		grid-template-rows: [topLine chat-row-start] 1fr [chat-row-end youtube-row-start] auto [youtube-row-end bottomLine]
+	}
+
+	/* @media pointer: (fine/coarse/none) hover: (hover/none) */
+	/* open virtual keyboard on mobile: @media (env(keyboard-inset-height) >=1px) */
+	/* html[data-device="mobile"] main#main:has(#ytPlayer > iframe#ytIframe[src^="http"]) */
+	html main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus) > #ytPlayer
+	{
+		display: none !important;
+	}
+
+	/* html[data-virtual-keyboard="1"] main#main > #ytPlayer:has(#ytIframe[src^="http"]) */
+	html[data-virtual-keyboard="1"] body[data-youtube-visibility="visible"] main#main > #ytPlayer
+	{
+		height: var(--virtualKeyboardHeight, 300px);
+	}
+
+	/* html[data-virtual-keyboard="1"] main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus) > #ytPlayer:has(#ytIframe[src^="http"]) */
+	html[data-virtual-keyboard="1"] body[data-youtube-visibility="visible"] main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus) > #ytPlayer:has(#ytIframe[src^="http"])
+	{
+		display: block flex !important;
+	}
+
+	/* html[data-virtual-keyboard="1"] main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus):not(:has(#ytIframe[src^="http"])) */
+	html[data-virtual-keyboard="1"] body[data-youtube-visibility="hidden"] main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus),
+	html[data-virtual-keyboard="1"] body[data-youtube-visibility="pip"] main#main:has(#chatArea #mikrochatFeeds .channelFeed .newMessageTextareaContainer .newMessageTextarea:focus)
+	{
+		margin-bottom: var(--virtualKeyboardHeight, 300px);
+	}
+}
